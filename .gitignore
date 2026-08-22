@@ -1,0 +1,34 @@
+
+# IDE
+# debug
+# dependencies
+# env files
+# misc
+# next.js
+# production
+# typescript
+# uploads (local storage)
+*.pem
+*.swo
+*.swp
+*.tsbuildinfo
+.DS_Store
+.env
+.env.development.local
+.env.local
+.env.production.local
+.env.test.local
+.idea/
+.pnp.js
+.vscode/
+/.next/
+/.pnp
+/build
+/node_modules
+/out/
+/public/uploads/
+Thumbs.db
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
