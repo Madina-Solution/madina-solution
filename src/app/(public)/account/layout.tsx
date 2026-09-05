@@ -122,28 +122,39 @@ export default function AccountLayout({
           </nav>
 
           {/* Mobile Nav */}
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide lg:hidden">
-            {NAV_ITEMS.map((item) => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-white"
-                      : "bg-dark-100 text-dark-600 hover:bg-dark-200"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+          <div className="relative -mx-4 lg:hidden">
+            <div className="flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-hide">
+              {NAV_ITEMS.map((item) => {
+                const isActive = item.exact
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-white"
+                        : "bg-dark-100 text-dark-600 hover:bg-dark-200"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+              <button
+                onClick={handleLogout}
+                className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
+              >
+                <LogOut className="h-4 w-4" />
+                Keluar
+              </button>
+            </div>
+            {/* Fade hint on the right edge so it's visually clear the row scrolls, instead of looking like the last item is cut off */}
+            <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white to-transparent" />
           </div>
 
           {/* Content */}

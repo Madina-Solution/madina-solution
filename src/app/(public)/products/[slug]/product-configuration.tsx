@@ -10,7 +10,9 @@ import type { ProductOption } from "@/db/schema";
 import { calculateTotalPrice, validateConfiguration } from "@/lib/validations/product";
 import { useCart } from "@/lib/cart/cart-provider";
 import { useToast } from "@/components/ui/toast";
-import { ShoppingCart, Heart, Share2, Upload, Loader2, X } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-provider";
+import { useRouter } from "next/navigation";
+import { ShoppingCart, Heart, Share2, Upload, Loader2, X, Check } from "lucide-react";
 
 type Props = {
   productId: string;
@@ -49,6 +51,91 @@ export function ProductConfiguration({
   const [errors, setErrors] = React.useState<string[]>([]);
   const { addItem, openDrawer } = useCart();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Favorite (like) state — checks on mount whether this product is already
+  // in the logged-in user's favorites, so the heart reflects real state
+  // instead of always starting blank.
+  const [isFavorited, setIsFavorited] = React.useState(false);
+  const [favoriteId, setFavoriteId] = React.useState<string | null>(null);
+  const [favoriteLoading, setFavoriteLoading] = React.useState(false);
+  const [shareCopied, setShareCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    fetch("/api/account/favorites")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled || !data.success) return;
+        const match = (data.favorites as Array<{ id: string; productId: string }>).find((f) => f.productId === productId);
+        if (match) {
+          setIsFavorited(true);
+          setFavoriteId(match.id);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user, productId]);
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast({ type: "info", title: "Silakan login", description: "Login untuk menyimpan produk favorit." });
+      router.push("/login");
+      return;
+    }
+    setFavoriteLoading(true);
+    try {
+      if (isFavorited && favoriteId) {
+        const res = await fetch(`/api/account/favorites/${favoriteId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) {
+          setIsFavorited(false);
+          setFavoriteId(null);
+          toast({ type: "success", title: "Dihapus dari favorit" });
+        } else {
+          toast({ type: "error", title: data.error?.message || "Gagal menghapus favorit" });
+        }
+      } else {
+        const res = await fetch("/api/account/favorites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId }) });
+        const data = await res.json();
+        if (data.success) {
+          setIsFavorited(true);
+          toast({ type: "success", title: "Ditambahkan ke favorit" });
+        } else {
+          toast({ type: "error", title: data.error?.message || "Gagal menambahkan favorit" });
+        }
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan, coba lagi" });
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = { title: productName, text: `Lihat ${productName} di Madina Solution`, url };
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User cancelled the native share sheet — not an error, do nothing.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      toast({ type: "success", title: "Link disalin ke clipboard" });
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      toast({ type: "error", title: "Gagal menyalin link" });
+    }
+  };
 
   // Sort options by displayOrder
   const sortedOptions = React.useMemo(() => {
@@ -395,11 +482,11 @@ export function ProductConfiguration({
           <ShoppingCart className="mr-2 h-5 w-5" />
           Tambah ke Keranjang
         </Button>
-        <Button type="button" size="lg" variant="outline" aria-label="Favorit">
-          <Heart className="h-5 w-5" />
+        <Button type="button" size="lg" variant="outline" aria-label={isFavorited ? "Hapus dari favorit" : "Tambah ke favorit"} aria-pressed={isFavorited} onClick={() => void handleToggleFavorite()} disabled={favoriteLoading}>
+          {favoriteLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Heart className={cn("h-5 w-5", isFavorited && "fill-primary text-primary")} />}
         </Button>
-        <Button type="button" size="lg" variant="outline" aria-label="Bagikan">
-          <Share2 className="h-5 w-5" />
+        <Button type="button" size="lg" variant="outline" aria-label="Bagikan produk ini" onClick={() => void handleShare()}>
+          {shareCopied ? <Check className="h-5 w-5 text-green-600" /> : <Share2 className="h-5 w-5" />}
         </Button>
       </div>
     </div>
