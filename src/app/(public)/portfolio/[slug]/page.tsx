@@ -42,13 +42,8 @@ export default async function PortfolioDetailPage({ params }: Props) {
       <BreadcrumbSchema items={[{ name: "Beranda", url: siteUrl }, { name: "Portfolio", url: `${siteUrl}/portfolio` }, { name: item.title, url: pageUrl }]} />
       <CreativeWorkSchema name={item.title} description={item.description || `Portfolio ${item.title}`} url={pageUrl} image={item.thumbnail || undefined} client={item.client || undefined} />
       <div className="bg-white">
-      <section className="border-b border-dark-100 bg-dark-50">
-        <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6 lg:py-12">
-          <nav className="flex items-center gap-2 text-sm text-dark-500"><Link href="/" className="hover:text-primary">Beranda</Link><ChevronRight className="h-4 w-4" /><Link href="/portfolio" className="hover:text-primary">Portfolio</Link><ChevronRight className="h-4 w-4" /><span className="font-medium text-dark">{item.title}</span></nav>
-        </div>
-      </section>
-
       <main className="mx-auto max-w-7xl px-4 py-10 lg:px-6 lg:py-16">
+        <nav className="mb-8 flex items-center gap-2 text-sm text-dark-500"><Link href="/" className="hover:text-primary">Beranda</Link><ChevronRight className="h-4 w-4" /><Link href="/portfolio" className="hover:text-primary">Portfolio</Link><ChevronRight className="h-4 w-4" /><span className="font-medium text-dark">{item.title}</span></nav>
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)] lg:items-start">
           <div>
             <MediaCarousel items={gallery} alt={item.title} className="lg:sticky lg:top-24" />
