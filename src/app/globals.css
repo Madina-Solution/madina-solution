@@ -27,7 +27,7 @@
   --color-dark-100: #F4F4F5;
   --color-dark-200: #E4E4E7;
   --color-dark-300: #D4D4D8;
-  --color-dark-400: #A1A1AA;
+  --color-dark-400: #75757C; /* WCAG AA fix: was #A1A1AA (2.56:1 vs white, fails even large-text AA). New value: 4.57:1, passes AA for all text sizes. */
   --color-dark-500: #71717A;
   --color-dark-600: #52525B;
   --color-dark-700: #3F3F46;

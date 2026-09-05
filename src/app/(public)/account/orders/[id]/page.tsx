@@ -11,7 +11,7 @@ import {
   Truck,
   Loader2,
   MapPin,
-  MessageCircle, Download, ExternalLink, FileText, Image as ImageIcon,
+  MessageCircle, Download, ExternalLink, FileText, Image as ImageIcon, ImageOff,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -151,7 +151,7 @@ export default function CustomerOrderDetailPage() {
               const config = item.configuration || {};
               return (
                 <div key={item.id} className="flex gap-4 rounded-xl border border-dark-100 p-4">
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-dark-50">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.name} fill sizes="48px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300">▧</div>}</div>
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-dark-50">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.name} fill sizes="48px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300"><ImageOff className="h-5 w-5" aria-hidden="true" /></div>}</div>
                   <div className="flex-1">
                     <p className="font-medium text-dark">{item.name}</p>
                     {Object.keys(config).length > 0 && (

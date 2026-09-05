@@ -19,6 +19,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
+  ImageOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -337,7 +338,7 @@ export function CheckoutContent() {
                   <div className="mt-4 space-y-3">
                     {cart.items.map((item) => (
                       <div key={item.cartItemId} className="flex gap-3 border-b border-dark-100 pb-3">
-                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-dark-50">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.productName} fill sizes="48px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300">▧</div>}</div>
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-dark-50">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.productName} fill sizes="48px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300"><ImageOff className="h-5 w-5" aria-hidden="true" /></div>}</div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-dark">{item.productName}</p>
                           <p className="text-xs text-dark-500 line-clamp-1">{item.optionsSummary}</p>

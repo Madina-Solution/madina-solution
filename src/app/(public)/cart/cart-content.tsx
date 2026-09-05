@@ -15,6 +15,7 @@ import {
   Truck,
   Clock,
   MessageCircle,
+  ImageOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,7 +60,7 @@ export function CartPageContent() {
                   <CardContent className="p-5">
                     <div className="flex gap-4">
                       {/* Thumbnail */}
-                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-dark-50 sm:h-24 sm:w-24">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.productName} fill sizes="96px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300">▧</div>}</div>
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-dark-50 sm:h-24 sm:w-24">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.productName} fill sizes="96px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300"><ImageOff className="h-5 w-5" aria-hidden="true" /></div>}</div>
 
                       {/* Info */}
                       <div className="min-w-0 flex-1">

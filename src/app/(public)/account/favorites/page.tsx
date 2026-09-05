@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Heart, Loader2, Trash2, ShoppingCart } from "lucide-react";
+import { Heart, Loader2, Trash2, ShoppingCart, ImageOff } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -43,7 +43,7 @@ export default function FavoritesPage() {
           <Card key={fav.id}>
             <CardContent className="flex items-center justify-between gap-4 p-5">
               <div className="flex items-center gap-4">
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-dark-50">{fav.productThumbnail ? <SiteImage src={fav.productThumbnail} alt={fav.productName || "Produk"} fill sizes="48px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300">▧</div>}</div>
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-dark-50">{fav.productThumbnail ? <SiteImage src={fav.productThumbnail} alt={fav.productName || "Produk"} fill sizes="48px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300"><ImageOff className="h-5 w-5" aria-hidden="true" /></div>}</div>
                 <div>
                   <Link href={`/products/${fav.productSlug}`} className="font-semibold text-dark hover:text-primary">{fav.productName || "Produk"}</Link>
                   {fav.productPrice && <p className="text-sm text-primary">{formatCurrency(Number(fav.productPrice))}/{fav.productUnit || "pcs"}</p>}

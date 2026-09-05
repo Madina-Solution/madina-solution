@@ -12,6 +12,7 @@ import {
   Minus,
   Trash2,
   ArrowRight,
+  ImageOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart/cart-provider";
@@ -97,7 +98,7 @@ export function CartDrawer() {
                       >
                         <div className="flex gap-4">
                           {/* Thumbnail */}
-                          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-dark-50">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.productName} fill sizes="64px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300">▧</div>}</div>
+                          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-dark-50">{item.productThumbnail ? <SiteImage src={item.productThumbnail} alt={item.productName} fill sizes="64px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300"><ImageOff className="h-5 w-5" aria-hidden="true" /></div>}</div>
 
                           {/* Info */}
                           <div className="min-w-0 flex-1">
