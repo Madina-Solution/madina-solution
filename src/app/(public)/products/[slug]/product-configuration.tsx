@@ -472,20 +472,20 @@ export function ProductConfiguration({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex w-full max-w-full gap-3">
         <Button
           type="button"
           size="lg"
-          className="flex-1"
+          className="min-w-0 flex-1"
           onClick={handleAddToCart}
         >
-          <ShoppingCart className="mr-2 h-5 w-5" />
-          Tambah ke Keranjang
+          <ShoppingCart className="mr-2 h-5 w-5 shrink-0" />
+          <span className="truncate">Tambah ke Keranjang</span>
         </Button>
-        <Button type="button" size="lg" variant="outline" aria-label={isFavorited ? "Hapus dari favorit" : "Tambah ke favorit"} aria-pressed={isFavorited} onClick={() => void handleToggleFavorite()} disabled={favoriteLoading}>
+        <Button type="button" size="lg" variant="outline" className="w-14 shrink-0 px-0" aria-label={isFavorited ? "Hapus dari favorit" : "Tambah ke favorit"} aria-pressed={isFavorited} onClick={() => void handleToggleFavorite()} disabled={favoriteLoading}>
           {favoriteLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Heart className={cn("h-5 w-5", isFavorited && "fill-primary text-primary")} />}
         </Button>
-        <Button type="button" size="lg" variant="outline" aria-label="Bagikan produk ini" onClick={() => void handleShare()}>
+        <Button type="button" size="lg" variant="outline" className="w-14 shrink-0 px-0" aria-label="Bagikan produk ini" onClick={() => void handleShare()}>
           {shareCopied ? <Check className="h-5 w-5 text-green-600" /> : <Share2 className="h-5 w-5" />}
         </Button>
       </div>
