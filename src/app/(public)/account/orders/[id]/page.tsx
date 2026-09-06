@@ -94,8 +94,8 @@ export default function CustomerOrderDetailPage() {
         <Link href="/account/orders" className="rounded-lg p-2 text-dark-400 hover:bg-dark-100 hover:text-dark">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div className="flex-1">
-          <h2 className="text-xl font-bold text-dark">{order.orderNumber}</h2>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-xl font-bold text-dark">{order.orderNumber}</h2>
           <p className="text-sm text-dark-500">{formatDate(order.createdAt)}</p>
         </div>
         <Badge variant={order.paymentStatus === "paid" ? "success" : "warning"}>

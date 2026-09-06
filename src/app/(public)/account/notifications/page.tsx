@@ -40,9 +40,9 @@ export default function NotificationsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div><h2 className="text-2xl font-bold text-dark">Notifikasi</h2><p className="mt-1 text-dark-500">{unreadCount} belum dibaca</p></div>
-        {unreadCount > 0 && <Button variant="outline" size="sm" onClick={markAllRead}><CheckCheck className="mr-1 h-4 w-4" />Tandai Semua Dibaca</Button>}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0"><h2 className="text-2xl font-bold text-dark">Notifikasi</h2><p className="mt-1 text-dark-500">{unreadCount} belum dibaca</p></div>
+        {unreadCount > 0 && <Button variant="outline" size="sm" className="shrink-0" onClick={markAllRead}><CheckCheck className="mr-1 h-4 w-4" />Tandai Semua Dibaca</Button>}
       </div>
 
       {isLoading ? <div className="mt-6 flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-dark-400" /></div>

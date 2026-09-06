@@ -53,9 +53,9 @@ export default function AddressesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div><h2 className="text-2xl font-bold text-dark">Alamat Saya</h2><p className="mt-1 text-dark-500">Kelola alamat pengiriman</p></div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }}><Plus className="mr-2 h-4 w-4" />Tambah Alamat</Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0"><h2 className="text-2xl font-bold text-dark">Alamat Saya</h2><p className="mt-1 text-dark-500">Kelola alamat pengiriman</p></div>
+        <Button className="shrink-0" onClick={() => { resetForm(); setShowForm(true); }}><Plus className="mr-2 h-4 w-4" />Tambah Alamat</Button>
       </div>
 
       {showForm && (

@@ -51,12 +51,12 @@ export default function SettingsPage() {
       {/* Password */}
       <Card className="mt-6">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Lock className="h-5 w-5 text-dark-500" />
-              <div><h3 className="font-semibold text-dark">Password</h3><p className="text-sm text-dark-500">Ubah password akun Anda</p></div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Lock className="h-5 w-5 shrink-0 text-dark-500" />
+              <div className="min-w-0"><h3 className="font-semibold text-dark">Password</h3><p className="truncate text-sm text-dark-500">Ubah password akun Anda</p></div>
             </div>
-            {!showPasswordForm && <Button variant="outline" onClick={() => setShowPasswordForm(true)}>Ubah Password</Button>}
+            {!showPasswordForm && <Button variant="outline" className="shrink-0" onClick={() => setShowPasswordForm(true)}>Ubah Password</Button>}
           </div>
 
           {showPasswordForm && (

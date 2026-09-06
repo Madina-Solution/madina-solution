@@ -58,7 +58,7 @@ export default function AccountLayout({
           <Skeleton className="h-10 w-60" />
           <div className="mt-8 grid gap-8 lg:grid-cols-4">
             <Skeleton className="h-96" />
-            <div className="lg:col-span-3"><Skeleton className="h-96" /></div>
+            <div className="min-w-0 lg:col-span-3"><Skeleton className="h-96" /></div>
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function AccountLayout({
         <div className="grid gap-8 lg:grid-cols-4">
           {/* Sidebar */}
           <nav
-            className="hidden lg:block"
+            className="hidden min-w-0 lg:block"
             aria-label="Account navigation"
           >
             <div className="sticky top-24 rounded-2xl border border-dark-100 bg-white p-4">
@@ -122,7 +122,7 @@ export default function AccountLayout({
           </nav>
 
           {/* Mobile Nav */}
-          <div className="relative -mx-4 lg:hidden">
+          <div className="relative -mx-4 min-w-0 lg:hidden">
             <div className="flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-hide">
               {NAV_ITEMS.map((item) => {
                 const isActive = item.exact
@@ -158,7 +158,7 @@ export default function AccountLayout({
           </div>
 
           {/* Content */}
-          <div className="lg:col-span-3">{children}</div>
+          <div className="min-w-0 lg:col-span-3">{children}</div>
         </div>
       </div>
     </div>

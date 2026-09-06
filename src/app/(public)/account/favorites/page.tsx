@@ -41,15 +41,15 @@ export default function FavoritesPage() {
       : items.length > 0 ? (
         <div className="mt-6 space-y-4">{items.map((fav) => (
           <Card key={fav.id}>
-            <CardContent className="flex items-center justify-between gap-4 p-5">
-              <div className="flex items-center gap-4">
+            <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-dark-50">{fav.productThumbnail ? <SiteImage src={fav.productThumbnail} alt={fav.productName || "Produk"} fill sizes="48px" className="object-cover" /> : <div className="grid h-full place-items-center text-dark-300"><ImageOff className="h-5 w-5" aria-hidden="true" /></div>}</div>
-                <div>
-                  <Link href={`/products/${fav.productSlug}`} className="font-semibold text-dark hover:text-primary">{fav.productName || "Produk"}</Link>
-                  {fav.productPrice && <p className="text-sm text-primary">{formatCurrency(Number(fav.productPrice))}/{fav.productUnit || "pcs"}</p>}
+                <div className="min-w-0">
+                  <Link href={`/products/${fav.productSlug}`} className="block truncate font-semibold text-dark hover:text-primary">{fav.productName || "Produk"}</Link>
+                  {fav.productPrice && <p className="truncate text-sm text-primary">{formatCurrency(Number(fav.productPrice))}/{fav.productUnit || "pcs"}</p>}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 gap-2">
                 <Button variant="outline" size="sm" asChild><Link href={`/products/${fav.productSlug}`}><ShoppingCart className="mr-1 h-3.5 w-3.5" />Pesan</Link></Button>
                 <Button variant="ghost" size="icon" onClick={() => handleRemove(fav.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
               </div>

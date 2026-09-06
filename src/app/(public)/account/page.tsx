@@ -50,9 +50,9 @@ export default function AccountPage() {
           {/* Notifications */}
           {(stats?.unreadNotifications ?? 0) > 0 && (
             <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="flex items-center justify-between p-5">
-                <div className="flex items-center gap-3"><Bell className="h-5 w-5 text-primary" /><span className="font-medium text-dark">{stats!.unreadNotifications} notifikasi belum dibaca</span></div>
-                <Button variant="outline" size="sm" asChild><Link href="/account/notifications">Lihat <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>
+              <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
+                <div className="flex min-w-0 items-center gap-3"><Bell className="h-5 w-5 shrink-0 text-primary" /><span className="truncate font-medium text-dark">{stats!.unreadNotifications} notifikasi belum dibaca</span></div>
+                <Button variant="outline" size="sm" className="shrink-0" asChild><Link href="/account/notifications">Lihat <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>
               </CardContent>
             </Card>
           )}
