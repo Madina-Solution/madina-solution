@@ -43,6 +43,7 @@
     "clsx": "^2.1.1",
     "dotenv": "17.3.1",
     "drizzle-orm": "0.45.2",
+    "firebase": "12.18.0",
     "framer-motion": "^13.1.0",
     "jose": "^6.2.9",
     "lucide-react": "^1.31.0",
@@ -51,9 +52,9 @@
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "react-hook-form": "^7.85.0",
+    "recharts": "^3.10.1",
     "tailwind-merge": "^3.6.0",
-    "zod": "^4.4.3",
-    "firebase": "12.18.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.17",
