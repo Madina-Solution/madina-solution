@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronRight,
   Bell,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useToast } from "@/components/ui/toast";
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: "/account/favorites", label: "Favorit", icon: Heart, exact: false },
   { href: "/account/addresses", label: "Alamat", icon: MapPin, exact: false },
   { href: "/account/notifications", label: "Notifikasi", icon: Bell, exact: false },
+  { href: "/account/messages", label: "Pesan", icon: MessageSquare, exact: false },
   { href: "/account/profile", label: "Profil", icon: UserCircle, exact: false },
   { href: "/account/settings", label: "Pengaturan", icon: Settings, exact: false },
 ];
