@@ -53,6 +53,19 @@ export async function GET() {
   }
 }
 
+export async function DELETE() {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Silakan login" } }, { status: 401 });
+    }
+    await db.delete(messages).where(or(eq(messages.senderId, session.userId), eq(messages.receiverId, session.userId)));
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal menghapus percakapan" } }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();

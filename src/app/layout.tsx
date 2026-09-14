@@ -41,9 +41,9 @@ export async function generateMetadata(): Promise<Metadata> {
     siteTagline: BRAND.tagline,
     siteUrl: getSiteUrl(),
     siteLogo: "",
-    seoTitle: "",
-    seoDescription: BRAND.description,
-    seoKeywords: "Madina Solution, desain grafis, digital printing, branding, advertising, percetakan Temanggung, cetak banner, cetak sticker, kartu nama, desain logo",
+    seoTitle: "Madina Solution | Desain Grafis & Percetakan",
+    seoDescription: "Madina Solution adalah spesialis desain grafis, digital printing, dan percetakan di Temanggung, Jawa Tengah.",
+    seoKeywords: "Madina Solution, desain grafis Temanggung, digital printing Temanggung, percetakan Temanggung, desain dan percetakan, branding, advertising, cetak banner, cetak sticker, kartu nama, desain logo",
     seoOgImage: "",
     seoTwitterHandle: "",
   };

@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, MessageSquare, Send, ArrowLeft, Headset } from "lucide-react";
+import { Loader2, MessageSquare, Send, ArrowLeft, Headset, Pencil, Trash2, X, Check, Trash } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type Conversation = {
@@ -47,6 +48,12 @@ export default function AdminMessagesPage() {
   const [isLoadingThread, setIsLoadingThread] = React.useState(false);
   const [draft, setDraft] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editDraft, setEditDraft] = React.useState("");
+  const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
+  const [isDeletingMsg, setIsDeletingMsg] = React.useState(false);
+  const [confirmClearThread, setConfirmClearThread] = React.useState(false);
+  const [isClearingThread, setIsClearingThread] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
 
   const fetchConversations = React.useCallback(async (silent = false) => {
@@ -130,6 +137,68 @@ export default function AdminMessagesPage() {
     }
   };
 
+  const startEdit = (m: ThreadMsg) => { setEditingId(m.id); setEditDraft(m.content); };
+  const cancelEdit = () => { setEditingId(null); setEditDraft(""); };
+
+  const saveEdit = async (id: string) => {
+    const content = editDraft.trim();
+    if (!content) return;
+    try {
+      const res = await fetch(`/api/admin/messages/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) });
+      const data = await res.json();
+      if (data.success) {
+        setThread((prev) => prev.map((m) => (m.id === id ? { ...m, content } : m)));
+        setEditingId(null);
+      } else {
+        toast({ type: "error", title: data.error?.message || "Gagal menyimpan perubahan" });
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan" });
+    }
+  };
+
+  const handleDeleteMessage = async () => {
+    if (!deleteTarget) return;
+    setIsDeletingMsg(true);
+    try {
+      const res = await fetch(`/api/admin/messages/${deleteTarget}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setThread((prev) => prev.filter((m) => m.id !== deleteTarget));
+        void fetchConversations(true);
+      } else {
+        toast({ type: "error", title: data.error?.message || "Gagal menghapus pesan" });
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan" });
+    } finally {
+      setIsDeletingMsg(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleClearThread = async () => {
+    if (!selected) return;
+    setIsClearingThread(true);
+    try {
+      const res = await fetch(`/api/admin/messages?customerId=${selected.customerId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setThread([]);
+        setConversations((prev) => prev.filter((c) => c.customerId !== selected.customerId));
+        setSelected(null);
+        toast({ type: "success", title: "Percakapan dihapus" });
+      } else {
+        toast({ type: "error", title: data.error?.message || "Gagal menghapus percakapan" });
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan" });
+    } finally {
+      setIsClearingThread(false);
+      setConfirmClearThread(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold text-dark">Pesan</h1><p className="mt-1 text-dark-500">Percakapan dengan pelanggan</p></div>
@@ -178,25 +247,51 @@ export default function AdminMessagesPage() {
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-3 border-b border-dark-100 p-4">
-                <button className="rounded-lg p-1 text-dark-500 hover:bg-dark-100 lg:hidden" onClick={() => setSelected(null)}><ArrowLeft className="h-5 w-5" /></button>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{selected.customerName.charAt(0).toUpperCase()}</span>
-                <div className="min-w-0"><p className="truncate font-semibold text-dark">{selected.customerName}</p><p className="truncate text-xs text-dark-400">{selected.customerEmail}</p></div>
+              <div className="flex items-center justify-between gap-3 border-b border-dark-100 p-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <button className="rounded-lg p-1 text-dark-500 hover:bg-dark-100 lg:hidden" onClick={() => setSelected(null)}><ArrowLeft className="h-5 w-5" /></button>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{selected.customerName.charAt(0).toUpperCase()}</span>
+                  <div className="min-w-0"><p className="truncate font-semibold text-dark">{selected.customerName}</p><p className="truncate text-xs text-dark-400">{selected.customerEmail}</p></div>
+                </div>
+                <button onClick={() => setConfirmClearThread(true)} className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50" aria-label="Hapus percakapan">
+                  <Trash className="h-3.5 w-3.5" /><span className="hidden sm:inline">Hapus Percakapan</span>
+                </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4">
                 {isLoadingThread ? (
                   <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-dark-400" /></div>
                 ) : (
                   <div className="space-y-2">
-                    {thread.map((m) => (
-                      <div key={m.id} className={cn("flex", m.isMine ? "justify-end" : "justify-start")}>
-                        <div className={cn("max-w-[75%] rounded-2xl px-4 py-2.5", m.isMine ? "rounded-br-sm bg-primary text-white" : "rounded-bl-sm bg-dark-100 text-dark-800")}>
-                          {m.orderNumber && <p className={cn("mb-1 text-xs font-semibold", m.isMine ? "text-white/80" : "text-dark-500")}>Terkait pesanan {m.orderNumber}</p>}
-                          <p className="whitespace-pre-wrap break-words text-sm">{m.content}</p>
-                          <p className={cn("mt-1 text-right text-[10px]", m.isMine ? "text-white/70" : "text-dark-400")}>{formatTime(m.createdAt)}</p>
+                    {thread.map((m) => {
+                      const isEditing = editingId === m.id;
+                      return (
+                        <div key={m.id} className={cn("group flex items-end gap-1.5", m.isMine ? "justify-end" : "justify-start")}>
+                          {m.isMine && !isEditing && (
+                            <div className="mb-1 hidden shrink-0 items-center gap-0.5 group-hover:flex">
+                              <button onClick={() => startEdit(m)} className="rounded-lg p-1.5 text-dark-400 hover:bg-dark-100 hover:text-dark-700" aria-label="Edit pesan"><Pencil className="h-3.5 w-3.5" /></button>
+                              <button onClick={() => setDeleteTarget(m.id)} className="rounded-lg p-1.5 text-dark-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus pesan"><Trash2 className="h-3.5 w-3.5" /></button>
+                            </div>
+                          )}
+                          <div className={cn("max-w-[75%] rounded-2xl px-4 py-2.5", m.isMine ? "rounded-br-sm bg-primary text-white" : "rounded-bl-sm bg-dark-100 text-dark-800")}>
+                            {m.orderNumber && <p className={cn("mb-1 text-xs font-semibold", m.isMine ? "text-white/80" : "text-dark-500")}>Terkait pesanan {m.orderNumber}</p>}
+                            {isEditing ? (
+                              <div className="space-y-2">
+                                <textarea value={editDraft} onChange={(e) => setEditDraft(e.target.value)} rows={2} className="w-full resize-none rounded-lg border-0 bg-white/20 px-2 py-1.5 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-1 focus:ring-white/50" autoFocus />
+                                <div className="flex justify-end gap-1">
+                                  <button onClick={cancelEdit} className="flex h-6 w-6 items-center justify-center rounded-md bg-white/20 hover:bg-white/30" aria-label="Batal"><X className="h-3.5 w-3.5" /></button>
+                                  <button onClick={() => void saveEdit(m.id)} className="flex h-6 w-6 items-center justify-center rounded-md bg-white/20 hover:bg-white/30" aria-label="Simpan"><Check className="h-3.5 w-3.5" /></button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <p className="whitespace-pre-wrap break-words text-sm">{m.content}</p>
+                                <p className={cn("mt-1 text-right text-[10px]", m.isMine ? "text-white/70" : "text-dark-400")}>{formatTime(m.createdAt)}</p>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div ref={bottomRef} />
                   </div>
                 )}
@@ -226,6 +321,9 @@ export default function AdminMessagesPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog open={!!deleteTarget} title="Hapus pesan ini?" description="Pesan akan dihapus permanen." confirmLabel="Hapus" variant="danger" isLoading={isDeletingMsg} onConfirm={handleDeleteMessage} onCancel={() => setDeleteTarget(null)} />
+      <ConfirmDialog open={confirmClearThread} title="Hapus percakapan ini?" description={`Seluruh riwayat percakapan dengan ${selected?.customerName || "pelanggan ini"} akan dihapus permanen dan tidak bisa dikembalikan.`} confirmLabel="Hapus Percakapan" variant="danger" isLoading={isClearingThread} onConfirm={handleClearThread} onCancel={() => setConfirmClearThread(false)} />
     </div>
   );
 }

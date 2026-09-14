@@ -91,6 +91,23 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session || !hasPermission(session.role, "content.delete")) {
+      return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
+    }
+    const customerId = request.nextUrl.searchParams.get("customerId");
+    if (!customerId) {
+      return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "customerId wajib diisi" } }, { status: 400 });
+    }
+    await db.delete(messages).where(or(eq(messages.senderId, customerId), eq(messages.receiverId, customerId)));
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal menghapus percakapan" } }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();

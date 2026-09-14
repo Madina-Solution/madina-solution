@@ -124,8 +124,8 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             aria-label="Madina Solution Home"
           >
             {siteLogo ? (
-              <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-dark-100 bg-white shadow-sm">
-                <SiteImage src={siteLogo} alt={siteName} fill sizes="40px" className="object-contain p-1" />
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl">
+                <SiteImage src={siteLogo} alt={siteName} fill sizes="40px" className="object-contain" />
               </div>
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-premium">
@@ -133,7 +133,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-bold leading-tight tracking-tight text-dark-900 sm:text-base">{siteName}</h1>
+              <h1 className="truncate font-display text-lg font-extrabold leading-none tracking-tight text-dark-900">{siteName}</h1>
               <p className="hidden text-xs text-dark-500 sm:block">{siteTagline}</p>
             </div>
           </Link>

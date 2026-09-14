@@ -60,8 +60,8 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
           <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl" role="dialog" aria-modal="true" aria-label="Mobile navigation">
             <div className="flex items-center justify-between border-b border-dark-100 bg-white p-4">
               <Link href="/" onClick={handleClose} className="flex items-center gap-3" aria-label="Madina Solution Home">
-                {siteLogo ? <span className="relative block h-10 w-10 overflow-hidden rounded-xl border border-dark-100 bg-white shadow-sm"><SiteImage src={siteLogo} alt={siteName} fill sizes="40px" className="object-contain p-1" /></span> : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-900 text-sm font-black text-white shadow-sm ring-1 ring-primary/20">{siteName.charAt(0).toUpperCase()}</span>}
-                <span className="font-bold tracking-tight text-dark-900"><span>{siteName}</span><span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.14em] text-dark-500">{siteTagline}</span></span>
+                {siteLogo ? <span className="relative block h-10 w-10 shrink-0 overflow-hidden rounded-xl"><SiteImage src={siteLogo} alt={siteName} fill sizes="40px" className="object-contain" /></span> : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-900 text-sm font-black text-white shadow-sm ring-1 ring-primary/20">{siteName.charAt(0).toUpperCase()}</span>}
+                <span className="font-display font-extrabold tracking-tight text-dark-900"><span className="text-lg leading-none">{siteName}</span><span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.14em] text-dark-500">{siteTagline}</span></span>
               </Link>
               <button type="button" onClick={handleClose} className="rounded-xl p-2 text-dark-500 hover:bg-dark-100 hover:text-dark-900" aria-label="Close menu"><X className="h-5 w-5" /></button>
             </div>

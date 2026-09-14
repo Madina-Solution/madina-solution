@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Send, Loader2, MessageSquare, Headset } from "lucide-react";
+import { Send, Loader2, MessageSquare, Headset, Pencil, Trash2, X, Check, Trash } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type Msg = {
@@ -36,6 +37,12 @@ export default function AccountMessagesPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [draft, setDraft] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editDraft, setEditDraft] = React.useState("");
+  const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [confirmClearAll, setConfirmClearAll] = React.useState(false);
+  const [isClearing, setIsClearing] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
   const hasScrolledInitially = React.useRef(false);
 
@@ -63,6 +70,14 @@ export default function AccountMessagesPage() {
       bottomRef.current?.scrollIntoView({ behavior: hasScrolledInitially.current ? "smooth" : "auto" });
       hasScrolledInitially.current = true;
     }
+  }, [messages]);
+
+  const messagesWithDayLabels = React.useMemo(() => {
+    return messages.map((m, i) => {
+      const dayLabel = formatDayLabel(m.createdAt);
+      const prevDayLabel = i > 0 ? formatDayLabel(messages[i - 1].createdAt) : null;
+      return { ...m, dayLabel, showDayDivider: dayLabel !== prevDayLabel };
+    });
   }, [messages]);
 
   const handleSend = async () => {
@@ -94,22 +109,86 @@ export default function AccountMessagesPage() {
     }
   };
 
-  const messagesWithDayLabels = React.useMemo(() => {
-    return messages.map((m, i) => {
-      const dayLabel = formatDayLabel(m.createdAt);
-      const prevDayLabel = i > 0 ? formatDayLabel(messages[i - 1].createdAt) : null;
-      return { ...m, dayLabel, showDayDivider: dayLabel !== prevDayLabel };
-    });
-  }, [messages]);
+  const startEdit = (m: Msg) => {
+    setEditingId(m.id);
+    setEditDraft(m.content);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditDraft("");
+  };
+
+  const saveEdit = async (id: string) => {
+    const content = editDraft.trim();
+    if (!content) return;
+    try {
+      const res = await fetch(`/api/account/messages/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) });
+      const data = await res.json();
+      if (data.success) {
+        setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, content } : m)));
+        setEditingId(null);
+      } else {
+        toast({ type: "error", title: data.error?.message || "Gagal menyimpan perubahan" });
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan" });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/account/messages/${deleteTarget}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setMessages((prev) => prev.filter((m) => m.id !== deleteTarget));
+      } else {
+        toast({ type: "error", title: data.error?.message || "Gagal menghapus pesan" });
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan" });
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleClearAll = async () => {
+    setIsClearing(true);
+    try {
+      const res = await fetch("/api/account/messages", { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setMessages([]);
+        toast({ type: "success", title: "Semua pesan dihapus" });
+      } else {
+        toast({ type: "error", title: data.error?.message || "Gagal menghapus percakapan" });
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan" });
+    } finally {
+      setIsClearing(false);
+      setConfirmClearAll(false);
+    }
+  };
 
   return (
     <div className="flex h-[calc(100vh-220px)] min-h-[480px] flex-col rounded-2xl border border-dark-100 bg-white">
-      <div className="flex items-center gap-3 border-b border-dark-100 p-5">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Headset className="h-5 w-5" /></span>
-        <div>
-          <h2 className="font-semibold text-dark">Chat dengan Tim Kami</h2>
-          <p className="text-xs text-dark-500">Biasanya kami membalas dalam beberapa jam pada jam kerja</p>
+      <div className="flex items-center justify-between gap-3 border-b border-dark-100 p-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Headset className="h-5 w-5" /></span>
+          <div className="min-w-0">
+            <h2 className="font-semibold text-dark">Chat dengan Tim Kami</h2>
+            <p className="truncate text-xs text-dark-500">Biasanya kami membalas dalam beberapa jam pada jam kerja</p>
+          </div>
         </div>
+        {messages.length > 0 && (
+          <button onClick={() => setConfirmClearAll(true)} className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50" aria-label="Hapus semua pesan">
+            <Trash className="h-3.5 w-3.5" />Hapus Semua
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-5">
@@ -124,17 +203,41 @@ export default function AccountMessagesPage() {
         ) : (
           <div className="space-y-1">
             {messagesWithDayLabels.map((m) => {
-              const { dayLabel, showDayDivider } = m;
+              const isEditing = editingId === m.id;
               return (
                 <React.Fragment key={m.id}>
-                  {showDayDivider && (
-                    <div className="my-4 flex items-center justify-center"><span className="rounded-full bg-dark-50 px-3 py-1 text-xs font-medium text-dark-400">{dayLabel}</span></div>
+                  {m.showDayDivider && (
+                    <div className="my-4 flex items-center justify-center"><span className="rounded-full bg-dark-50 px-3 py-1 text-xs font-medium text-dark-400">{m.dayLabel}</span></div>
                   )}
-                  <div className={cn("flex", m.isMine ? "justify-end" : "justify-start")}>
+                  <div className={cn("group flex items-end gap-1.5", m.isMine ? "justify-end" : "justify-start")}>
+                    {m.isMine && !isEditing && (
+                      <div className="mb-1 hidden shrink-0 items-center gap-0.5 group-hover:flex">
+                        <button onClick={() => startEdit(m)} className="rounded-lg p-1.5 text-dark-400 hover:bg-dark-100 hover:text-dark-700" aria-label="Edit pesan"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => setDeleteTarget(m.id)} className="rounded-lg p-1.5 text-dark-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus pesan"><Trash2 className="h-3.5 w-3.5" /></button>
+                      </div>
+                    )}
                     <div className={cn("max-w-[75%] rounded-2xl px-4 py-2.5", m.isMine ? "rounded-br-sm bg-primary text-white" : "rounded-bl-sm bg-dark-100 text-dark-800")}>
                       {m.orderNumber && <p className={cn("mb-1 text-xs font-semibold", m.isMine ? "text-white/80" : "text-dark-500")}>Terkait pesanan {m.orderNumber}</p>}
-                      <p className="whitespace-pre-wrap break-words text-sm">{m.content}</p>
-                      <p className={cn("mt-1 text-right text-[10px]", m.isMine ? "text-white/70" : "text-dark-400")}>{formatTime(m.createdAt)}</p>
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <textarea
+                            value={editDraft}
+                            onChange={(e) => setEditDraft(e.target.value)}
+                            rows={2}
+                            className="w-full resize-none rounded-lg border-0 bg-white/20 px-2 py-1.5 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-1 focus:ring-white/50"
+                            autoFocus
+                          />
+                          <div className="flex justify-end gap-1">
+                            <button onClick={cancelEdit} className="flex h-6 w-6 items-center justify-center rounded-md bg-white/20 hover:bg-white/30" aria-label="Batal"><X className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => void saveEdit(m.id)} className="flex h-6 w-6 items-center justify-center rounded-md bg-white/20 hover:bg-white/30" aria-label="Simpan"><Check className="h-3.5 w-3.5" /></button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="whitespace-pre-wrap break-words text-sm">{m.content}</p>
+                          <p className={cn("mt-1 text-right text-[10px]", m.isMine ? "text-white/70" : "text-dark-400")}>{formatTime(m.createdAt)}</p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </React.Fragment>
@@ -166,6 +269,9 @@ export default function AccountMessagesPage() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog open={!!deleteTarget} title="Hapus pesan ini?" description="Pesan akan dihapus permanen." confirmLabel="Hapus" variant="danger" isLoading={isDeleting} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
+      <ConfirmDialog open={confirmClearAll} title="Hapus semua pesan?" description="Seluruh riwayat percakapan Anda dengan tim kami akan dihapus permanen dan tidak bisa dikembalikan." confirmLabel="Hapus Semua" variant="danger" isLoading={isClearing} onConfirm={handleClearAll} onCancel={() => setConfirmClearAll(false)} />
     </div>
   );
 }
