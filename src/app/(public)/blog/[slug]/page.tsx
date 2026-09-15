@@ -11,9 +11,10 @@ import { ChevronRight, ArrowLeft, Calendar, Clock, Eye, Tag as TagIcon, User } f
 import { Button } from "@/components/ui/button";
 import { AdSenseUnit } from "@/components/ads/adsense";
 import { getPublicSiteConfig } from "@/lib/site-config";
-import { buildPageMetadata } from "@/lib/seo";
+import { absoluteUrl, buildPageMetadata } from "@/lib/seo";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/seo/json-ld";
 import { RelatedArticles } from "./related-articles";
+import { articleContentToHtml } from "@/lib/security/sanitize-html";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -27,9 +28,30 @@ function estimateReadingMinutes(content: string | null): number {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const result = await db.select({ title: articles.title, excerpt: articles.excerpt, thumbnail: articles.thumbnail }).from(articles).where(eq(articles.slug, slug)).limit(1);
+  const result = await db.select({
+    title: articles.title,
+    excerpt: articles.excerpt,
+    thumbnail: articles.thumbnail,
+    seoTitle: articles.seoTitle,
+    seoDescription: articles.seoDescription,
+    seoKeywords: articles.seoKeywords,
+    canonicalUrl: articles.canonicalUrl,
+    noIndex: articles.noIndex,
+  }).from(articles).where(eq(articles.slug, slug)).limit(1);
   if (!result[0]) return { title: "Artikel Tidak Ditemukan" };
-  return buildPageMetadata({ title: result[0].title, description: result[0].excerpt || `${result[0].title} — Madina Solution`, path: `/blog/${encodeURIComponent(slug)}`, image: result[0].thumbnail || undefined });
+
+  const metadata = buildPageMetadata({
+    title: result[0].seoTitle || result[0].title,
+    description: result[0].seoDescription || result[0].excerpt || `${result[0].title} — Madina Solution`,
+    path: `/blog/${encodeURIComponent(slug)}`,
+    image: result[0].thumbnail || undefined,
+    noIndex: Boolean(result[0].noIndex),
+    keywords: Array.isArray(result[0].seoKeywords) ? result[0].seoKeywords : [],
+  });
+  if (result[0].canonicalUrl) {
+    metadata.alternates = { ...metadata.alternates, canonical: result[0].canonicalUrl };
+  }
+  return metadata;
 }
 
 export default async function BlogDetailPage({ params }: Props) {
@@ -44,9 +66,16 @@ export default async function BlogDetailPage({ params }: Props) {
       thumbnail: articles.thumbnail,
       category: articles.category,
       tags: articles.tags,
+      seoTitle: articles.seoTitle,
+      seoDescription: articles.seoDescription,
+      seoKeywords: articles.seoKeywords,
+      focusKeyword: articles.focusKeyword,
+      canonicalUrl: articles.canonicalUrl,
+      noIndex: articles.noIndex,
       viewCount: articles.viewCount,
       publishedAt: articles.publishedAt,
       createdAt: articles.createdAt,
+      updatedAt: articles.updatedAt,
       authorName: users.name,
       authorAvatar: users.avatar,
     })
@@ -59,8 +88,9 @@ export default async function BlogDetailPage({ params }: Props) {
   const siteConfig = await getPublicSiteConfig();
   const pageUrl = `${siteConfig.siteUrl}/blog/${encodeURIComponent(slug)}`;
   const tags = (article.tags as string[] | null) || [];
-  const readingMinutes = estimateReadingMinutes(article.content);
-  const paragraphs = (article.content || "Konten artikel belum tersedia.").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const contentHtml = articleContentToHtml(article.content || "Konten artikel belum tersedia.");
+  const readingMinutes = estimateReadingMinutes(contentHtml.replace(/<[^>]+>/g, " "));
+  const articleCanonical = article.canonicalUrl || pageUrl;
 
   const related = await db
     .select({ id: articles.id, title: articles.title, slug: articles.slug, excerpt: articles.excerpt, thumbnail: articles.thumbnail, category: articles.category, publishedAt: articles.publishedAt })
@@ -79,7 +109,7 @@ export default async function BlogDetailPage({ params }: Props) {
         { name: "Blog", url: `${siteConfig.siteUrl}/blog` },
         { name: article.title, url: pageUrl },
       ]} />
-      <ArticleSchema name={article.title} description={article.excerpt || `Artikel ${article.title}`} url={pageUrl} image={article.thumbnail || undefined} publishedAt={article.publishedAt?.toISOString()} updatedAt={undefined} authorName={article.authorName || siteConfig.siteName} />
+      <ArticleSchema name={article.seoTitle || article.title} description={article.seoDescription || article.excerpt || `Artikel ${article.title}`} url={articleCanonical} image={article.thumbnail || undefined} publishedAt={article.publishedAt?.toISOString()} updatedAt={article.updatedAt?.toISOString()} authorName={article.authorName || siteConfig.siteName} />
 
       <div className="py-12 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 lg:px-6">
@@ -119,11 +149,10 @@ export default async function BlogDetailPage({ params }: Props) {
                 <div className="my-8"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.article} className="mx-auto" label="Iklan" /></div>
               ) : null}
 
-              <div className="mt-8 space-y-5 text-base leading-8 text-dark-700">
-                {paragraphs.map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
-                ))}
-              </div>
+              <div
+                className="article-prose mt-8 text-base leading-8 text-dark-700"
+                dangerouslySetInnerHTML={{ __html: contentHtml }}
+              />
 
               {tags.length > 0 && (
                 <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-dark-100 pt-6">

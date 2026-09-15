@@ -1,3 +1,27 @@
+# Madina Solution — Project Status
+
+
+## 2026-09-15 — Release 1.1.1 blocker repair
+- ✅ Admin article loader no longer triggers the React `set-state-in-effect` lint finding during initial async fetch.
+- ✅ `npm run build` now runs `npm run db:sync` before Next.js production compilation/prerendering.
+- ✅ `npm run validate:release` syncs the DB before validating its schema, preventing the prior “SEO columns missing” drift from reaching prerender.
+- ✅ Database schema validation now explicitly checks all article SEO columns.
+- ✅ Static contract suite rerun: navigation, integrity, media, social auth, access, persistence, UI, commerce, and SEO all passed.
+- ⚠️ Full `lint`, `typecheck`, and `build` rerun could not be completed in the sandbox because dependency installation timed out; these must be rerun locally after `npm install`.
+
+## 2026-09-15 — Product Reviews + Rich Blog/SEO CMS
+- ✅ Customer reviews are now real: login + completed-order eligibility enforced server-side.
+- ✅ Review moderation defaults to `isApproved = false`; verified badge derives from completed purchase and cannot be set through admin moderation.
+- ✅ Product detail rating/count are aggregated from approved `reviews` rows, eliminating stale static review counts.
+- ✅ Added full HTML-capable blog editor with visual/source modes and safe rich-content formatting.
+- ✅ Added server-side HTML allowlist sanitizer before article content is stored/rendered.
+- ✅ Added article SEO controls: SEO title, meta description, focus keyword, SEO keywords, canonical URL and noindex.
+- ✅ Sitemap excludes noindex articles; metadata and Article JSON-LD use article-level SEO values.
+- ✅ Fixed article edit flow so existing content is loaded instead of blanking the editor.
+- ✅ Added migration `0006_blog_rich_seo_content` and DB sync columns.
+
+### Baseline / change tracking
+The project archive received on 2026-09-15 is the baseline for this iteration. Future changes should append a dated entry to this file and `CHANGELOG.md`, retain the release validation workflow, and ship with an updated ZIP archive.
 
 ## 2026-08-30 — TypeScript/API media detail fix
 - Fixed admin order detail product thumbnail query and rendering.
@@ -20,10 +44,11 @@
 
 # Madina Solution — Project Status
 
-**Current Release:** 1.0.0-pc.3
+**Current Release:** 1.1.1
 **Release Level:** LEVEL 3 — PRODUCTION CANDIDATE
-**Status:** ⚠️ Final hardening complete; external production configuration + E2E verification remain.
-**Last Updated:** 2026-08-21
+**Status:** ⚠️ Release blockers repaired in source; external production configuration + E2E verification remain.
+**Latest Release Repair:** 2026-09-15 — fixed article lint failure and article SEO database schema drift before build.
+**Last Updated:** 2026-09-15
 
 ## Platform Scope
 

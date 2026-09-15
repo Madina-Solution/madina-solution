@@ -307,6 +307,13 @@ export const articles = pgTable("articles", {
   thumbnail: text("thumbnail"),
   category: varchar("category", { length: 100 }),
   tags: jsonb("tags").$type<string[]>().default([]),
+  // Blogger-style SEO/content controls
+  seoTitle: varchar("seo_title", { length: 255 }),
+  seoDescription: text("seo_description"),
+  seoKeywords: jsonb("seo_keywords").$type<string[]>().default([]),
+  focusKeyword: varchar("focus_keyword", { length: 120 }),
+  canonicalUrl: text("canonical_url"),
+  noIndex: boolean("no_index").default(false).notNull(),
   isPublished: boolean("is_published").default(false),
   publishedAt: timestamp("published_at"),
   viewCount: integer("view_count").default(0),

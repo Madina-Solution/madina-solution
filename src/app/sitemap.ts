@@ -27,14 +27,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [productList, categoryList, articleList, portfolioList] = await Promise.all([
       db.select({ slug: products.slug, updatedAt: products.updatedAt }).from(products).where(eq(products.isActive, true)),
       db.select({ slug: categories.slug, updatedAt: categories.updatedAt }).from(categories).where(eq(categories.isActive, true)),
-      db.select({ slug: articles.slug, updatedAt: articles.updatedAt }).from(articles).where(eq(articles.isPublished, true)),
+      db.select({ slug: articles.slug, updatedAt: articles.updatedAt, noIndex: articles.noIndex }).from(articles).where(eq(articles.isPublished, true)),
       db.select({ slug: portfolio.slug, updatedAt: portfolio.updatedAt }).from(portfolio).where(eq(portfolio.isActive, true)),
     ]);
     return [
       ...staticPages,
       ...productList.map((p) => ({ url: `${BASE_URL}/products/${encodeURIComponent(p.slug)}`, lastModified: p.updatedAt, changeFrequency: "weekly" as const, priority: 0.8 })),
       ...categoryList.map((c) => ({ url: `${BASE_URL}/products/category/${encodeURIComponent(c.slug)}`, lastModified: c.updatedAt, changeFrequency: "weekly" as const, priority: 0.7 })),
-      ...articleList.map((a) => ({ url: `${BASE_URL}/blog/${encodeURIComponent(a.slug)}`, lastModified: a.updatedAt, changeFrequency: "weekly" as const, priority: 0.6 })),
+      ...articleList.filter((a) => !a.noIndex).map((a) => ({ url: `${BASE_URL}/blog/${encodeURIComponent(a.slug)}`, lastModified: a.updatedAt, changeFrequency: "weekly" as const, priority: 0.6 })),
       ...portfolioList.map((p) => ({ url: `${BASE_URL}/portfolio/${encodeURIComponent(p.slug)}`, lastModified: p.updatedAt, changeFrequency: "monthly" as const, priority: 0.6 })),
     ];
   } catch {

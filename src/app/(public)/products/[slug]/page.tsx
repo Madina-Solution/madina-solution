@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { db } from "@/db";
 import { products, categories, reviews, users } from "@/db/schema";
-import { eq, and, ne, desc } from "drizzle-orm";
+import { eq, and, ne, desc, count, avg } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +28,9 @@ import { ProductSchema, BreadcrumbSchema } from "@/components/seo/json-ld";
 import { AdSenseUnit } from "@/components/ads/adsense";
 import { getPublicSiteConfig } from "@/lib/site-config";
 import { buildPageMetadata } from "@/lib/seo";
+import { getSession } from "@/lib/auth/session";
+import { orderItems, orders } from "@/db/schema";
+import { ProductReviewForm } from "@/components/product/product-review-form";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -92,7 +95,16 @@ export default async function ProductDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch reviews for this product
+  // Reviews are authoritative from approved rows. Legacy products.rating/reviewCount are no longer
+  // used for public rating/badge calculations.
+  const [reviewAggregate] = await db
+    .select({
+      rating: avg(reviews.rating),
+      reviewCount: count(reviews.id),
+    })
+    .from(reviews)
+    .where(and(eq(reviews.productId, product.id), eq(reviews.isApproved, true)));
+
   const productReviews = await db
     .select({
       id: reviews.id,
@@ -108,7 +120,42 @@ export default async function ProductDetailPage({ params }: Props) {
     .leftJoin(users, eq(reviews.userId, users.id))
     .where(and(eq(reviews.productId, product.id), eq(reviews.isApproved, true)))
     .orderBy(desc(reviews.createdAt))
-    .limit(5);
+    .limit(20);
+
+  const reviewCount = Number(reviewAggregate?.reviewCount ?? 0);
+  const averageRating = reviewCount > 0 ? Number(reviewAggregate?.rating ?? 0) : 0;
+  const displayRating = averageRating > 0 ? averageRating.toFixed(1) : "0.0";
+
+  const session = await getSession();
+  let canReview = false;
+  let alreadyReviewed = false;
+  if (session) {
+    const [purchase] = await db
+      .select({ orderId: orders.id })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+      .where(and(
+        eq(orderItems.productId, product.id),
+        eq(orders.userId, session.userId),
+        eq(orders.status, "completed"),
+      ))
+      .orderBy(desc(orders.completedAt), desc(orders.createdAt))
+      .limit(1);
+
+    if (purchase) {
+      canReview = true;
+      const [existing] = await db
+        .select({ id: reviews.id })
+        .from(reviews)
+        .where(and(
+          eq(reviews.userId, session.userId),
+          eq(reviews.productId, product.id),
+          eq(reviews.orderId, purchase.orderId),
+        ))
+        .limit(1);
+      alreadyReviewed = Boolean(existing);
+    }
+  }
 
   // Fetch related products (same category)
   const relatedProducts = product.categoryId
@@ -147,8 +194,8 @@ export default async function ProductDetailPage({ params }: Props) {
       price={Number(product.basePrice)}
       url={`${siteUrl}/products/${product.slug}`}
       image={product.thumbnail || undefined}
-      rating={Number(product.rating) || undefined}
-      reviewCount={product.reviewCount || undefined}
+      rating={reviewCount > 0 ? averageRating : undefined}
+      reviewCount={reviewCount > 0 ? reviewCount : undefined}
     />
     <BreadcrumbSchema
       items={[
@@ -215,18 +262,18 @@ export default async function ProductDetailPage({ params }: Props) {
                   <Star
                     key={i}
                     className={`h-5 w-5 ${
-                      i < Math.floor(Number(product.rating) || 0)
+                      i < Math.round(averageRating)
                         ? "fill-yellow-400 text-yellow-400"
                         : "fill-dark-200 text-dark-200"
                     }`}
                   />
                 ))}
                 <span className="ml-1 font-medium">
-                  {product.rating || "0"}
+                  {displayRating}
                 </span>
               </div>
               <span className="text-dark-400">
-                ({product.reviewCount || 0} ulasan)
+                ({reviewCount} ulasan)
               </span>
             </div>
 
@@ -358,7 +405,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-dark">Ulasan</h2>
                   <Badge variant="secondary">
-                    {product.reviewCount || 0} ulasan
+                    {reviewCount} ulasan
                   </Badge>
                 </div>
 
@@ -411,6 +458,13 @@ export default async function ProductDetailPage({ params }: Props) {
                 )}
               </CardContent>
             </Card>
+
+            <ProductReviewForm
+              productId={product.id}
+              canReview={canReview}
+              isLoggedIn={Boolean(session)}
+              alreadyReviewed={alreadyReviewed}
+            />
           </div>
 
           {/* Sidebar */}

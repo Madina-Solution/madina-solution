@@ -4,29 +4,59 @@ import { reviews, auditLogs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
+import { z } from "zod";
+
 type Ctx = { params: Promise<{ id: string }> };
 
 export const dynamic = "force-dynamic";
+
+const moderationSchema = z.object({ isApproved: z.boolean() });
+
 export async function PATCH(request: NextRequest, context: Ctx) {
   try {
     const session = await getSession();
-    if (!session || !hasPermission(session.role, "content.update")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
+    if (!session || !hasPermission(session.role, "content.update")) {
+      return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
+    }
     const { id } = await context.params;
-    const body = await request.json();
-    const [updated] = await db.update(reviews).set({ ...body, updatedAt: new Date() }).where(eq(reviews.id, id)).returning();
-    if (!updated) return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Tidak ditemukan" } }, { status: 404 });
-    await db.insert(auditLogs).values({ userId: session.userId, action: body.isApproved ? "REVIEW_APPROVED" : "REVIEW_REJECTED", resource: "reviews", resourceId: id, metadata: body });
+    const parsed = moderationSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Status moderasi tidak valid" } }, { status: 400 });
+    }
+    const [updated] = await db.update(reviews)
+      .set({ isApproved: parsed.data.isApproved, updatedAt: new Date() })
+      .where(eq(reviews.id, id))
+      .returning();
+
+    if (!updated) return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Ulasan tidak ditemukan" } }, { status: 404 });
+
+    await db.insert(auditLogs).values({
+      userId: session.userId,
+      action: parsed.data.isApproved ? "REVIEW_APPROVED" : "REVIEW_REJECTED",
+      resource: "reviews",
+      resourceId: id,
+      metadata: { isApproved: parsed.data.isApproved },
+    });
+
     return NextResponse.json({ success: true, review: updated });
-  } catch { return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal" } }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal memoderasi ulasan" } }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: NextRequest, context: Ctx) {
   try {
     const session = await getSession();
-    if (!session || !hasPermission(session.role, "content.delete")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
+    if (!session || !hasPermission(session.role, "content.delete")) {
+      return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
+    }
     const { id } = await context.params;
-    await db.delete(reviews).where(eq(reviews.id, id));
+    const [deleted] = await db.delete(reviews).where(eq(reviews.id, id)).returning({ id: reviews.id });
+    if (!deleted) return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Ulasan tidak ditemukan" } }, { status: 404 });
+
     await db.insert(auditLogs).values({ userId: session.userId, action: "REVIEW_DELETED", resource: "reviews", resourceId: id });
     return NextResponse.json({ success: true });
-  } catch { return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal" } }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal menghapus ulasan" } }, { status: 500 });
+  }
 }

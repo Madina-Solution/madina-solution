@@ -50,6 +50,7 @@ export default function AdminReviewsPage() {
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-dark">{r.userName || "Anonim"}</span>
                   <Badge variant={r.isApproved ? "success" : "warning"}>{r.isApproved ? "Disetujui" : "Menunggu"}</Badge>
+                  {r.isVerified && <Badge variant="outline">Pembelian terverifikasi</Badge>}
                 </div>
                 <div className="mt-1 flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-4 w-4 ${i < r.rating ? "fill-yellow-400 text-yellow-400" : "text-dark-200"}`} />)}</div>
                 {r.comment && <p className="mt-2 text-sm text-dark-600">{r.comment}</p>}

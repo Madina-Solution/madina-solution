@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const checks = [
+  ["db:sync", "Database schema sync"],
   ["validate:navigation", "Navigation contract"],
   ["validate:integrity", "Integrity scan"],
   ["validate:media", "Media contract"],
@@ -8,7 +9,8 @@ const checks = [
   ["validate:access", "Access control contract"],
   ["validate:persistence", "Media persistence contract"],
   ["validate:ui", "UI, branding and admin architecture contract"],
-  ["validate:commerce", "Commerce, service configuration and media delivery contract"],
+  ["validate:commerce", "Commerce, service configuration, review and media delivery contract"],
+  ["validate:seo", "SEO, rich article editor and metadata contract"],
   ["validate:db-schema", "Database schema contract"],
   ["typecheck", "TypeScript"],
   ["lint", "ESLint"],

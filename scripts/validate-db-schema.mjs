@@ -12,6 +12,12 @@ const required = [
   ["products", "options"],
   ["products", "fulfillment_type"],
   ["order_items", "fulfillment_type"],
+  ["articles", "seo_title"],
+  ["articles", "seo_description"],
+  ["articles", "seo_keywords"],
+  ["articles", "focus_keyword"],
+  ["articles", "canonical_url"],
+  ["articles", "no_index"],
 ];
 
 // Derived from DATABASE_URL instead of `inet_server_host()`: on pooled/proxied
@@ -59,7 +65,7 @@ async function main() {
       process.exit(1);
     }
 
-    console.log("Database schema validation passed: required service/product/order configuration columns exist.");
+    console.log("Database schema validation passed: required service/product/order configuration and article SEO columns exist.");
   } finally {
     await client.end();
   }

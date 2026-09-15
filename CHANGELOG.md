@@ -1,3 +1,21 @@
+# Changelog
+
+## 2026-09-15 — Product Reviews + Full Blog HTML/SEO Editor
+- Added authenticated customer product-review submission at `/api/reviews`.
+- Review submission is eligible only when the authenticated customer has a `completed` order containing the reviewed product.
+- New reviews are automatically marked `isVerified: true` for completed purchases and `isApproved: false` until admin moderation.
+- Added duplicate-review protection per customer/product/order.
+- Product public rating and review count now aggregate approved `reviews` rows directly; legacy `products.rating` / `products.reviewCount` are no longer authoritative for the public detail page.
+- Restricted admin review PATCH to moderation status only so verification cannot be manually spoofed through the admin endpoint.
+- Added reusable rich HTML editor with visual editing, HTML/source mode, headings, formatting, lists, alignment, links, images, code blocks, undo/redo, fullscreen, and rich paste support.
+- Added server-side article HTML sanitization with a strict allowlist for tags/attributes and URL schemes.
+- Article admin editor now preserves existing content during edit instead of resetting it to empty.
+- Added Blogger-style article SEO controls: SEO title, meta description, focus keyword, SEO keywords, canonical URL, and noindex.
+- Public article metadata, Article JSON-LD, and sitemap now honor per-article SEO settings; `noindex` articles are excluded from sitemap.
+- Added article rich-content styling for headings, quotes, code, images, lists, and tables.
+- Added database migration `drizzle/0006_blog_rich_seo_content/migration.sql` and schema-sync support for article SEO columns.
+- Extended release contracts to validate the review workflow and rich article/SEO editor.
+
 
 ## 2026-08-30 — TypeScript/API media detail fix
 - Fixed admin order detail product thumbnail query and rendering.
@@ -24,8 +42,6 @@
 - Fixed article PATCH validation and `publishedAt` handling.
 - Restored missing `Mail` icon import in admin settings.
 - Rich seed now loads `.env.local`/`.env` automatically and backfills missing media on existing records.
-# Changelog
-
 ## 2026-08-21 — Navigation + Integrity Hardening (1.0.0-pc.3)
 - Centralized public navigation in `src/lib/navigation.ts`.
 - Fixed invalid Mega Menu and Mobile Nav service/category routes.
@@ -170,3 +186,17 @@
 - Removed consent/AdSense hydration-state effects that triggered React lint errors by using SSR-safe lazy initialization.
 - Typed admin integration-status icon rows explicitly to avoid ReactNode inference errors.
 - Kept settings initial API hydration effect explicitly documented because it synchronizes external API data into local form state.
+
+## 1.1.1 — 2026-09-15
+
+### Release blocker fixes
+- Fixed React hooks lint failure in admin article loading by deferring the initial async fetch until after effect commit.
+- Added automatic `db:sync` before production builds so article SEO columns required by the rich/SEO blog feature exist before Next.js prerendering.
+- Strengthened database release validation to verify all article SEO columns (`seo_title`, `seo_description`, `seo_keywords`, `focus_keyword`, `canonical_url`, `no_index`) in addition to existing commerce columns.
+- Added database sync as the first step of `validate:release`, making schema drift fail early and repairable through the project's existing schema-sync routine.
+
+### Validation evidence
+- Source contract checks: PASS
+- Database schema contract: now covers article SEO columns
+- Lint blocker: addressed
+- Build prerender blocker: addressed through prebuild schema synchronization

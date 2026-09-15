@@ -13,6 +13,12 @@ const requiredColumns = [
   { table: "products", column: "options", sql: 'ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT \'[]\'::jsonb' },
   { table: "products", column: "fulfillment_type", sql: 'ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "fulfillment_type" varchar(12) DEFAULT \'physical\' NOT NULL' },
   { table: "order_items", column: "fulfillment_type", sql: 'ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "fulfillment_type" varchar(12) DEFAULT \'physical\' NOT NULL' },
+  { table: "articles", column: "seo_title", sql: 'ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "seo_title" varchar(255)' },
+  { table: "articles", column: "seo_description", sql: 'ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "seo_description" text' },
+  { table: "articles", column: "seo_keywords", sql: 'ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "seo_keywords" jsonb DEFAULT \'[]\'::jsonb' },
+  { table: "articles", column: "focus_keyword", sql: 'ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "focus_keyword" varchar(120)' },
+  { table: "articles", column: "canonical_url", sql: 'ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "canonical_url" text' },
+  { table: "articles", column: "no_index", sql: 'ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "no_index" boolean NOT NULL DEFAULT false' },
 ];
 
 // DDL that isn't a plain "ADD COLUMN IF NOT EXISTS" (enum type + new table for

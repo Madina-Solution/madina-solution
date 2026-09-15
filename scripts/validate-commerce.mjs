@@ -16,6 +16,9 @@ const getNav = read("src/lib/get-navigation.ts");
 const publicLayout = read("src/app/(public)/layout.tsx");
 const mega = read("src/components/layout/mega-menu.tsx");
 const carousel = read("src/components/ui/media-carousel.tsx");
+const reviewApi = read("src/app/api/reviews/route.ts");
+const reviewForm = read("src/components/product/product-review-form.tsx");
+const productDetail = read("src/app/(public)/products/[slug]/page.tsx");
 
 assert("Services support database-driven customer options", schema.includes('options: jsonb("options")') && serviceOrder.includes("ServiceConfiguration"));
 assert("Products and services support physical/digital/hybrid fulfillment", schema.includes('fulfillmentType: varchar("fulfillment_type"') && orderApi.includes("fulfillmentType"));
@@ -29,6 +32,9 @@ assert("Carousel controls have high-contrast focusable styling", carousel.includ
 assert("Media Manager route exists and has upload/search/delete UX", fs.existsSync("src/app/(admin)/admin/media/page.tsx") && mediaPage.includes("Media Manager") && mediaPage.includes("/api/admin/media/"));
 assert("Admin media API applies purpose/search filters to list", read("src/app/api/admin/media/route.ts").includes("where(whereClause)"));
 assert("Mega menu is driven by admin-managed navigation data", getNav.includes("navigationItems") && publicLayout.includes("getPublicNavigation") && mega.includes("navigation") && mega.includes("NAV_ICON_MAP"));
+assert("Customer product reviews require login + completed purchase and enter moderation", reviewApi.includes('eq(orders.status, "completed")') && reviewApi.includes("isApproved: false") && reviewApi.includes("isVerified: true") && reviewApi.includes("getSession"));
+assert("Product rating/count are calculated from approved reviews", productDetail.includes("avg(reviews.rating)") && productDetail.includes("count(reviews.id)") && productDetail.includes("eq(reviews.isApproved, true)") && !productDetail.includes("({product.reviewCount || 0} ulasan)"));
+assert("Customer review UI exists and posts to the public review API", reviewForm.includes('fetch("/api/reviews"') && reviewForm.includes("Beri") && reviewForm.includes("Kirim ulasan"));
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [label, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${label}`);

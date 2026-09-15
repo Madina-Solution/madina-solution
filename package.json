@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "npm run db:sync",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
