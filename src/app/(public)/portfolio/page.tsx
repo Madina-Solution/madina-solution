@@ -24,13 +24,13 @@ export default async function PortfolioPage() {
   const rest = items.filter((item) => !featured.some((featuredItem) => featuredItem.id === item.id));
 
   return (
-    <div className="premium-shell min-h-screen">
+    <div className="bg-white">
       <section className="relative overflow-hidden border-b border-dark-100 bg-gradient-to-br from-dark-950 via-dark-900 to-primary-950 text-white">
         <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-primary/20 blur-3xl" />
         <div className="absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 lg:px-6 lg:py-28">
+        <div className="relative mx-auto max-w-7xl px-4 py-16 lg:px-6 lg:py-24">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 backdrop-blur-md"><Sparkles className="h-3.5 w-3.5 text-primary" />Selected Work</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/80"><Sparkles className="h-3.5 w-3.5 text-primary" />Selected Work</span>
             <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">Karya yang dirancang untuk terlihat, terasa, dan diingat.</h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-white/70">Eksplorasi proyek Madina Solution dari identitas brand hingga produksi visual. Setiap proyek dibuat dengan perhatian pada strategi, detail dan hasil akhir.</p>
           </div>
@@ -48,10 +48,10 @@ export default async function PortfolioPage() {
             {featured.length > 0 && (
               <section>
                 <div className="mb-6 flex items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Featured projects</p><h2 className="mt-2 text-2xl font-bold text-dark sm:text-3xl">Pilihan terbaru kami</h2></div><Button variant="ghost" asChild><Link href="/contact">Mulai proyek <ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div>
-                <div className="grid gap-5 lg:grid-cols-2">
+                <div className="grid gap-6 lg:grid-cols-2">
                   {featured.map((item) => {
                     const tags = (item.tags as string[]) || [];
-                    return <Link key={item.id} href={`/portfolio/${item.slug}`} className="group"><Card className="premium-card overflow-hidden rounded-[1.7rem]">
+                    return <Link key={item.id} href={`/portfolio/${item.slug}`} className="group"><Card className="overflow-hidden border-dark-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-premium-lg">
                       <div className="relative aspect-[16/10] overflow-hidden bg-dark-50">
                         {item.thumbnail ? <SiteImage src={item.thumbnail} alt={item.title} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" /> : <MediaPlaceholder />}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/0 to-black/0" />
@@ -71,7 +71,7 @@ export default async function PortfolioPage() {
                   const tags = (item.tags as string[]) || [];
                   const tall = index % 4 === 1;
                   return <Link key={item.id} href={`/portfolio/${item.slug}`} className="group">
-                    <Card className="premium-card h-full overflow-hidden rounded-[1.7rem]">
+                    <Card className="h-full overflow-hidden border-dark-100 transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-premium-lg">
                       <div className={`relative overflow-hidden bg-dark-50 ${tall ? "aspect-[4/5]" : "aspect-[4/3]"}`}>
                         {item.thumbnail ? <SiteImage src={item.thumbnail} alt={item.title} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-105" /> : <MediaPlaceholder />}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-70" />

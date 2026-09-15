@@ -1,10 +1,14 @@
 
-## 1.1.4 — 2026-09-15 — Premium UI modernization
-- Reworked public visual system for a more premium, modern, editorial presentation.
-- Upgraded homepage hero, service cards, product cards, page headers and CTA section.
-- Added consistent premium surfaces, shadows, warm-neutral palette and subtle ambient/grid details.
-- Upgraded admin sidebar visual treatment while preserving navigation and RBAC behavior.
-- Added UI audit document based on supplied screenshots.
+## [1.2.0] - 2026-09-15
+
+### Premium UI redesign
+- Reworked the global visual system toward a modern luxury/editorial direction while retaining Madina orange as the primary action color.
+- Redesigned public header/navigation, page headers, footer, landing hero, services, and featured products.
+- Upgraded reusable Button, Card, Input, and Select primitives.
+- Refined admin sidebar and topbar into a premium dark-light workspace.
+- Added UI redesign audit based on the supplied screenshot archive.
+- Preserved existing functional, SEO, review, auth, commerce, and route contracts.
+
 # Changelog
 
 ## 1.1.3 — 2026-09-15

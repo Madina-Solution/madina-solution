@@ -16,14 +16,13 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden bg-dark text-white">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
+    <footer className="relative overflow-hidden bg-[#171614] text-white">
       {/* Newsletter Section */}
-      <div className="border-b border-white/10 bg-white/[0.025]">
+      <div className="border-b border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">
-          <div className="flex flex-col items-center justify-between gap-6 rounded-[1.6rem] border border-white/10 bg-white/[0.035] p-6 lg:flex-row">
+          <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
             <div>
-              <h3 className="text-2xl font-bold tracking-tight">
+              <h3 className="text-2xl font-bold tracking-[-0.03em]">
                 Dapatkan Update & Penawaran Terbaru
               </h3>
               <p className="mt-2 text-dark-300">
@@ -41,7 +40,7 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3">
-              {siteLogo ? <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white p-1.5"><SiteImage src={siteLogo} alt={siteName} fill sizes="48px" className="object-contain" /></div> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white"><span className="text-2xl font-bold">{siteName.charAt(0).toUpperCase()}</span></div>}
+              {siteLogo ? <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white p-1.5"><SiteImage src={siteLogo} alt={siteName} fill sizes="48px" className="object-contain" /></div> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white"><span className="text-2xl font-bold tracking-[-0.03em]">{siteName.charAt(0).toUpperCase()}</span></div>}
               <div>
                 <h2 className="font-display text-xl font-extrabold leading-none tracking-tight text-white">{siteName}</h2>
                 <p className="mt-1 text-sm text-dark-400">{siteTagline}</p>
@@ -168,7 +167,7 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-white/10 bg-black/10">
+      <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 lg:flex-row lg:px-6">
           <p className="text-sm text-dark-400">
             © {currentYear} {siteName}. Hak cipta dilindungi.

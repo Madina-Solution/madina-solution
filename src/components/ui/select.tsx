@@ -32,7 +32,7 @@ export function Select({
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         aria-label={ariaLabel}
-        className="h-11 w-full appearance-none rounded-xl border border-dark-200 bg-white px-4 pr-10 text-sm font-medium text-dark transition-colors hover:border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="h-11 w-full appearance-none rounded-2xl border border-black/[0.08] bg-white/90 px-4 pr-10 text-sm font-medium text-dark-800 shadow-sm transition-all hover:border-black/[0.12] focus:border-primary/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10"
       >
         {placeholder && (
           <option value="" disabled>
