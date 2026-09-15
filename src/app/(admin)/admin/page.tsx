@@ -204,13 +204,13 @@ export default async function AdminDashboardPage() {
 
       {/* Needs Attention */}
       {needsAttention.length > 0 && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+        <div className="rounded-[1.5rem] border border-primary/15 bg-gradient-to-br from-primary/8 to-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-dark"><AlertCircle className="h-4 w-4 text-primary" />Perlu Perhatian</div>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             {needsAttention.map((item) => {
               const Icon = item.icon;
               return (
-                <Link key={item.label} href={item.href} className="flex items-center gap-3 rounded-xl border border-dark-100 bg-white p-3 transition hover:border-primary/30 hover:shadow-sm">
+                <Link key={item.label} href={item.href} className="premium-card flex items-center gap-3 rounded-2xl p-3">
                   <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${item.color}`}><Icon className="h-4 w-4" /></span>
                   <span className="min-w-0"><span className="block font-bold text-dark">{item.count}</span><span className="block truncate text-xs text-dark-500">{item.label}</span></span>
                 </Link>
@@ -225,7 +225,7 @@ export default async function AdminDashboardPage() {
         {stats.map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="rounded-2xl border border-dark-100 bg-white p-5">
+            <div key={s.label} className="premium-card rounded-[1.35rem] p-5">
               <div className="flex items-center justify-between">
                 <div className="min-w-0">
                   <p className="truncate text-sm text-dark-500">{s.label}</p>
@@ -241,11 +241,11 @@ export default async function AdminDashboardPage() {
 
       {/* Charts row */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-dark-100 bg-white p-6 lg:col-span-2">
+        <div className="premium-card rounded-[1.5rem] p-6 lg:col-span-2">
           <h2 className="font-semibold text-dark">Tren Pendapatan (30 Hari Terakhir)</h2>
           <div className="mt-4"><RevenueChart data={revenueChartData} /></div>
         </div>
-        <div className="rounded-2xl border border-dark-100 bg-white p-6">
+        <div className="premium-card rounded-[1.5rem] p-6">
           <h2 className="font-semibold text-dark">Pipeline Pesanan</h2>
           {cancelledCount > 0 && <p className="mt-0.5 text-xs text-dark-400">{cancelledCount} pesanan dibatalkan (tidak ditampilkan)</p>}
           <div className="mt-4"><PipelineChart data={pipelineChartData} /></div>
@@ -253,7 +253,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="rounded-2xl border border-dark-100 bg-white p-6">
+      <div className="premium-card rounded-[1.5rem] p-6">
         <h2 className="font-semibold text-dark">Aksi Cepat</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((a) => {
@@ -269,7 +269,7 @@ export default async function AdminDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Top Products */}
-        <div className="rounded-2xl border border-dark-100 bg-white p-6">
+        <div className="premium-card rounded-[1.5rem] p-6">
           <h2 className="font-semibold text-dark">Produk Terlaris</h2>
           {topProductsRows.length > 0 ? (
             <ul className="mt-4 space-y-3">
@@ -287,7 +287,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="rounded-2xl border border-dark-100 bg-white p-6 lg:col-span-2">
+        <div className="premium-card rounded-[1.5rem] p-6 lg:col-span-2">
           <h2 className="font-semibold text-dark">Aktivitas Terbaru</h2>
           {recentActivity.length > 0 ? (
             <ul className="mt-4 space-y-1">

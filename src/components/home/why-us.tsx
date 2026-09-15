@@ -13,22 +13,22 @@ const benefits = [
 export async function WhyUs() {
   const stats = await getPublicStats();
   return (
-    <section className="bg-white py-20 lg:py-28">
+    <section className="py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <span className="section-kicker">Mengapa Madina Solution</span>
             <h2 className="mt-3 text-3xl font-bold text-dark sm:text-4xl lg:text-5xl">Partner Terpercaya untuk <span className="text-gradient">Kesuksesan Bisnis</span></h2>
             <p className="mt-6 text-lg text-dark-600">Platform ini menggabungkan katalog, layanan, pemesanan, desain, produksi, pembayaran, dan komunikasi agar proses bisnis lebih terukur.</p>
-            <div className="mt-8 grid grid-cols-3 gap-6">
-              <div><p className="text-3xl font-bold text-primary">{stats.products}+</p><p className="mt-1 text-sm text-dark-500">Produk</p></div>
-              <div><p className="text-3xl font-bold text-primary">{stats.services}+</p><p className="mt-1 text-sm text-dark-500">Layanan</p></div>
-              <div><p className="text-3xl font-bold text-primary">{stats.testimonials}+</p><p className="mt-1 text-sm text-dark-500">Testimoni</p></div>
+            <div className="mt-8 grid grid-cols-3 gap-3">
+              <div className="rounded-2xl border border-dark-100 bg-white/80 p-4 shadow-sm"><p className="text-3xl font-bold text-primary">{stats.products}+</p><p className="mt-1 text-sm text-dark-500">Produk</p></div>
+              <div className="rounded-2xl border border-dark-100 bg-white/80 p-4 shadow-sm"><p className="text-3xl font-bold text-primary">{stats.services}+</p><p className="mt-1 text-sm text-dark-500">Layanan</p></div>
+              <div className="rounded-2xl border border-dark-100 bg-white/80 p-4 shadow-sm"><p className="text-3xl font-bold text-primary">{stats.testimonials}+</p><p className="mt-1 text-sm text-dark-500">Testimoni</p></div>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {benefits.map((benefit) => (
-              <div key={benefit.title} className="premium-card rounded-2xl p-5">
+              <div key={benefit.title} className="premium-card rounded-[1.4rem] p-5">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><benefit.icon className="h-5 w-5" /></div>
                 <h3 className="mt-3 font-semibold text-dark">{benefit.title}</h3>
                 <p className="mt-1 text-sm text-dark-500">{benefit.description}</p>

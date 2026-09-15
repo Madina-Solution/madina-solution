@@ -12,13 +12,13 @@ export async function Testimonials() {
     <section className="bg-dark py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
         <div className="text-center">
-          <span className="section-kicker">Testimoni</span>
+          <span className="text-sm font-semibold uppercase tracking-wider text-primary">Testimoni</span>
           <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">Apa Kata Mereka</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-dark-300">Testimoni pelanggan dikelola melalui database sehingga terus bisa diperbarui dari dashboard.</p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map((t) => (
-            <Card key={t.id} className="h-full rounded-[1.4rem] border-dark-700 bg-gradient-to-br from-dark-800 to-dark-900 shadow-[0_18px_40px_rgba(0,0,0,.18)]">
+            <Card key={t.id} className="h-full border-dark-700 bg-dark-800">
               <CardContent className="p-6">
                 <Quote className="h-8 w-8 text-primary/50" />
                 <p className="mt-4 text-dark-200">{t.content}</p>

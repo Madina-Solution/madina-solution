@@ -36,7 +36,7 @@ export async function FeaturedProducts() {
   if (productList.length === 0) return null;
 
   return (
-    <section className="bg-[#f6f4ef] py-20 lg:py-28">
+    <section className="bg-[#f3efe8] py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
@@ -48,19 +48,19 @@ export async function FeaturedProducts() {
             <Link href="/products">Semua Produk<ArrowRight className="ml-2 h-4 w-4" /></Link>
           </Button>
         </div>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {productList.map((product) => (
             <Link key={product.id} href={`/products/${product.slug}`}>
-              <Card className="premium-card group h-full overflow-hidden rounded-[1.4rem]">
+              <Card className="premium-card group h-full overflow-hidden rounded-[1.65rem]">
                 <div className="relative aspect-[4/3] overflow-hidden bg-dark-100">
                   {product.thumbnail ? (
                     <SiteImage src={product.thumbnail} alt={product.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                   ) : (
                     <MediaPlaceholder label="Belum ada media" />
                   )}
-                  {product.isFeatured && <Badge className="absolute left-3 top-3" variant="default">Featured</Badge>}
+                  {product.isFeatured && <Badge className="absolute left-4 top-4 rounded-full px-3 py-1" variant="default">Featured</Badge>}
                 </div>
-                <div className="p-5">
+                <div className="p-4">
                   <p className="text-sm text-dark-500">{product.categoryName || "Produk"}</p>
                   <h3 className="mt-1 font-semibold text-dark group-hover:text-primary">{product.name}</h3>
                   <div className="mt-2 flex items-center gap-2">

@@ -16,14 +16,14 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden bg-[#171717] text-white">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent opacity-80" aria-hidden="true" />
+    <footer className="relative overflow-hidden bg-dark text-white">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
       {/* Newsletter Section */}
-      <div className="border-b border-dark-700">
-        <div className="mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-16">
-          <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
+      <div className="border-b border-white/10 bg-white/[0.025]">
+        <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">
+          <div className="flex flex-col items-center justify-between gap-6 rounded-[1.6rem] border border-white/10 bg-white/[0.035] p-6 lg:flex-row">
             <div>
-              <h3 className="text-2xl font-bold">
+              <h3 className="text-2xl font-bold tracking-tight">
                 Dapatkan Update & Penawaran Terbaru
               </h3>
               <p className="mt-2 text-dark-300">
@@ -168,7 +168,7 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-dark-700">
+      <div className="border-t border-white/10 bg-black/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 lg:flex-row lg:px-6">
           <p className="text-sm text-dark-400">
             © {currentYear} {siteName}. Hak cipta dilindungi.

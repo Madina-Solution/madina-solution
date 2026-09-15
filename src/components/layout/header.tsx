@@ -81,9 +81,9 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
   return (
     <>
       {/* Top Bar */}
-      {topBarEnabled && <div className="hidden border-b border-dark-100 bg-dark text-white lg:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 text-sm">
-          <div className="flex items-center gap-6">
+      {topBarEnabled && <div className="hidden border-b border-dark-900 bg-dark text-white lg:block">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 text-[11px] font-medium tracking-wide">
+          <div className="flex items-center gap-7">
             <a
               href={`https://wa.me/${siteWhatsapp}`}
               target="_blank"
@@ -101,7 +101,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               {siteEmail}
             </a>
           </div>
-          <p className="text-dark-300">
+          <p className="text-white/45">
             {topBarText}
           </p>
         </div>
@@ -112,28 +112,28 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
         className={cn(
           "sticky top-0 z-50 w-full transition-all duration-300",
           isScrolled
-            ? "bg-white/85 backdrop-blur-2xl border-b border-dark-100/80 shadow-[0_8px_30px_rgba(26,26,26,0.06)]"
-            : "bg-white/92 backdrop-blur-xl border-b border-dark-100/70"
+            ? "glass border-b border-dark-100/80 shadow-premium backdrop-blur-2xl"
+            : "bg-white/80 border-b border-transparent backdrop-blur-md"
         )}
       >
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 lg:px-6">
           {/* Logo */}
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-3.5"
+            className="flex shrink-0 items-center gap-3"
             aria-label="Madina Solution Home"
           >
             {siteLogo ? (
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl border border-dark-100 bg-white shadow-sm">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-[1.1rem] bg-white p-1 shadow-sm ring-1 ring-dark-100">
                 <SiteImage src={siteLogo} alt={siteName} fill sizes="40px" className="object-contain" />
               </div>
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-[0_8px_24px_rgba(240,90,22,.24)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[1.1rem] bg-gradient-to-br from-primary to-primary-dark text-white shadow-glow">
                 <span className="text-lg font-bold">{siteName.charAt(0).toUpperCase()}</span>
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="truncate font-display text-[15px] font-extrabold leading-none tracking-tight text-dark-900 sm:text-base">{siteName}</h1>
+              <h1 className="truncate font-display text-lg font-extrabold leading-none tracking-tight text-dark-900">{siteName}</h1>
               <p className="hidden text-xs text-dark-500 sm:block">{siteTagline}</p>
             </div>
           </Link>
@@ -143,7 +143,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             className="relative hidden flex-1 items-center justify-center lg:flex"
             aria-label="Main navigation"
           >
-            <ul className="flex items-center gap-1 rounded-full border border-dark-100/80 bg-white/70 p-1 shadow-sm">
+            <ul className="flex items-center gap-1">
               {NAV_ITEMS.map((item) => (
                 <li
                   key={item.href}
@@ -153,7 +153,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
                 >
                   <Link
                     href={item.href}
-                    className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold text-dark-700 transition-all hover:bg-dark-50 hover:text-primary"
+                    className="flex items-center gap-1 rounded-full px-4 py-2 text-[13px] font-semibold text-dark-600 transition-colors hover:bg-white hover:text-dark hover:shadow-sm"
                     aria-haspopup={item.label === "Layanan" ? "true" : undefined}
                     aria-controls={item.label === "Layanan" ? "services-mega-menu" : undefined}
                     aria-expanded={
@@ -189,7 +189,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
           </nav>
 
           {/* Right Actions */}
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
@@ -203,7 +203,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
+              className="relative rounded-full"
               aria-label="Cart"
               onClick={openCartDrawer}
             >
@@ -221,7 +221,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
                   {user.avatar ? <SiteImage src={user.avatar} alt={user.name} width={32} height={32} className="h-8 w-8 rounded-full object-cover" /> : <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">{user.name.charAt(0).toUpperCase()}</div>}
                 </Button>
                 {accountOpen && (
-                  <div className="absolute right-0 top-12 w-64 rounded-2xl border border-dark-100 bg-white p-3 shadow-premium-lg">
+                  <div className="absolute right-0 top-12 w-72 rounded-2xl border border-dark-100 bg-white/95 p-3 shadow-premium-lg backdrop-blur-xl">
                     <div className="flex items-center gap-3 border-b border-dark-100 pb-3">
                       {user.avatar ? <SiteImage src={user.avatar} alt={user.name} width={40} height={40} className="h-10 w-10 rounded-full object-cover" /> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{user.name.charAt(0).toUpperCase()}</div>}
                       <div className="min-w-0"><p className="truncate font-semibold text-dark">{user.name}</p><p className="truncate text-xs text-dark-500">{user.email}</p></div>
@@ -249,7 +249,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               </Button>
             )}
 
-            <Button size="sm" className="hidden rounded-full lg:flex" asChild>
+            <Button size="sm" className="hidden rounded-full px-5 shadow-glow lg:flex" asChild>
               <Link href="/contact">
                 Mulai Pesanan
                 <ArrowRight className="ml-1 h-3.5 w-3.5" />

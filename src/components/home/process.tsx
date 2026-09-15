@@ -10,10 +10,10 @@ const steps = [
 
 export function Process() {
   return (
-    <section className="bg-[#f6f4ef] py-20 lg:py-28">
+    <section className="py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
         <div className="text-center">
-          <span className="section-kicker">Proses Kerja</span>
+          <span className="text-sm font-semibold uppercase tracking-wider text-primary">Proses Kerja</span>
           <h2 className="mt-3 text-3xl font-bold text-dark sm:text-4xl lg:text-5xl">Cara Kami Bekerja</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-dark-600">Proses yang transparan dan efisien untuk hasil terbaik</p>
         </div>

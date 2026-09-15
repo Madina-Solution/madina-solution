@@ -127,7 +127,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f5f3ef]">
+    <div className="flex min-h-screen bg-dark-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -139,7 +139,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-dark-200/70 bg-white/95 shadow-[8px_0_35px_rgba(26,26,26,.05)] backdrop-blur-xl transition-all duration-200 lg:z-40",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-dark-800 bg-[#1b1714] text-white shadow-2xl transition-all duration-200 lg:z-40",
           collapsed ? "lg:w-[68px]" : "lg:w-64",
           sidebarOpen ? "w-64 translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -148,25 +148,25 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
            its narrow desktop rail state — that covers both the mobile
            drawer (always full width, never "collapsed") and the expanded
            desktop sidebar. Icon-only applies only to the collapsed rail. */}
-        <div className="flex h-[4.5rem] items-center justify-between border-b border-dark-100/80 px-4">
+        <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
           {collapsed ? (
-            <Link href="/admin" className="relative mx-auto flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dark-100 bg-white" aria-label={siteName}>
+            <Link href="/admin" className="relative mx-auto flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/95" aria-label={siteName}>
               {siteLogo ? <SiteImage src={siteLogo} alt={siteName} fill sizes="32px" className="object-contain p-1" /> : <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-white">M</div>}
             </Link>
           ) : (
             <Link href="/admin" className="flex min-w-0 items-center gap-2.5">
-              <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg border border-dark-100 bg-white">
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/95">
                 {siteLogo ? <SiteImage src={siteLogo} alt={siteName} fill sizes="32px" className="object-contain p-1" /> : <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-white">M</div>}
               </div>
               <div className="min-w-0">
-                <span className="block truncate text-sm font-bold text-dark-900">{siteName}</span>
-                <span className="block text-[10px] font-medium uppercase tracking-wider text-primary">Administrator</span>
+                <span className="block truncate text-sm font-bold text-white">{siteName}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-[.16em] text-primary-light">Administrator</span>
               </div>
             </Link>
           )}
           <button
             onClick={() => setSidebarOpen(false)}
-            className="rounded-md p-1 text-dark-400 hover:bg-dark-100 lg:hidden"
+            className="rounded-lg p-1 text-white/60 hover:bg-white/10 lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
@@ -177,7 +177,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
           {NAV_GROUPS.map((group) => ({ ...group, items: group.items.filter((item) => canSee(item.href)) })).filter((group) => group.items.length > 0).map((group) => (
             <div key={group.label} className="mb-4">
               {!collapsed && (
-                <p className="mb-2 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-dark-400">
+                <p className="mb-2 px-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
                   {group.label}
                 </p>
               )}
@@ -194,10 +194,10 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
                         onClick={() => setSidebarOpen(false)}
                         title={collapsed ? item.label : undefined}
                         className={cn(
-                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200",
+                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                           isActive
-                            ? "bg-gradient-to-r from-primary/12 to-primary/5 text-primary shadow-sm ring-1 ring-primary/10"
-                            : "text-dark-600 hover:bg-dark-50 hover:text-dark hover:translate-x-0.5",
+                            ? "bg-primary/15 text-white shadow-glow ring-1 ring-primary/30"
+                            : "text-white/60 hover:bg-white/7 hover:text-white hover:translate-x-0.5",
                           collapsed && "justify-center px-2"
                         )}
                       >
@@ -213,10 +213,10 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
         </nav>
 
         {/* Collapse toggle (desktop only) */}
-        <div className="hidden border-t border-dark-100 p-3 lg:block">
+        <div className="hidden border-t border-white/10 p-3 lg:block">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="flex w-full items-center justify-center rounded-lg p-2 text-dark-400 transition-colors hover:bg-dark-50 hover:text-dark"
+            className="flex w-full items-center justify-center rounded-xl p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -226,7 +226,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
       {/* Main */}
       <div className={cn("min-h-screen min-w-0 flex-1 overflow-x-hidden", collapsed ? "lg:pl-[68px]" : "lg:pl-64")}>
         {/* Topbar */}
-        <header className={cn("fixed inset-x-0 top-0 z-40 flex h-[4.5rem] items-center justify-between border-b border-dark-200/80 bg-white/88 px-4 shadow-[0_8px_30px_rgba(26,26,26,.05)] backdrop-blur-2xl lg:px-6", collapsed ? "lg:pl-[84px]" : "lg:pl-[280px]")}>
+        <header className={cn("fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-dark-200/80 bg-white/90 px-4 shadow-sm backdrop-blur-xl lg:px-6", collapsed ? "lg:pl-[84px]" : "lg:pl-[280px]")}>
           <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -260,7 +260,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
         </header>
 
         {/* Content */}
-        <main className="min-h-screen overflow-x-hidden px-4 pb-12 pt-24 lg:px-8">
+        <main className="premium-shell min-h-screen overflow-x-hidden px-4 pb-10 pt-20 lg:px-8">
           {canAccessCurrentRoute() ? children : <div className="mx-auto flex min-h-[60vh] max-w-2xl items-center justify-center"><div className="rounded-3xl border border-dark-100 bg-white p-8 text-center shadow-sm"><Shield className="mx-auto h-10 w-10 text-primary" /><h1 className="mt-4 text-xl font-bold text-dark">Akses Terbatas</h1><p className="mt-2 text-sm leading-6 text-dark-500">Role <strong>{user.role}</strong> tidak memiliki izin untuk halaman ini.</p><Link href="/admin" className="mt-5 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white">Kembali ke Dashboard</Link></div></div>}
         </main>
       </div>

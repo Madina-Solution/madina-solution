@@ -1,5 +1,10 @@
 
-**Current UI release:** 1.1.4 — Premium UI Refresh (2026-09-15)
+## Release 1.1.4 — Premium UI modernization — 2026-09-15
+
+Visual redesign based on the supplied UI screenshots. Public surfaces now use a warm luxury neutral system with stronger typography, depth, restrained glass effects, improved CTA hierarchy, premium cards, upgraded header/footer, and a more polished portfolio/product presentation. Admin navigation received a premium dark treatment while preserving existing permissions and routes.
+
+Validation performed after source changes: typecheck configuration, navigation, integrity, media, social auth, access, persistence, UI architecture (10/10), commerce/reviews (15/15), SEO, and all-page regression (55 pages / 49 normalized routes) passed. Full dependency-based lint/build could not be rerun in the isolated environment because npm install timed out.
+
 # Madina Solution — Project Status
 
 
