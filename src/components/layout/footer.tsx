@@ -16,10 +16,11 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-dark text-white">
+    <footer className="relative overflow-hidden bg-[#171717] text-white">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent opacity-80" aria-hidden="true" />
       {/* Newsletter Section */}
       <div className="border-b border-dark-700">
-        <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">
+        <div className="mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-16">
           <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
             <div>
               <h3 className="text-2xl font-bold">

@@ -1,3 +1,5 @@
+
+**Current UI release:** 1.1.4 — Premium UI Refresh (2026-09-15)
 # Madina Solution — Project Status
 
 

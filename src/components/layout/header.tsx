@@ -112,28 +112,28 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
         className={cn(
           "sticky top-0 z-50 w-full transition-all duration-300",
           isScrolled
-            ? "glass border-b border-dark-100 shadow-premium"
-            : "bg-white border-b border-transparent"
+            ? "bg-white/85 backdrop-blur-2xl border-b border-dark-100/80 shadow-[0_8px_30px_rgba(26,26,26,0.06)]"
+            : "bg-white/92 backdrop-blur-xl border-b border-dark-100/70"
         )}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 lg:px-6">
+        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 lg:px-6">
           {/* Logo */}
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-3"
+            className="flex shrink-0 items-center gap-3.5"
             aria-label="Madina Solution Home"
           >
             {siteLogo ? (
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl border border-dark-100 bg-white shadow-sm">
                 <SiteImage src={siteLogo} alt={siteName} fill sizes="40px" className="object-contain" />
               </div>
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-premium">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-[0_8px_24px_rgba(240,90,22,.24)]">
                 <span className="text-lg font-bold">{siteName.charAt(0).toUpperCase()}</span>
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="truncate font-display text-lg font-extrabold leading-none tracking-tight text-dark-900">{siteName}</h1>
+              <h1 className="truncate font-display text-[15px] font-extrabold leading-none tracking-tight text-dark-900 sm:text-base">{siteName}</h1>
               <p className="hidden text-xs text-dark-500 sm:block">{siteTagline}</p>
             </div>
           </Link>
@@ -143,7 +143,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             className="relative hidden flex-1 items-center justify-center lg:flex"
             aria-label="Main navigation"
           >
-            <ul className="flex items-center gap-1">
+            <ul className="flex items-center gap-1 rounded-full border border-dark-100/80 bg-white/70 p-1 shadow-sm">
               {NAV_ITEMS.map((item) => (
                 <li
                   key={item.href}
@@ -153,7 +153,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
                 >
                   <Link
                     href={item.href}
-                    className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium text-dark-700 transition-colors hover:bg-dark-50 hover:text-dark"
+                    className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold text-dark-700 transition-all hover:bg-dark-50 hover:text-primary"
                     aria-haspopup={item.label === "Layanan" ? "true" : undefined}
                     aria-controls={item.label === "Layanan" ? "services-mega-menu" : undefined}
                     aria-expanded={
@@ -193,7 +193,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             <Button
               variant="ghost"
               size="icon"
-              className="hidden lg:flex"
+              className="hidden rounded-full lg:flex"
               onClick={openSearch}
               aria-label="Search"
             >
@@ -239,7 +239,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               <Button
                 variant="ghost"
                 size="icon"
-                className="hidden lg:flex"
+                className="hidden rounded-full lg:flex"
                 asChild
                 aria-label="Masuk"
               >
@@ -249,7 +249,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               </Button>
             )}
 
-            <Button size="sm" className="hidden lg:flex" asChild>
+            <Button size="sm" className="hidden rounded-full lg:flex" asChild>
               <Link href="/contact">
                 Mulai Pesanan
                 <ArrowRight className="ml-1 h-3.5 w-3.5" />

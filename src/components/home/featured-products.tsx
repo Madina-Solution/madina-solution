@@ -36,11 +36,11 @@ export async function FeaturedProducts() {
   if (productList.length === 0) return null;
 
   return (
-    <section className="bg-dark-50 py-20 lg:py-28">
+    <section className="bg-[#f6f4ef] py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <span className="text-sm font-semibold uppercase tracking-wider text-primary">Produk Unggulan</span>
+            <span className="section-kicker">Produk Unggulan</span>
             <h2 className="mt-3 text-3xl font-bold text-dark sm:text-4xl">Produk Terlaris Kami</h2>
             <p className="mt-2 text-dark-600">Pilihan produk favorit pelanggan dengan kualitas terbaik</p>
           </div>
@@ -51,7 +51,7 @@ export async function FeaturedProducts() {
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {productList.map((product) => (
             <Link key={product.id} href={`/products/${product.slug}`}>
-              <Card className="group h-full overflow-hidden">
+              <Card className="premium-card group h-full overflow-hidden rounded-[1.4rem]">
                 <div className="relative aspect-[4/3] overflow-hidden bg-dark-100">
                   {product.thumbnail ? (
                     <SiteImage src={product.thumbnail} alt={product.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
@@ -60,7 +60,7 @@ export async function FeaturedProducts() {
                   )}
                   {product.isFeatured && <Badge className="absolute left-3 top-3" variant="default">Featured</Badge>}
                 </div>
-                <div className="p-4">
+                <div className="p-5">
                   <p className="text-sm text-dark-500">{product.categoryName || "Produk"}</p>
                   <h3 className="mt-1 font-semibold text-dark group-hover:text-primary">{product.name}</h3>
                   <div className="mt-2 flex items-center gap-2">

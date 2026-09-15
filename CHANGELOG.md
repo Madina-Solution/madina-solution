@@ -219,3 +219,11 @@
 - Added UUID validation to public review GET.
 - Added `validate:pages` and included it in the release validation chain.
 - Added explicit article SEO columns to database sync verification output.
+
+## 2026-09-15 — Release 1.1.4 · Premium UI Refresh
+- Refreshed public design system with warmer neutral surfaces, subtle grid texture, premium glass panels, elevated cards, and refined shadows.
+- Modernized header/navigation with capsule navigation, stronger hierarchy, refined sticky glass treatment, and premium CTA styling.
+- Redesigned homepage hero with stronger visual hierarchy, richer stat cards, trust cues, premium media frame, and layered decorative depth.
+- Refined homepage services, featured products, benefits, process, FAQ, testimonials, and CTA sections for consistent luxury presentation.
+- Upgraded shared Button variants and footer presentation without changing application behavior or routes.
+- Preserved accessibility, database-driven content, reviews, SEO, and existing navigation contracts.

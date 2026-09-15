@@ -11,17 +11,17 @@ export async function Services() {
   const items = await db.select().from(services).where(eq(services.isActive, true)).orderBy(desc(services.isFeatured), desc(services.createdAt)).limit(6);
   if (!items.length) return null;
   return (
-    <section className="py-20 lg:py-28">
+    <section className="relative py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
-        <div className="text-center">
-          <span className="text-sm font-semibold uppercase tracking-wider text-primary">Layanan Kami</span>
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="section-kicker">Layanan Kami</span>
           <h2 className="mt-3 text-3xl font-bold text-dark sm:text-4xl lg:text-5xl">Solusi Lengkap untuk <span className="text-gradient">Kebutuhan Bisnis</span></h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-dark-600">Layanan nyata dari database bisnis kami, lengkap dengan detail dan paket yang dapat dikelola dari dashboard.</p>
         </div>
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
             <Link key={item.id} href={`/services/${item.slug}`}>
-              <Card className="group h-full overflow-hidden border-transparent hover:border-primary/20">
+              <Card className="premium-card group h-full overflow-hidden rounded-[1.4rem]">
                 {item.thumbnail ? <div className="relative aspect-[16/10] w-full overflow-hidden"><SiteImage src={item.thumbnail} alt={item.name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-105" /></div> : null}
                 <CardContent className="p-6">
                   <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110">

@@ -127,7 +127,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
   };
 
   return (
-    <div className="flex min-h-screen bg-dark-50">
+    <div className="flex min-h-screen bg-[#f5f3ef]">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -139,7 +139,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-dark-200 bg-white transition-all duration-200 lg:z-40",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-dark-200/70 bg-white/95 shadow-[8px_0_35px_rgba(26,26,26,.05)] backdrop-blur-xl transition-all duration-200 lg:z-40",
           collapsed ? "lg:w-[68px]" : "lg:w-64",
           sidebarOpen ? "w-64 translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -148,7 +148,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
            its narrow desktop rail state — that covers both the mobile
            drawer (always full width, never "collapsed") and the expanded
            desktop sidebar. Icon-only applies only to the collapsed rail. */}
-        <div className="flex h-16 items-center justify-between border-b border-dark-100 px-4">
+        <div className="flex h-[4.5rem] items-center justify-between border-b border-dark-100/80 px-4">
           {collapsed ? (
             <Link href="/admin" className="relative mx-auto flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dark-100 bg-white" aria-label={siteName}>
               {siteLogo ? <SiteImage src={siteLogo} alt={siteName} fill sizes="32px" className="object-contain p-1" /> : <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-white">M</div>}
@@ -194,9 +194,9 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
                         onClick={() => setSidebarOpen(false)}
                         title={collapsed ? item.label : undefined}
                         className={cn(
-                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200",
                           isActive
-                            ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/10"
+                            ? "bg-gradient-to-r from-primary/12 to-primary/5 text-primary shadow-sm ring-1 ring-primary/10"
                             : "text-dark-600 hover:bg-dark-50 hover:text-dark hover:translate-x-0.5",
                           collapsed && "justify-center px-2"
                         )}
@@ -226,7 +226,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
       {/* Main */}
       <div className={cn("min-h-screen min-w-0 flex-1 overflow-x-hidden", collapsed ? "lg:pl-[68px]" : "lg:pl-64")}>
         {/* Topbar */}
-        <header className={cn("fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-dark-200/80 bg-white/90 px-4 shadow-sm backdrop-blur-xl lg:px-6", collapsed ? "lg:pl-[84px]" : "lg:pl-[280px]")}>
+        <header className={cn("fixed inset-x-0 top-0 z-40 flex h-[4.5rem] items-center justify-between border-b border-dark-200/80 bg-white/88 px-4 shadow-[0_8px_30px_rgba(26,26,26,.05)] backdrop-blur-2xl lg:px-6", collapsed ? "lg:pl-[84px]" : "lg:pl-[280px]")}>
           <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -260,7 +260,7 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
         </header>
 
         {/* Content */}
-        <main className="min-h-screen overflow-x-hidden px-4 pb-10 pt-20 lg:px-8">
+        <main className="min-h-screen overflow-x-hidden px-4 pb-12 pt-24 lg:px-8">
           {canAccessCurrentRoute() ? children : <div className="mx-auto flex min-h-[60vh] max-w-2xl items-center justify-center"><div className="rounded-3xl border border-dark-100 bg-white p-8 text-center shadow-sm"><Shield className="mx-auto h-10 w-10 text-primary" /><h1 className="mt-4 text-xl font-bold text-dark">Akses Terbatas</h1><p className="mt-2 text-sm leading-6 text-dark-500">Role <strong>{user.role}</strong> tidak memiliki izin untuk halaman ini.</p><Link href="/admin" className="mt-5 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white">Kembali ke Dashboard</Link></div></div>}
         </main>
       </div>
