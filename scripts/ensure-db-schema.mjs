@@ -125,7 +125,8 @@ async function main() {
        WHERE table_schema = 'public'
          AND ((table_name = 'services' AND column_name IN ('options','process_steps','fulfillment_type'))
            OR (table_name = 'products' AND column_name IN ('options','fulfillment_type'))
-           OR (table_name = 'order_items' AND column_name = 'fulfillment_type'))
+           OR (table_name = 'order_items' AND column_name = 'fulfillment_type')
+           OR (table_name = 'articles' AND column_name IN ('seo_title','seo_description','seo_keywords','focus_keyword','canonical_url','no_index')))
        ORDER BY table_name, ordinal_position`
     );
 

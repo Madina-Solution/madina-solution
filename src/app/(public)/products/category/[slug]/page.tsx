@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Star, ShoppingCart, ChevronRight } from "lucide-react";
 import { db } from "@/db";
 import { products, categories } from "@/db/schema";
+import { approvedReviewAverage, approvedReviewCount } from "@/lib/review-stats";
 import { eq, and, desc } from "drizzle-orm";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,7 +58,9 @@ export default async function CategoryPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch products in this category
+  // Fetch products in this category; review stats are authoritative from approved reviews.
+  const reviewCountExpr = approvedReviewCount(products.id);
+  const reviewAverageExpr = approvedReviewAverage(products.id);
   const productList = await db
     .select({
       id: products.id,
@@ -67,8 +70,8 @@ export default async function CategoryPage({ params }: Props) {
       thumbnail: products.thumbnail,
       basePrice: products.basePrice,
       unit: products.unit,
-      rating: products.rating,
-      reviewCount: products.reviewCount,
+      rating: reviewAverageExpr,
+      reviewCount: reviewCountExpr,
       isFeatured: products.isFeatured,
     })
     .from(products)
@@ -174,12 +177,12 @@ export default async function CategoryPage({ params }: Props) {
                           </Badge>
                         )}
                         <div className="absolute inset-0 bg-dark/0 transition-colors group-hover:bg-dark/10" />
-                        <Button
-                          size="icon"
-                          className="absolute bottom-3 right-3 opacity-0 transition-all group-hover:opacity-100"
+                        <span
+                          aria-hidden="true"
+                          className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white opacity-0 shadow-lg transition-all group-hover:opacity-100"
                         >
                           <ShoppingCart className="h-4 w-4" />
-                        </Button>
+                        </span>
                       </div>
 
                       {/* Content */}

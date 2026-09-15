@@ -7,7 +7,7 @@
     "prebuild": "npm run db:sync",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --incremental false",
     "validate:navigation": "node scripts/validate-navigation.mjs",
     "validate:integrity": "node scripts/validate-integrity.mjs",
     "validate:release": "node scripts/validate-release.mjs",
@@ -22,7 +22,8 @@
     "validate:ui": "node scripts/validate-ui-contract.mjs",
     "validate:seo": "node scripts/validate-seo.mjs",
     "db:migrate": "(drizzle-kit migrate || true) && node scripts/ensure-db-schema.mjs",
-    "validate:commerce": "node scripts/validate-commerce.mjs"
+    "validate:commerce": "node scripts/validate-commerce.mjs",
+    "validate:pages": "node scripts/validate-pages.mjs"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",

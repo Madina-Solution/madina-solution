@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { db } from "@/db";
 import { products, categories } from "@/db/schema";
+import { approvedReviewAverage, approvedReviewCount } from "@/lib/review-stats";
 import { desc, eq, and, gte, lte, ilike, asc, or } from "drizzle-orm";
 import { productSearchParamsSchema } from "@/lib/validations/product";
 import { ProductGrid } from "./product-grid";
@@ -75,6 +76,9 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
   }
 
   // Build order by
+  const reviewCountExpr = approvedReviewCount(products.id);
+  const reviewAverageExpr = approvedReviewAverage(products.id);
+
   let orderBy;
   switch (params.sort) {
     case "price-asc":
@@ -87,10 +91,10 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
       orderBy = asc(products.createdAt);
       break;
     case "popular":
-      orderBy = desc(products.reviewCount);
+      orderBy = desc(reviewCountExpr);
       break;
     case "rating":
-      orderBy = desc(products.rating);
+      orderBy = desc(reviewAverageExpr);
       break;
     case "newest":
     default:
@@ -107,8 +111,8 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
       shortDescription: products.shortDescription,
       basePrice: products.basePrice,
       unit: products.unit,
-      rating: products.rating,
-      reviewCount: products.reviewCount,
+      rating: reviewAverageExpr,
+      reviewCount: reviewCountExpr,
       isFeatured: products.isFeatured,
       thumbnail: products.thumbnail,
       categoryId: products.categoryId,

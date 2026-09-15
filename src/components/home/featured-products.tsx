@@ -8,9 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { db } from "@/db";
 import { products, categories } from "@/db/schema";
+import { approvedReviewAverage, approvedReviewCount } from "@/lib/review-stats";
 import { eq, desc } from "drizzle-orm";
 
 export async function FeaturedProducts() {
+  const reviewCountExpr = approvedReviewCount(products.id);
+  const reviewAverageExpr = approvedReviewAverage(products.id);
   const productList = await db
     .select({
       id: products.id,
@@ -19,8 +22,8 @@ export async function FeaturedProducts() {
       thumbnail: products.thumbnail,
       basePrice: products.basePrice,
       unit: products.unit,
-      rating: products.rating,
-      reviewCount: products.reviewCount,
+      rating: reviewAverageExpr,
+      reviewCount: reviewCountExpr,
       isFeatured: products.isFeatured,
       categoryName: categories.name,
     })

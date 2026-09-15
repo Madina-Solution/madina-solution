@@ -29,6 +29,7 @@ import { AdSenseUnit } from "@/components/ads/adsense";
 import { getPublicSiteConfig } from "@/lib/site-config";
 import { buildPageMetadata } from "@/lib/seo";
 import { getSession } from "@/lib/auth/session";
+import { approvedReviewAverage } from "@/lib/review-stats";
 import { orderItems, orders } from "@/db/schema";
 import { ProductReviewForm } from "@/components/product/product-review-form";
 
@@ -167,7 +168,7 @@ export default async function ProductDetailPage({ params }: Props) {
           thumbnail: products.thumbnail,
           basePrice: products.basePrice,
           unit: products.unit,
-          rating: products.rating,
+          rating: approvedReviewAverage(products.id),
         })
         .from(products)
         .where(

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.3 — 2026-09-15
+
+### Fixed
+- Fixed false TypeScript release failure caused by stale/generated `.next` validator types.
+- Disabled incremental state for standalone `tsc` release typecheck.
+- Added typecheck configuration regression validator.
+- Kept Next.js route-specific validation in production build.
+
+
 ## 2026-09-15 — Product Reviews + Full Blog HTML/SEO Editor
 - Added authenticated customer product-review submission at `/api/reviews`.
 - Review submission is eligible only when the authenticated customer has a `completed` order containing the reviewed product.
@@ -200,3 +209,13 @@
 - Database schema contract: now covers article SEO columns
 - Lint blocker: addressed
 - Build prerender blocker: addressed through prebuild schema synchronization
+
+## [1.1.2] - 2026-09-15
+### Full-page audit and public review consistency
+- Audited the complete App Router page inventory: 55 `page.tsx` files / 49 normalized routes.
+- Replaced legacy product rating/count usage on public catalog, category, featured and related-product surfaces with approved-review aggregates.
+- Fixed public product sorting for rating/popularity to use approved-review data.
+- Removed nested interactive Button inside product Link cards.
+- Added UUID validation to public review GET.
+- Added `validate:pages` and included it in the release validation chain.
+- Added explicit article SEO columns to database sync verification output.

@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const checks = [
+  ["node scripts/validate-typecheck-config.mjs", "Typecheck configuration"],
   ["db:sync", "Database schema sync"],
   ["validate:navigation", "Navigation contract"],
   ["validate:integrity", "Integrity scan"],
@@ -11,6 +12,7 @@ const checks = [
   ["validate:ui", "UI, branding and admin architecture contract"],
   ["validate:commerce", "Commerce, service configuration, review and media delivery contract"],
   ["validate:seo", "SEO, rich article editor and metadata contract"],
+  ["validate:pages", "All-page source and regression contract"],
   ["validate:db-schema", "Database schema contract"],
   ["typecheck", "TypeScript"],
   ["lint", "ESLint"],

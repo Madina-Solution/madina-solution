@@ -188,3 +188,10 @@ Status: ✅ IMPLEMENTED
 
 ## Latest Fix — 2026-08-30
 Release-blocking TypeScript and React lint findings from the site-settings/cookie/AdSense/product-gallery pass were corrected in the current source baseline. Static release contracts remain passing; run the full `npm run validate:release` on the deployment machine after `npm install`.
+
+## Release 1.1.2 — Full Page Audit
+- Full source inventory completed: 55 `page.tsx` files / 49 normalized routes.
+- Public product rating/count consistency fixed across list, category, featured and related-product surfaces.
+- Nested interactive card control fixed.
+- New page regression validator integrated into release validation.
+- See `PAGE_AUDIT_2026-09-15.md` for the complete page-group audit and validation caveat.

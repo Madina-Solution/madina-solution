@@ -120,17 +120,12 @@ export function ProductGrid({ products, currentParams, totalCount }: Props) {
                     </Badge>
                   )}
                   <div className="absolute inset-0 bg-dark/0 transition-colors group-hover:bg-dark/10" />
-                  <Button
-                    size="icon"
-                    className="absolute bottom-3 right-3 opacity-0 transition-all group-hover:opacity-100"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // Navigate to product detail for configuration
-                      window.location.href = `/products/${product.slug}`;
-                    }}
+                  <span
+                    aria-hidden="true"
+                    className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white opacity-0 shadow-lg transition-all group-hover:opacity-100"
                   >
                     <ShoppingCart className="h-4 w-4" />
-                  </Button>
+                  </span>
                 </div>
 
                 {/* Content */}

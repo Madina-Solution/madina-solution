@@ -17,8 +17,8 @@ const reviewSchema = z.object({
 
 export async function GET(request: NextRequest) {
   const productId = request.nextUrl.searchParams.get("productId");
-  if (!productId) {
-    return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "productId wajib diisi" } }, { status: 400 });
+  if (!productId || !z.string().uuid().safeParse(productId).success) {
+    return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "productId tidak valid" } }, { status: 400 });
   }
   const list = await db.select({
     id: reviews.id,
