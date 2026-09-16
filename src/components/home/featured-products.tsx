@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { db } from "@/db";
-import { products, categories } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { products, categories, reviews } from "@/db/schema";
+import { eq, desc, and, inArray, sql, count } from "drizzle-orm";
 
 export async function FeaturedProducts() {
   const productList = await db
@@ -31,6 +31,16 @@ export async function FeaturedProducts() {
     .limit(6);
 
   if (productList.length === 0) return null;
+
+  // Live rating/review-count from approved reviews, replacing the stale
+  // products.rating/reviewCount columns.
+  const ids = productList.map((p) => p.id);
+  const ratingRows = await db
+    .select({ productId: reviews.productId, avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`, count: count() })
+    .from(reviews)
+    .where(and(inArray(reviews.productId, ids), eq(reviews.isApproved, true)))
+    .groupBy(reviews.productId);
+  const ratingMap = new Map(ratingRows.map((r) => [r.productId, { rating: Number(r.avg), reviewCount: r.count }]));
 
   return (
     <section className="bg-dark-50 py-20 lg:py-28">
@@ -60,11 +70,17 @@ export async function FeaturedProducts() {
                 <div className="p-4">
                   <p className="text-sm text-dark-500">{product.categoryName || "Produk"}</p>
                   <h3 className="mt-1 font-semibold text-dark group-hover:text-primary">{product.name}</h3>
-                  <div className="mt-2 flex items-center gap-2">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium text-dark">{product.rating || "—"}</span>
-                    <span className="text-sm text-dark-400">({product.reviewCount || 0})</span>
-                  </div>
+                  {(() => {
+                    const live = ratingMap.get(product.id);
+                    if (!live || live.reviewCount === 0) return null;
+                    return (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-medium text-dark">{live.rating.toFixed(1)}</span>
+                        <span className="text-sm text-dark-400">({live.reviewCount})</span>
+                      </div>
+                    );
+                  })()}
                   <p className="mt-3 font-bold text-primary">Mulai {formatCurrency(Number(product.basePrice))}<span className="ml-1 text-xs font-normal text-dark-400">/{product.unit}</span></p>
                 </div>
               </Card>

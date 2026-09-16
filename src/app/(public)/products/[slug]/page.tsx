@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { db } from "@/db";
 import { products, categories, reviews, users } from "@/db/schema";
-import { eq, and, ne, desc } from "drizzle-orm";
+import { eq, and, ne, desc, sql, count } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +27,9 @@ import { RelatedProducts } from "./related-products";
 import { ProductSchema, BreadcrumbSchema } from "@/components/seo/json-ld";
 import { AdSenseUnit } from "@/components/ads/adsense";
 import { getPublicSiteConfig } from "@/lib/site-config";
+import { getSession } from "@/lib/auth/session";
 import { buildPageMetadata } from "@/lib/seo";
+import { ReviewForm } from "./review-form";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -110,6 +112,26 @@ export default async function ProductDetailPage({ params }: Props) {
     .orderBy(desc(reviews.createdAt))
     .limit(5);
 
+  // Live rating aggregate — computed from the actual approved reviews, instead of the
+  // products.rating/reviewCount columns which can drift out of sync with real review data.
+  const [ratingAgg] = await db
+    .select({ avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`, count: count() })
+    .from(reviews)
+    .where(and(eq(reviews.productId, product.id), eq(reviews.isApproved, true)));
+  const liveRating = Number(ratingAgg?.avg ?? 0);
+  const liveReviewCount = ratingAgg?.count ?? 0;
+
+  const session = await getSession();
+  let myReview: { rating: number; comment: string | null } | null = null;
+  if (session) {
+    const [mine] = await db
+      .select({ rating: reviews.rating, comment: reviews.comment })
+      .from(reviews)
+      .where(and(eq(reviews.productId, product.id), eq(reviews.userId, session.userId)))
+      .limit(1);
+    myReview = mine ?? null;
+  }
+
   // Fetch related products (same category)
   const relatedProducts = product.categoryId
     ? await db
@@ -147,8 +169,8 @@ export default async function ProductDetailPage({ params }: Props) {
       price={Number(product.basePrice)}
       url={`${siteUrl}/products/${product.slug}`}
       image={product.thumbnail || undefined}
-      rating={Number(product.rating) || undefined}
-      reviewCount={product.reviewCount || undefined}
+      rating={liveReviewCount > 0 ? liveRating : undefined}
+      reviewCount={liveReviewCount > 0 ? liveReviewCount : undefined}
     />
     <BreadcrumbSchema
       items={[
@@ -215,18 +237,18 @@ export default async function ProductDetailPage({ params }: Props) {
                   <Star
                     key={i}
                     className={`h-5 w-5 ${
-                      i < Math.floor(Number(product.rating) || 0)
+                      i < Math.round(liveRating)
                         ? "fill-yellow-400 text-yellow-400"
                         : "fill-dark-200 text-dark-200"
                     }`}
                   />
                 ))}
                 <span className="ml-1 font-medium">
-                  {product.rating || "0"}
+                  {liveReviewCount > 0 ? liveRating.toFixed(1) : "0"}
                 </span>
               </div>
               <span className="text-dark-400">
-                ({product.reviewCount || 0} ulasan)
+                ({liveReviewCount} ulasan)
               </span>
             </div>
 
@@ -358,7 +380,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-dark">Ulasan</h2>
                   <Badge variant="secondary">
-                    {product.reviewCount || 0} ulasan
+                    {liveReviewCount} ulasan
                   </Badge>
                 </div>
 
@@ -409,6 +431,7 @@ export default async function ProductDetailPage({ params }: Props) {
                     </p>
                   </div>
                 )}
+                <ReviewForm productId={product.id} isLoggedIn={!!session} existingReview={myReview} />
               </CardContent>
             </Card>
           </div>

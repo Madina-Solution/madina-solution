@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { db } from "@/db";
-import { products, categories } from "@/db/schema";
-import { desc, eq, and, gte, lte, ilike, asc, or } from "drizzle-orm";
+import { products, categories, reviews } from "@/db/schema";
+import { desc, eq, and, gte, lte, ilike, asc, or, inArray, sql, count } from "drizzle-orm";
 import { productSearchParamsSchema } from "@/lib/validations/product";
 import { ProductGrid } from "./product-grid";
 import { ProductFilters } from "./product-filters";
@@ -74,7 +74,9 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
     );
   }
 
-  // Build order by
+  // Build order by. "rating"/"popular" can't be resolved in SQL since they depend on
+  // live review aggregates (computed below) rather than the stale products.rating/
+  // reviewCount columns — those are sorted in JS after merging live data instead.
   let orderBy;
   switch (params.sort) {
     case "price-asc":
@@ -87,10 +89,8 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
       orderBy = asc(products.createdAt);
       break;
     case "popular":
-      orderBy = desc(products.reviewCount);
-      break;
     case "rating":
-      orderBy = desc(products.rating);
+      orderBy = desc(products.createdAt);
       break;
     case "newest":
     default:
@@ -120,7 +120,31 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
     .where(and(...conditions))
     .orderBy(desc(products.isFeatured), orderBy);
 
-  return { products: productList, params };
+  // Merge live rating/review-count aggregates (computed from approved reviews) in place
+  // of the stale products.rating/reviewCount columns, which can drift from real review data.
+  let productsWithLiveRatings = productList;
+  if (productList.length > 0) {
+    const ids = productList.map((p) => p.id);
+    const ratingRows = await db
+      .select({ productId: reviews.productId, avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`, count: count() })
+      .from(reviews)
+      .where(and(inArray(reviews.productId, ids), eq(reviews.isApproved, true)))
+      .groupBy(reviews.productId);
+    const ratingMap = new Map(ratingRows.map((r) => [r.productId, { rating: Number(r.avg), reviewCount: r.count }]));
+    productsWithLiveRatings = productList.map((p) => ({
+      ...p,
+      rating: String(ratingMap.get(p.id)?.rating ?? 0),
+      reviewCount: ratingMap.get(p.id)?.reviewCount ?? 0,
+    }));
+
+    if (params.sort === "rating") {
+      productsWithLiveRatings.sort((a, b) => Number(b.rating) - Number(a.rating));
+    } else if (params.sort === "popular") {
+      productsWithLiveRatings.sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0));
+    }
+  }
+
+  return { products: productsWithLiveRatings, params };
 }
 
 async function getCategories() {
