@@ -70,7 +70,6 @@ export default function AdminProductsPage() {
   const [form, setForm] = React.useState<ProductForm>(deepClone(EMPTY_FORM));
 
   const fetchData = React.useCallback(async () => {
-    setIsLoading(true);
     try {
       const [prodRes, catRes] = await Promise.all([fetch("/api/admin/products/list"), fetch("/api/admin/categories")]);
       const [prodData, catData] = await Promise.all([prodRes.json(), catRes.json()]);
@@ -92,7 +91,7 @@ export default function AdminProductsPage() {
     setForm((p) => ({ ...p, metadata: { ...p.metadata, [section]: value } }));
 
   const updateMeta = <K extends keyof ProductAdminMetadata>(section: K, patch: Partial<NonNullable<ProductAdminMetadata[K]>>) =>
-    setForm((p) => ({ ...p, metadata: { ...p.metadata, [section]: { ...(p.metadata[section] || {}), ...patch } } }));
+    setForm((p) => ({ ...p, metadata: { ...p.metadata, [section]: { ...(typeof p.metadata[section] === "object" && p.metadata[section] !== null ? p.metadata[section] : {}), ...patch } } }));
 
   const resetForm = () => {
     setShowForm(false); setEditId(null); setActiveTab("general"); setForm(deepClone(EMPTY_FORM));
@@ -221,8 +220,8 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
                 <div className="space-y-4 lg:col-span-1">
-                  <MediaUploader value={form.thumbnail} onChange={(v)=>setForm(p=>({...p,thumbnail:Array.isArray(v)?v[0]||"":v}))} purpose="product_image" label="Thumbnail utama" allowVideo persist={editId?{endpoint:`/api/admin/products/${editId}`,key:"thumbnail",mode:"replace",method:"PATCH"}:undefined}/>
-                  <MediaUploader value={form.gallery} onChange={(v)=>setForm(p=>({...p,gallery:Array.isArray(v)?v:(v?[v]:[])}))} purpose="product_image" label="Gallery / media" multiple maxFiles={20} allowVideo helpText="Foto 1:1, 4:3, video pendek, infografik, packaging, close-up, dll." persist={editId?{endpoint:`/api/admin/products/${editId}`,key:"gallery",mode:"replace",method:"PATCH"}:undefined}/>
+                  <MediaUploader value={form.thumbnail} onChange={(v)=>setForm(p=>({...p,thumbnail:Array.isArray(v)?v[0]||"":v}))} purpose="product_image" label="Thumbnail utama" allowVideo persist={editId ? {endpoint:`/api/admin/products/${editId}`,key:"thumbnail",mode:"replace",method:"PATCH"}:undefined}/>
+                  <MediaUploader value={form.gallery} onChange={(v)=>setForm(p=>({...p,gallery:Array.isArray(v)?v:(v?[v]:[])}))} purpose="product_image" label="Gallery / media" multiple maxFiles={20} allowVideo helpText="Foto 1:1, 4:3, video pendek, infografik, packaging, close-up, dll." persist={editId ? {endpoint:`/api/admin/products/${editId}`,key:"gallery",mode:"replace",method:"PATCH"}:undefined}/>
                   <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4"><p className="text-xs font-bold uppercase tracking-wider text-primary">Fulfillment</p><select value={form.fulfillmentType} onChange={(e)=>setForm(p=>({...p,fulfillmentType:e.target.value as ProductForm["fulfillmentType"]}))} className="mt-2 h-11 w-full rounded-xl border border-dark-200 bg-white px-3 text-sm"><option value="physical">Fisik</option><option value="digital">Digital</option><option value="hybrid">Hybrid</option></select></div>
                 </div>
               </div>

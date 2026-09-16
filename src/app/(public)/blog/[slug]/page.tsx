@@ -7,7 +7,7 @@ import { articles, users } from "@/db/schema";
 import { eq, and, ne, sql, desc } from "drizzle-orm";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, ArrowLeft, Calendar, Clock, Eye, Tag as TagIcon, User } from "lucide-react";
+import { ChevronRight, ArrowLeft, Calendar, Clock, Eye, Tag as TagIcon, User, ListTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdSenseUnit } from "@/components/ads/adsense";
 import { getPublicSiteConfig } from "@/lib/site-config";
@@ -27,9 +27,10 @@ function estimateReadingMinutes(content: string | null): number {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const result = await db.select({ title: articles.title, excerpt: articles.excerpt, thumbnail: articles.thumbnail }).from(articles).where(eq(articles.slug, slug)).limit(1);
+  const result = await db.select({ title: articles.title, excerpt: articles.excerpt, thumbnail: articles.thumbnail, metadata: articles.metadata }).from(articles).where(eq(articles.slug, slug)).limit(1);
   if (!result[0]) return { title: "Artikel Tidak Ditemukan" };
-  return buildPageMetadata({ title: result[0].title, description: result[0].excerpt || `${result[0].title} — Madina Solution`, path: `/blog/${encodeURIComponent(slug)}`, image: result[0].thumbnail || undefined });
+
+  return buildPageMetadata({ title: result[0].metadata?.seo?.title || result[0].title, description: result[0].metadata?.seo?.description || result[0].excerpt || `${result[0].title} — Madina Solution`, path: `/blog/${encodeURIComponent(slug)}`, canonicalUrl: result[0].metadata?.seo?.canonicalUrl, image: result[0].metadata?.seo?.ogImage || result[0].thumbnail || undefined, noIndex: !!result[0].metadata?.seo?.noIndex, keywords: result[0].metadata?.seo?.keywords || [], openGraphTitle: result[0].metadata?.seo?.ogTitle, openGraphDescription: result[0].metadata?.seo?.ogDescription, twitterTitle: result[0].metadata?.seo?.twitterTitle, twitterDescription: result[0].metadata?.seo?.twitterDescription });
 }
 
 export default async function BlogDetailPage({ params }: Props) {
@@ -47,6 +48,8 @@ export default async function BlogDetailPage({ params }: Props) {
       viewCount: articles.viewCount,
       publishedAt: articles.publishedAt,
       createdAt: articles.createdAt,
+      updatedAt: articles.updatedAt,
+      metadata: articles.metadata,
       authorName: users.name,
       authorAvatar: users.avatar,
     })
@@ -59,8 +62,12 @@ export default async function BlogDetailPage({ params }: Props) {
   const siteConfig = await getPublicSiteConfig();
   const pageUrl = `${siteConfig.siteUrl}/blog/${encodeURIComponent(slug)}`;
   const tags = (article.tags as string[] | null) || [];
-  const readingMinutes = estimateReadingMinutes(article.content);
-  const paragraphs = (article.content || "Konten artikel belum tersedia.").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const readingMinutes = article.metadata?.editorial?.readingTime || estimateReadingMinutes(article.content);
+  const richContent = article.content || "<p>Konten artikel belum tersedia.</p>";
+  const rawHeadings = Array.from(richContent.matchAll(/<h([2-3])[^>]*>(.*?)<\/h[2-3]>/gis)).slice(0, 8);
+  const headings = rawHeadings.map((m, i) => ({ id: `section-${i + 1}`, level: Number(m[1]), title: m[2].replace(/<[^>]+>/g, "").trim() }));
+  let indexedContent = richContent;
+  headings.forEach((h, i) => { indexedContent = indexedContent.replace(rawHeadings[i][0], rawHeadings[i][0].replace(/^<h([2-3])/, `<h$1 id="${h.id}"`)); });
 
   const related = await db
     .select({ id: articles.id, title: articles.title, slug: articles.slug, excerpt: articles.excerpt, thumbnail: articles.thumbnail, category: articles.category, publishedAt: articles.publishedAt })
@@ -79,7 +86,7 @@ export default async function BlogDetailPage({ params }: Props) {
         { name: "Blog", url: `${siteConfig.siteUrl}/blog` },
         { name: article.title, url: pageUrl },
       ]} />
-      <ArticleSchema name={article.title} description={article.excerpt || `Artikel ${article.title}`} url={pageUrl} image={article.thumbnail || undefined} publishedAt={article.publishedAt?.toISOString()} updatedAt={undefined} authorName={article.authorName || siteConfig.siteName} />
+      <ArticleSchema name={article.title} description={article.excerpt || `Artikel ${article.title}`} url={pageUrl} image={article.thumbnail || undefined} publishedAt={article.publishedAt?.toISOString()} updatedAt={article.updatedAt?.toISOString()} authorName={article.authorName || siteConfig.siteName} />
 
       <div className="py-12 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 lg:px-6">
@@ -119,11 +126,9 @@ export default async function BlogDetailPage({ params }: Props) {
                 <div className="my-8"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.article} className="mx-auto" label="Iklan" /></div>
               ) : null}
 
-              <div className="mt-8 space-y-5 text-base leading-8 text-dark-700">
-                {paragraphs.map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
-                ))}
-              </div>
+              {headings.length > 0 && <nav aria-label="Daftar isi" className="mt-8 rounded-2xl border border-dark-100 bg-dark-50 p-5"><div className="flex items-center gap-2 text-sm font-bold text-dark"><ListTree className="h-4 w-4 text-primary"/>Daftar isi</div><ol className="mt-3 space-y-2">{headings.map((h) => <li key={h.id} className={h.level === 3 ? "pl-4" : ""}><a href={`#${h.id}`} className="text-sm text-dark-600 hover:text-primary">{h.title}</a></li>)}</ol></nav>}
+
+              <div className="rich-article-content mt-8" dangerouslySetInnerHTML={{ __html: indexedContent }} />
 
               {tags.length > 0 && (
                 <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-dark-100 pt-6">

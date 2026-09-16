@@ -3,7 +3,7 @@ import { SiteImage } from "@/components/ui/site-image";
 
 import * as React from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
   Menu,
   X,
@@ -62,9 +62,8 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
     }
-    if (label === "Layanan") {
-      setActiveMenu("services");
-    }
+    const key = label === "Layanan" ? "services" : label === "Produk" ? "products" : label === "Eksplor" ? "explore" : null;
+    if (key) setActiveMenu(key);
   };
 
   const handleLogout = async () => {
@@ -144,42 +143,25 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             aria-label="Main navigation"
           >
             <ul className="flex items-center gap-1">
-              {NAV_ITEMS.map((item) => (
-                <li
-                  key={item.href}
-                  className="relative"
-                  onMouseEnter={() => handleMenuEnter(item.label)}
-                  onMouseLeave={handleMenuLeave}
-                >
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium text-dark-700 transition-colors hover:bg-dark-50 hover:text-dark"
-                    aria-haspopup={item.label === "Layanan" ? "true" : undefined}
-                    aria-controls={item.label === "Layanan" ? "services-mega-menu" : undefined}
-                    aria-expanded={
-                      item.label === "Layanan" && activeMenu === "services"
-                    }
-                    onFocus={() => handleMenuEnter(item.label)}
-                  >
-                    {item.label}
-                    {item.label === "Layanan" && (
-                      <ChevronDown
-                        className={cn(
-                          "h-3.5 w-3.5 transition-transform duration-200",
-                          activeMenu === "services" && "rotate-180"
-                        )}
-                      />
-                    )}
-                  </Link>
+              <li><Link href="/" className="rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50">Beranda</Link></li>
+              {[
+                ["services","Layanan"],
+                ["products","Produk"],
+                ["explore","Eksplor"],
+              ].map(([key,label]) => (
+                <li key={key} className="relative">
+                  <button type="button" className="flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50 hover:text-dark" aria-haspopup="true" aria-expanded={activeMenu === key} onClick={() => setActiveMenu(activeMenu === key ? null : key)} onMouseEnter={() => handleMenuEnter(label)} onFocus={() => handleMenuEnter(label)}>
+                    {label}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", activeMenu === key && "rotate-180")} />
+                  </button>
                 </li>
               ))}
             </ul>
 
             <AnimatePresence>
-              {activeMenu === "services" && (
+              {activeMenu && (
                 <div
-                  id="services-mega-menu"
-                  onMouseEnter={() => handleMenuEnter("Layanan")}
+                  id="main-mega-menu"
+                  onMouseEnter={() => { if (activeMenu === "services") handleMenuEnter("Layanan"); else if (activeMenu === "products") handleMenuEnter("Produk"); else handleMenuEnter("Eksplor"); }}
                   onMouseLeave={handleMenuLeave}
                 >
                   <MegaMenu navigation={navigation} />

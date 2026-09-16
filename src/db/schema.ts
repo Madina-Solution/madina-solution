@@ -299,7 +299,7 @@ export const testimonials = pgTable("testimonials", {
 
 // Articles Table
 export type ArticleAdminMetadata = {
-  seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogImage?: string };
+  seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogImage?: string; ogTitle?: string; ogDescription?: string; twitterTitle?: string; twitterDescription?: string };
   editorial?: { authorName?: string; readingTime?: number; featured?: boolean; allowComments?: boolean };
 };
 

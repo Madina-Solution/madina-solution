@@ -76,29 +76,40 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten…
     commit();
   }, [commit]);
 
-  const promptLink = () => {
-    const url = window.prompt("URL tautan", "https://");
-    if (url) command("createLink", url);
+  const runCommand = (name: string, val?: string) => {
+    command(name, val);
   };
-  const promptImage = () => {
-    const url = window.prompt("URL gambar (Cloudinary / media publik)");
-    if (url) {
-      editorRef.current?.focus();
-      document.execCommand("insertImage", false, url);
-      commit();
+
+  const handleToolbarAction = (action: string) => {
+    if (action === "link") {
+      const url = window.prompt("URL tautan", "https://");
+      if (url) runCommand("createLink", url.trim());
+      return;
+    }
+    if (action === "image") {
+      const url = window.prompt("URL gambar (Cloudinary / media publik)");
+      if (url) runCommand("insertImage", url.trim());
+      return;
+    }
+    if (action === "table") {
+      runCommand("insertHTML", '<table class="w-full border-collapse"><thead><tr><th class="border p-2 text-left">Kolom 1</th><th class="border p-2 text-left">Kolom 2</th></tr></thead><tbody><tr><td class="border p-2">Isi</td><td class="border p-2">Isi</td></tr></tbody></table><p><br></p>');
+      return;
+    }
+    if (action === "bold" || action === "italic" || action === "underline" || action === "strikeThrough" || action === "insertUnorderedList" || action === "insertOrderedList" || action === "justifyLeft" || action === "justifyCenter" || action === "justifyRight" || action === "insertHorizontalRule" || action === "undo" || action === "redo" || action === "removeFormat") {
+      runCommand(action);
+      return;
+    }
+    if (action.startsWith("formatBlock:")) {
+      runCommand("formatBlock", action.split(":")[1]);
     }
   };
-  const insertTable = () => {
-    editorRef.current?.focus();
-    document.execCommand("insertHTML", false, '<table class="w-full border-collapse"><tbody><tr><th class="border p-2 text-left">Kolom 1</th><th class="border p-2 text-left">Kolom 2</th></tr><tr><td class="border p-2">Isi</td><td class="border p-2">Isi</td></tr></tbody></table><p><br></p>');
-    commit();
-  };
+
   const toolbar = [
-    [Bold,"Tebal",() => command("bold")],[Italic,"Miring",() => command("italic")],[Underline,"Garis bawah",() => command("underline")],[Strikethrough,"Coret",() => command("strikeThrough")],
-    [Heading1,"Heading 1",() => command("formatBlock","H1")],[Heading2,"Heading 2",() => command("formatBlock","H2")],[Heading3,"Heading 3",() => command("formatBlock","H3")],
-    [List,"Daftar",() => command("insertUnorderedList")],[ListOrdered,"Daftar bernomor",() => command("insertOrderedList")],[Quote,"Kutipan",() => command("formatBlock","BLOCKQUOTE")],[Code2,"Kode",() => command("formatBlock","PRE")],
-    [LinkIcon,"Tautan",promptLink],[ImageIcon,"Gambar",promptImage],[Table2,"Tabel",insertTable],[AlignLeft,"Rata kiri",() => command("justifyLeft")],[AlignCenter,"Rata tengah",() => command("justifyCenter")],[AlignRight,"Rata kanan",() => command("justifyRight")],
-    [Minus,"Garis",() => command("insertHorizontalRule")],[Undo2,"Urungkan",() => command("undo")],[Redo2,"Ulangi",() => command("redo")],[RemoveFormatting,"Bersihkan format",() => command("removeFormat")]
+    [Bold,"Tebal","bold"],[Italic,"Miring","italic"],[Underline,"Garis bawah","underline"],[Strikethrough,"Coret","strikeThrough"],
+    [Heading1,"Heading 1","formatBlock:H1"],[Heading2,"Heading 2","formatBlock:H2"],[Heading3,"Heading 3","formatBlock:H3"],
+    [List,"Daftar","insertUnorderedList"],[ListOrdered,"Daftar bernomor","insertOrderedList"],[Quote,"Kutipan","formatBlock:BLOCKQUOTE"],[Code2,"Kode","formatBlock:PRE"],
+    [LinkIcon,"Tautan","link"],[ImageIcon,"Gambar","image"],[Table2,"Tabel","table"],[AlignLeft,"Rata kiri","justifyLeft"],[AlignCenter,"Rata tengah","justifyCenter"],[AlignRight,"Rata kanan","justifyRight"],
+    [Minus,"Garis","insertHorizontalRule"],[Undo2,"Urungkan","undo"],[Redo2,"Ulangi","redo"],[RemoveFormatting,"Bersihkan format","removeFormat"]
   ] as const;
 
   return (
@@ -106,7 +117,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten…
       {label && <div><label className="block text-sm font-semibold text-dark">{label}</label>{helpText && <p className="mt-1 text-xs text-dark-500">{helpText}</p>}</div>}
       <div className="overflow-hidden rounded-2xl border border-dark-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center gap-1 border-b border-dark-100 bg-dark-50 p-2" role="toolbar" aria-label="Format konten">
-          {toolbar.map(([Icon,itemLabel,action]) => <button key={itemLabel} type="button" title={itemLabel} aria-label={itemLabel} onMouseDown={(e)=>e.preventDefault()} onClick={action}
+          {toolbar.map(([Icon,itemLabel,action]) => <button key={itemLabel} type="button" title={itemLabel} aria-label={itemLabel} onMouseDown={(e)=>e.preventDefault()} onClick={() => handleToolbarAction(action)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-dark-600 hover:bg-white hover:text-dark focus:outline-none focus:ring-2 focus:ring-primary/30"><Icon className="h-4 w-4" /></button>)}
           <span className="mx-1 h-6 w-px bg-dark-200" aria-hidden="true"/>
           <button type="button" onClick={()=>setSourceMode(v=>!v)} className={cn("inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold",sourceMode?"bg-dark text-white":"text-dark-600 hover:bg-white")} aria-pressed={sourceMode}>
