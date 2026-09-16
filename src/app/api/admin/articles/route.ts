@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
+import { ensureRuntimeSchema } from "@/db/ensure-runtime-schema";
 import { articles, auditLogs } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { z } from "zod";

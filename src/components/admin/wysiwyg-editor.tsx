@@ -116,7 +116,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten…
     <div className={cn("space-y-2", className, fullscreen && "fixed inset-3 z-[70] flex flex-col rounded-2xl bg-white p-3 shadow-2xl")}>
       {label && <div><label className="block text-sm font-semibold text-dark">{label}</label>{helpText && <p className="mt-1 text-xs text-dark-500">{helpText}</p>}</div>}
       <div className="overflow-hidden rounded-2xl border border-dark-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center gap-1 border-b border-dark-100 bg-dark-50 p-2" role="toolbar" aria-label="Format konten">
+        <div className="flex flex-wrap items-center gap-1 border-b border-dark-100 bg-dark-50 p-2" role="toolbar" aria-label={label ? `Format ${label}` : "Format konten"}>
           {toolbar.map(([Icon,itemLabel,action]) => <button key={itemLabel} type="button" title={itemLabel} aria-label={itemLabel} onMouseDown={(e)=>e.preventDefault()} onClick={() => handleToolbarAction(action)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-dark-600 hover:bg-white hover:text-dark focus:outline-none focus:ring-2 focus:ring-primary/30"><Icon className="h-4 w-4" /></button>)}
           <span className="mx-1 h-6 w-px bg-dark-200" aria-hidden="true"/>
@@ -126,7 +126,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Tulis konten…
           <button type="button" onClick={()=>setFullscreen(v=>!v)} className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-lg text-dark-600 hover:bg-white" aria-label={fullscreen?"Keluar fullscreen":"Fullscreen"}>{fullscreen?<Minimize2 className="h-4 w-4"/>:<Maximize2 className="h-4 w-4"/>}</button>
         </div>
         {sourceMode ? <textarea value={value} onChange={(e)=>onChange(e.target.value)} className="block w-full resize-none border-0 bg-[#0f172a] p-4 font-mono text-xs leading-6 text-slate-100 outline-none" style={{minHeight}} aria-label="HTML sumber" spellCheck={false}/>
-        : <div ref={editorRef} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" data-placeholder={placeholder} onInput={commit} onBlur={commit}
+        : <div ref={editorRef} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label={label || "Editor konten"} data-placeholder={placeholder} onInput={commit} onBlur={commit}
             className="rich-editor-content max-w-none overflow-auto p-5 text-sm leading-7 text-dark outline-none" style={{minHeight}}/>}
       </div>
     </div>

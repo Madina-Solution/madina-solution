@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MediaUploader } from "@/components/ui/media-uploader";
+import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
 import { useToast } from "@/components/ui/toast";
 import { SiteImage } from "@/components/ui/site-image";
 
@@ -67,7 +68,7 @@ export default function AdminPortfolioPage() {
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Slug *</label><Input value={form.slug} onChange={(e) => setForm(p => ({ ...p, slug: e.target.value }))} /></div>
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Kategori</label><Input value={form.category} onChange={(e) => setForm(p => ({ ...p, category: e.target.value }))} placeholder="Branding, Design, dll." /></div>
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Klien</label><Input value={form.client} onChange={(e) => setForm(p => ({ ...p, client: e.target.value }))} /></div>
-            <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-dark">Deskripsi</label><textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className="w-full rounded-xl border border-dark-200 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" /></div>
+            <div className="sm:col-span-2"><RichTextEditor label="Deskripsi & studi kasus" helpText="Gunakan heading, list, tautan, gambar, dan tabel untuk studi kasus portfolio." value={form.description} onChange={(description) => setForm(p => ({ ...p, description }))} minHeight={300} /></div>
             <div className="flex gap-4 sm:col-span-2">
               <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm(p => ({ ...p, isFeatured: e.target.checked }))} className="h-4 w-4 rounded border-dark-300 text-primary" /><span className="text-sm text-dark-600">Unggulan</span></label>
               <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm(p => ({ ...p, isActive: e.target.checked }))} className="h-4 w-4 rounded border-dark-300 text-primary" /><span className="text-sm text-dark-600">Aktif</span></label>

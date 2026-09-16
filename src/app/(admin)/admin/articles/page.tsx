@@ -41,14 +41,14 @@ export default function AdminArticlesPage() {
       const url = editId ? `/api/admin/articles/${editId}` : "/api/admin/articles";
       const res = await fetch(url, { method: editId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ thumbnail: form.thumbnail, title: form.title, slug: form.slug, excerpt: form.excerpt, content: form.content, category: form.category, tags: form.tags.split(",").map((v) => v.trim()).filter(Boolean).slice(0, 20), isPublished: form.isPublished, metadata: { seo: { title: form.seoTitle, description: form.seoDescription, canonicalUrl: form.canonicalUrl, noIndex: form.noIndex, ogImage: form.ogImage, ogTitle: form.ogTitle, ogDescription: form.ogDescription, twitterTitle: form.twitterTitle, twitterDescription: form.twitterDescription }, editorial: { featured: form.featured, authorName: form.authorName, readingTime: form.readingTime || undefined } } }) });
       const data = await res.json();
-      if (data.success) { toast({ type: "success", title: editId ? "Artikel diperbarui" : "Artikel dibuat" }); resetForm(); fetchData(); }
+      if (data.success) { toast({ type: "success", title: editId ? "Artikel diperbarui" : "Artikel dibuat" }); resetForm(); void fetchData(); }
       else toast({ type: "error", title: data.error?.message || "Gagal" });
     } catch { toast({ type: "error", title: "Terjadi kesalahan" }); } finally { setIsSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return; setIsDeleting(true);
-    try { const res = await fetch(`/api/admin/articles/${deleteTarget.id}`, { method: "DELETE" }); if ((await res.json()).success) { toast({ type: "success", title: "Artikel dihapus" }); fetchData(); } } catch {} finally { setIsDeleting(false); setDeleteTarget(null); }
+    try { const res = await fetch(`/api/admin/articles/${deleteTarget.id}`, { method: "DELETE" }); if ((await res.json()).success) { toast({ type: "success", title: "Artikel dihapus" }); void fetchData(); } } catch {} finally { setIsDeleting(false); setDeleteTarget(null); }
   };
 
   const togglePublish = async (id: string, current: boolean) => {

@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/db";
+import { ensureRuntimeSchema } from "@/db/ensure-runtime-schema";
 import { articles, users } from "@/db/schema";
 import { eq, and, ne, sql, desc } from "drizzle-orm";
 import { formatDate } from "@/lib/utils";
@@ -26,6 +27,7 @@ function estimateReadingMinutes(content: string | null): number {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await ensureRuntimeSchema();
   const { slug } = await params;
   const result = await db.select({ title: articles.title, excerpt: articles.excerpt, thumbnail: articles.thumbnail, metadata: articles.metadata }).from(articles).where(eq(articles.slug, slug)).limit(1);
   if (!result[0]) return { title: "Artikel Tidak Ditemukan" };
@@ -34,6 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogDetailPage({ params }: Props) {
+  await ensureRuntimeSchema();
   const { slug } = await params;
   const [article] = await db
     .select({

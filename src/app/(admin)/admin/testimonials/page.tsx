@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { useToast } from "@/components/ui/toast";
+import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
 
 type Testimonial = { id: string; name: string; role: string | null; company: string | null; content: string; rating: number | null; isFeatured: boolean | null; avatar: string | null };
 
@@ -64,7 +65,7 @@ export default function AdminTestimonialsPage() {
                 {[5,4,3,2,1].map(r => <option key={r} value={r}>{"★".repeat(r)} ({r})</option>)}
               </select>
             </div>
-            <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-dark">Testimoni *</label><textarea value={form.content} onChange={(e) => setForm(p => ({ ...p, content: e.target.value }))} rows={3} className="w-full rounded-xl border border-dark-200 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Tulis testimoni..." /></div>
+            <div className="sm:col-span-2"><RichTextEditor label="Testimoni *" value={form.content} onChange={(content) => setForm(p => ({ ...p, content }))} minHeight={220} placeholder="Tulis testimoni pelanggan…" /></div>
             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm(p => ({ ...p, isFeatured: e.target.checked }))} className="h-4 w-4 rounded border-dark-300 text-primary" /><span className="text-sm text-dark-600">Tampilkan di homepage</span></label>
           </div>
           <div className="mt-4 flex gap-2"><Button onClick={handleSave} isLoading={isSaving}>{editId ? "Simpan" : "Simpan"}</Button><Button variant="outline" onClick={resetForm}>Batal</Button></div>

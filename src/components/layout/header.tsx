@@ -3,7 +3,6 @@ import { SiteImage } from "@/components/ui/site-image";
 
 import * as React from "react";
 import Link from "next/link";
-import { AnimatePresence } from "framer-motion";
 import {
   Menu,
   X,
@@ -123,8 +122,8 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             aria-label="Madina Solution Home"
           >
             {siteLogo ? (
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl">
-                <SiteImage src={siteLogo} alt={siteName} fill sizes="40px" className="object-contain" />
+              <div className="relative flex h-11 max-w-[180px] shrink-0 items-center">
+                <SiteImage src={siteLogo} alt={siteName} width={180} height={52} sizes="180px" className="h-auto max-h-11 w-auto max-w-[180px] object-contain" />
               </div>
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-premium">
@@ -157,17 +156,15 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               ))}
             </ul>
 
-            <AnimatePresence>
-              {activeMenu && (
-                <div
-                  id="main-mega-menu"
-                  onMouseEnter={() => { if (activeMenu === "services") handleMenuEnter("Layanan"); else if (activeMenu === "products") handleMenuEnter("Produk"); else handleMenuEnter("Eksplor"); }}
-                  onMouseLeave={handleMenuLeave}
-                >
-                  <MegaMenu navigation={navigation} />
-                </div>
-              )}
-            </AnimatePresence>
+            {activeMenu && (
+              <div
+                id="main-mega-menu"
+                onMouseEnter={() => { if (activeMenu === "services") handleMenuEnter("Layanan"); else if (activeMenu === "products") handleMenuEnter("Produk"); else handleMenuEnter("Eksplor"); }}
+                onMouseLeave={handleMenuLeave}
+              >
+                <MegaMenu navigation={navigation} />
+              </div>
+            )}
           </nav>
 
           {/* Right Actions */}
@@ -244,7 +241,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               size="icon"
               className="lg:hidden"
               onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="Open menu"
+              aria-label="Buka menu navigasi"
             >
               <Menu className="h-5 w-5" />
             </Button>

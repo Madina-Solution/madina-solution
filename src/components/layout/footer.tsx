@@ -40,7 +40,7 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3">
-              {siteLogo ? <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white p-1.5"><SiteImage src={siteLogo} alt={siteName} fill sizes="48px" className="object-contain" /></div> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white"><span className="text-2xl font-bold">{siteName.charAt(0).toUpperCase()}</span></div>}
+              {siteLogo ? <div className="relative flex h-12 max-w-[180px] shrink-0 items-center"><SiteImage src={siteLogo} alt={siteName} width={180} height={52} sizes="180px" className="h-auto max-h-12 w-auto max-w-[180px] object-contain" /></div> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white"><span className="text-2xl font-bold">{siteName.charAt(0).toUpperCase()}</span></div>}
               <div>
                 <h2 className="font-display text-xl font-extrabold leading-none tracking-tight text-white">{siteName}</h2>
                 <p className="mt-1 text-sm text-dark-400">{siteTagline}</p>
