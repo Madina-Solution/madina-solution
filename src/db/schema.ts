@@ -103,6 +103,7 @@ export const products = pgTable("products", {
   minOrder: integer("min_order").default(1),
   specifications: jsonb("specifications").$type<Record<string, string>>().default({}),
   options: jsonb("options").$type<ProductOption[]>().default([]),
+  metadata: jsonb("metadata").$type<ProductAdminMetadata>().default({}),
   productionDays: integer("production_days").default(3),
   isFeatured: boolean("is_featured").default(false),
   isActive: boolean("is_active").default(true).notNull(),
@@ -297,6 +298,11 @@ export const testimonials = pgTable("testimonials", {
 });
 
 // Articles Table
+export type ArticleAdminMetadata = {
+  seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogImage?: string };
+  editorial?: { authorName?: string; readingTime?: number; featured?: boolean; allowComments?: boolean };
+};
+
 export const articles = pgTable("articles", {
   id: uuid("id").primaryKey().defaultRandom(),
   authorId: uuid("author_id").references(() => users.id),
@@ -307,6 +313,7 @@ export const articles = pgTable("articles", {
   thumbnail: text("thumbnail"),
   category: varchar("category", { length: 100 }),
   tags: jsonb("tags").$type<string[]>().default([]),
+  metadata: jsonb("metadata").$type<ArticleAdminMetadata>().default({}),
   isPublished: boolean("is_published").default(false),
   publishedAt: timestamp("published_at"),
   viewCount: integer("view_count").default(0),
@@ -376,6 +383,21 @@ export type ProductOptionValue = {
   value: string;
   priceModifier?: number;
   description?: string;
+};
+
+export type ProductAdminMetadata = {
+  sku?: string;
+  barcode?: string;
+  brand?: string;
+  condition?: "new" | "used" | "refurbished";
+  stock?: { status?: "in_stock" | "out_of_stock" | "preorder" | "made_to_order"; quantity?: number; lowStock?: number };
+  pricing?: { compareAtPrice?: string; costPrice?: string; wholesaleTiers?: { minQuantity: number; unitPrice: string }[] };
+  shipping?: { weightGrams?: number; lengthCm?: number; widthCm?: number; heightCm?: number; shippingClass?: string; origin?: string; leadTimeDays?: number; freeShipping?: boolean };
+  content?: { highlights?: string[]; tags?: string[]; faq?: { question: string; answer: string }[]; videoUrl?: string; warranty?: string; returnPolicy?: string; relatedProductIds?: string[] };
+  seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogTitle?: string; ogDescription?: string; ogImage?: string; twitterTitle?: string; twitterDescription?: string };
+  schema?: { mpn?: string; gtin?: string };
+  marketing?: { badge?: string; promoText?: string; campaign?: string };
+  variants?: { enabled?: boolean; attributes?: { name: string; values: { label: string; value: string; priceModifier?: number; sku?: string; stock?: number; image?: string }[] }[] };
 };
 
 export type ProductOption = {

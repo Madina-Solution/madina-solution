@@ -30,6 +30,8 @@ import { getPublicSiteConfig } from "@/lib/site-config";
 import { getSession } from "@/lib/auth/session";
 import { buildPageMetadata } from "@/lib/seo";
 import { ReviewForm } from "./review-form";
+import type { ProductAdminMetadata, ProductOption } from "@/db/schema";
+import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -43,6 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       name: products.name,
       shortDescription: products.shortDescription,
       thumbnail: products.thumbnail,
+      metadata: products.metadata,
     })
     .from(products)
     .where(eq(products.slug, slug))
@@ -54,7 +57,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  return buildPageMetadata({ title: product[0].name, description: product[0].shortDescription || `${product[0].name} - Madina Solution`, path: `/products/${encodeURIComponent(slug)}`, image: product[0].thumbnail || undefined });
+  const seo = (product[0].metadata as ProductAdminMetadata | null)?.seo;
+  return buildPageMetadata({
+    title: seo?.title || product[0].name,
+    description: seo?.description || product[0].shortDescription || `${product[0].name} - Madina Solution`,
+    path: `/products/${encodeURIComponent(slug)}`,
+    image: seo?.ogImage || product[0].thumbnail || undefined,
+    noIndex: !!seo?.noIndex,
+    keywords: seo?.keywords || [],
+  });
 }
 
 export default async function ProductDetailPage({ params }: Props) {
@@ -75,6 +86,7 @@ export default async function ProductDetailPage({ params }: Props) {
       minOrder: products.minOrder,
       specifications: products.specifications,
       options: products.options,
+      metadata: products.metadata,
       productionDays: products.productionDays,
       isFeatured: products.isFeatured,
       rating: products.rating,
@@ -157,6 +169,20 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const specs = product.specifications as Record<string, string> || {};
   const gallery = (product.gallery as string[]) || [];
+  const metadata = (product.metadata as ProductAdminMetadata | null) || {};
+  const highlights = metadata.content?.highlights?.filter(Boolean) || [];
+  const faq = metadata.content?.faq?.filter((item) => item.question && item.answer) || [];
+  const richDescription = sanitizeRichHtml(product.description || product.shortDescription || "");
+  const stockStatus = metadata.stock?.status || "made_to_order";
+  const variantOptions: ProductOption[] = (metadata.variants?.enabled ? (metadata.variants.attributes || []).map((attr, index) => ({
+    id: `variant_${product.id}_${index}`,
+    name: attr.name,
+    key: `variant_${index}_${attr.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
+    type: "radio" as const,
+    required: true,
+    values: attr.values.map((v) => ({ label: v.label, value: v.value, priceModifier: v.priceModifier, description: v.stock !== undefined ? `Stok varian: ${v.stock}` : undefined })),
+    displayOrder: index,
+  })) : []);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://madinasolution.web.app";
   const siteConfig = await getPublicSiteConfig();
@@ -169,6 +195,8 @@ export default async function ProductDetailPage({ params }: Props) {
       price={Number(product.basePrice)}
       url={`${siteUrl}/products/${product.slug}`}
       image={product.thumbnail || undefined}
+      sku={metadata.sku}
+      availability={stockStatus === "out_of_stock" ? "OutOfStock" : "InStock"}
       rating={liveReviewCount > 0 ? liveRating : undefined}
       reviewCount={liveReviewCount > 0 ? liveReviewCount : undefined}
     />
@@ -258,20 +286,37 @@ export default async function ProductDetailPage({ params }: Props) {
                 <span className="text-3xl font-bold text-primary">
                   {formatCurrency(Number(product.basePrice))}
                 </span>
-                <span className="text-lg text-dark-500">
-                  /{product.unit || "pcs"}
-                </span>
+                <span className="text-lg text-dark-500">/{product.unit || "pcs"}</span>
+                {metadata.pricing?.compareAtPrice && Number(metadata.pricing.compareAtPrice) > Number(product.basePrice) && (
+                  <span className="text-sm text-dark-400 line-through">{formatCurrency(Number(metadata.pricing.compareAtPrice))}</span>
+                )}
               </div>
               {product.minOrder && product.minOrder > 1 && (
-                <p className="mt-1 text-sm text-dark-500">
-                  Minimal pemesanan: {product.minOrder} {product.unit}
-                </p>
+                <p className="mt-1 text-sm text-dark-500">Minimal pemesanan: {product.minOrder} {product.unit}</p>
               )}
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <Badge variant={stockStatus === "out_of_stock" ? "error" : "success"}>
+                  {stockStatus === "out_of_stock" ? "Stok habis" : stockStatus === "preorder" ? "Pre-order" : stockStatus === "made_to_order" ? "Made to order" : "Stok tersedia"}
+                </Badge>
+                {metadata.sku && <span className="rounded-full bg-dark-50 px-3 py-1 text-dark-500">SKU: {metadata.sku}</span>}
+              </div>
             </div>
 
             {/* Short Description */}
-            {product.shortDescription && (
-              <p className="mt-4 text-dark-600">{product.shortDescription}</p>
+            {product.shortDescription && <p className="mt-4 text-dark-600">{product.shortDescription}</p>}
+
+            {(metadata.pricing?.wholesaleTiers || []).length > 0 && (
+              <div className="mt-5 overflow-hidden rounded-xl border border-dark-100">
+                <div className="bg-dark-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-dark-500">Harga grosir</div>
+                <div className="divide-y divide-dark-100">
+                  {(metadata.pricing?.wholesaleTiers || []).slice().sort((a,b)=>a.minQuantity-b.minQuantity).map((tier) => (
+                    <div key={`${tier.minQuantity}-${tier.unitPrice}`} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                      <span className="text-dark-600">Mulai {tier.minQuantity} {product.unit || "pcs"}</span>
+                      <strong className="text-dark">{formatCurrency(Number(tier.unitPrice))}/{product.unit || "pcs"}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             <Separator className="my-6" />
@@ -311,7 +356,7 @@ export default async function ProductDetailPage({ params }: Props) {
               basePrice={Number(product.basePrice)}
               unit={product.unit || "pcs"}
               minOrder={product.minOrder || 1}
-              options={product.options || []}
+              options={[...(product.options || []), ...variantOptions]}
             />
 
             {/* Actions are rendered inside ProductConfiguration */}
@@ -344,11 +389,13 @@ export default async function ProductDetailPage({ params }: Props) {
                 <h2 className="text-xl font-semibold text-dark">
                   Deskripsi Produk
                 </h2>
-                <div className="mt-4 prose prose-dark max-w-none">
-                  <p className="text-dark-600 whitespace-pre-wrap">
-                    {product.description || product.shortDescription || "Tidak ada deskripsi tersedia."}
-                  </p>
-                </div>
+                <div className="mt-4 prose prose-dark max-w-none rich-product-content" dangerouslySetInnerHTML={{ __html: richDescription || "<p>Tidak ada deskripsi tersedia.</p>" }} />
+
+                {highlights.length > 0 && (
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    {highlights.map((item) => <div key={item} className="rounded-xl border border-dark-100 bg-dark-50/60 p-3 text-sm font-medium text-dark-700"><span className="mr-2 text-primary">✓</span>{item}</div>)}
+                  </div>
+                )}
 
                 {/* Specifications */}
                 {Object.keys(specs).length > 0 && (
@@ -373,6 +420,22 @@ export default async function ProductDetailPage({ params }: Props) {
                 )}
               </CardContent>
             </Card>
+
+            {faq.length > 0 && (
+              <Card className="mt-6">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold text-dark">Pertanyaan yang Sering Diajukan</h2>
+                  <div className="mt-4 space-y-3">
+                    {faq.map((item) => (
+                      <details key={item.question} className="rounded-xl border border-dark-100 p-4">
+                        <summary className="cursor-pointer font-semibold text-dark">{item.question}</summary>
+                        <div className="mt-2 text-sm leading-6 text-dark-600">{item.answer}</div>
+                      </details>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Reviews */}
             <Card className="mt-6">

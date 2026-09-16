@@ -10,8 +10,9 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { useToast } from "@/components/ui/toast";
 import { formatDate } from "@/lib/utils";
+import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
 
-type Article = { id: string; title: string; slug: string; excerpt: string | null; content: string | null; thumbnail: string | null; category: string | null; isPublished: boolean | null; publishedAt: string | null; createdAt: string };
+type Article = { id: string; title: string; slug: string; excerpt: string | null; content: string | null; thumbnail: string | null; category: string | null; isPublished: boolean | null; publishedAt: string | null; createdAt: string; metadata?: { seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogImage?: string } } };
 
 export default function AdminArticlesPage() {
   const { toast } = useToast();
@@ -22,7 +23,7 @@ export default function AdminArticlesPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [form, setForm] = React.useState({ thumbnail: "", title: "", slug: "", excerpt: "", content: "", category: "", isPublished: false });
+  const [form, setForm] = React.useState({ thumbnail: "", title: "", slug: "", excerpt: "", content: a.content || "", category: "", isPublished: false });
 
   const fetchData = React.useCallback(async () => {
     try { const r = await fetch("/api/admin/articles"); const d = await r.json(); if (d.success) setItems(d.articles); } catch {} finally { setIsLoading(false); }
@@ -31,7 +32,7 @@ export default function AdminArticlesPage() {
     void (async () => { await fetchData(); })();
   }, [fetchData]);
 
-  const resetForm = () => { setShowForm(false); setEditId(null); setForm({ thumbnail: "", title: "", slug: "", excerpt: "", content: "", category: "", isPublished: false }); };
+  const resetForm = () => { setShowForm(false); setEditId(null); setForm({ thumbnail: "", title: "", slug: "", excerpt: "", content: a.content || "", category: "", isPublished: false }); };
 
   const handleSave = async () => {
     if (!form.title.trim() || !form.slug.trim()) { toast({ type: "error", title: "Judul dan slug wajib diisi" }); return; }
@@ -55,7 +56,7 @@ export default function AdminArticlesPage() {
     if ((await res.json()).success) { toast({ type: "success", title: current ? "Artikel di-unpublish" : "Artikel dipublish" }); fetchData(); }
   };
 
-  const startEdit = (a: Article) => { setForm({ thumbnail: a.thumbnail || "", title: a.title, slug: a.slug, excerpt: a.excerpt || "", content: "", category: a.category || "", isPublished: !!a.isPublished }); setEditId(a.id); setShowForm(true); };
+  const startEdit = (a: Article) => { setForm({ thumbnail: a.thumbnail || "", title: a.title, slug: a.slug, excerpt: a.excerpt || "", content: a.content || "", category: a.category || "", isPublished: !!a.isPublished }); setEditId(a.id); setShowForm(true); };
 
   return (
     <div className="space-y-6">
@@ -73,7 +74,7 @@ export default function AdminArticlesPage() {
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Kategori</label><Input value={form.category} onChange={(e) => setForm(p => ({ ...p, category: e.target.value }))} placeholder="Tips, Tutorial, dll." /></div>
             <div className="flex items-center pt-6"><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isPublished} onChange={(e) => setForm(p => ({ ...p, isPublished: e.target.checked }))} className="h-4 w-4 rounded border-dark-300 text-primary" /><span className="text-sm text-dark-600">Publish langsung</span></label></div>
             <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-dark">Ringkasan</label><Input value={form.excerpt} onChange={(e) => setForm(p => ({ ...p, excerpt: e.target.value }))} placeholder="Ringkasan singkat artikel" /></div>
-            <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-dark">Konten</label><textarea value={form.content} onChange={(e) => setForm(p => ({ ...p, content: e.target.value }))} rows={6} className="w-full rounded-xl border border-dark-200 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Tulis konten artikel..." /></div>
+            <div className="sm:col-span-2"><RichTextEditor label="Konten artikel" helpText="WYSIWYG + HTML source, aman untuk publikasi dan siap untuk konten panjang." value={form.content} onChange={(content) => setForm(p => ({ ...p, content }))} minHeight={360}/></div>
           </div>
           <div className="mt-4 flex gap-2"><Button onClick={handleSave} isLoading={isSaving}>{editId ? "Simpan Perubahan" : "Simpan"}</Button><Button variant="outline" onClick={resetForm}>Batal</Button></div>
         </CardContent></Card>

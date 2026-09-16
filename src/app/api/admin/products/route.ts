@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 import type { ProductOption } from "@/db/schema";
+import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 
 export const dynamic = "force-dynamic";
 const createProductSchema = z.object({
@@ -12,7 +13,7 @@ const createProductSchema = z.object({
   slug: z.string().min(2).max(255).regex(/^[a-z0-9-]+$/),
   categoryId: z.string().uuid().optional(),
   shortDescription: z.string().max(500).optional(),
-  description: z.string().max(5000).optional(),
+  description: z.string().max(100000).optional(),
   basePrice: z.string().regex(/^\d+(\.\d{1,2})?$/),
   unit: z.string().max(50).optional(),
   minOrder: z.number().int().positive().optional(),
@@ -24,6 +25,7 @@ const createProductSchema = z.object({
   gallery: z.array(z.string().url()).max(12).optional(),
   options: z.array(z.unknown()).max(30).optional(),
   fulfillmentType: z.enum(["physical", "digital", "hybrid"]).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
       slug: parsed.data.slug,
       categoryId: parsed.data.categoryId || null,
       shortDescription: parsed.data.shortDescription || null,
-      description: parsed.data.description || null,
+      description: sanitizeRichHtml(parsed.data.description || ""),
       basePrice: parsed.data.basePrice,
       unit: parsed.data.unit || "pcs",
       minOrder: parsed.data.minOrder || 1,
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
       gallery: parsed.data.gallery || [],
       options: (parsed.data.options || []) as ProductOption[],
       fulfillmentType: parsed.data.fulfillmentType || "physical",
+      metadata: parsed.data.metadata || {},
     }).returning();
 
     await db.insert(auditLogs).values({ userId: session.userId, action: "PRODUCT_CREATED", resource: "products", resourceId: created.id, metadata: { name: created.name, slug: created.slug } });

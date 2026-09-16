@@ -10,6 +10,8 @@ const requiredColumns = [
   { table: "services", column: "options", sql: 'ALTER TABLE "services" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT \'[]\'::jsonb' },
   { table: "services", column: "process_steps", sql: 'ALTER TABLE "services" ADD COLUMN IF NOT EXISTS "process_steps" jsonb DEFAULT \'[]\'::jsonb' },
   { table: "services", column: "fulfillment_type", sql: 'ALTER TABLE "services" ADD COLUMN IF NOT EXISTS "fulfillment_type" varchar(12) DEFAULT \'physical\' NOT NULL' },
+  { table: "articles", column: "metadata", sql: `ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "metadata" jsonb DEFAULT '{}'::jsonb` },
+  { table: "products", column: "metadata", sql: `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "metadata" jsonb DEFAULT '{}'::jsonb` },
   { table: "products", column: "options", sql: 'ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT \'[]\'::jsonb' },
   { table: "products", column: "fulfillment_type", sql: 'ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "fulfillment_type" varchar(12) DEFAULT \'physical\' NOT NULL' },
   { table: "order_items", column: "fulfillment_type", sql: 'ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "fulfillment_type" varchar(12) DEFAULT \'physical\' NOT NULL' },

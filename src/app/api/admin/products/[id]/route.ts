@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 import type { ProductOption } from "@/db/schema";
+import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -15,7 +16,7 @@ const updateProductSchema = z.object({
   slug: z.string().min(2).max(255).regex(/^[a-z0-9-]+$/).optional(),
   categoryId: z.string().uuid().nullable().optional(),
   shortDescription: z.string().max(500).nullable().optional(),
-  description: z.string().max(5000).nullable().optional(),
+  description: z.string().max(100000).nullable().optional(),
   basePrice: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
   unit: z.string().max(50).optional(),
   minOrder: z.number().int().positive().optional(),
@@ -27,6 +28,7 @@ const updateProductSchema = z.object({
   gallery: z.array(z.string().url()).max(12).optional(),
   options: z.array(z.unknown()).max(30).optional(),
   fulfillmentType: z.enum(["physical", "digital", "hybrid"]).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function GET(request: NextRequest, context: Ctx) {
@@ -48,7 +50,7 @@ export async function PATCH(request: NextRequest, context: Ctx) {
     const body = await request.json();
     const parsed = updateProductSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Data tidak valid" } }, { status: 400 });
-    const updateData = { ...parsed.data, options: parsed.data.options as ProductOption[] | undefined, updatedAt: new Date() };
+    const updateData = { ...parsed.data, ...(parsed.data.description !== undefined ? { description: sanitizeRichHtml(parsed.data.description || "") } : {}), options: parsed.data.options as ProductOption[] | undefined, updatedAt: new Date() };
     const [updated] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
     if (!updated) return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Produk tidak ditemukan" } }, { status: 404 });
     await db.insert(auditLogs).values({ userId: session.userId, action: "PRODUCT_UPDATED", resource: "products", resourceId: id, metadata: parsed.data });
