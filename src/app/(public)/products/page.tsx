@@ -148,15 +148,19 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
 }
 
 async function getCategories() {
-  return db
+  const rows = await db
     .select({
       id: categories.id,
       name: categories.name,
       slug: categories.slug,
+      productCount: count(products.id),
     })
     .from(categories)
+    .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.isActive, true)))
     .where(eq(categories.isActive, true))
+    .groupBy(categories.id)
     .orderBy(asc(categories.name));
+  return rows;
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
@@ -200,6 +204,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 products={productList}
                 currentParams={params}
                 totalCount={productList.length}
+                categories={categoryList}
               />
             </Suspense>
           </div>

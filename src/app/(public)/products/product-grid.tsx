@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Star, ShoppingCart, Package } from "lucide-react";
+import { Star, ShoppingCart, Package, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,10 +28,13 @@ type Product = {
   categorySlug: string | null;
 };
 
+type Category = { id: string; name: string; slug: string };
+
 type Props = {
   products: Product[];
   currentParams: Partial<ProductSearchParams>;
   totalCount: number;
+  categories: Category[];
 };
 
 const SORT_OPTIONS = [
@@ -43,7 +46,7 @@ const SORT_OPTIONS = [
   { value: "rating", label: "Rating Tertinggi" },
 ];
 
-export function ProductGrid({ products, currentParams, totalCount }: Props) {
+export function ProductGrid({ products, currentParams, totalCount, categories }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -59,23 +62,30 @@ export function ProductGrid({ products, currentParams, totalCount }: Props) {
   };
 
   const currentSort = currentParams.sort || "newest";
+  const activeCategoryName = categories.find((c) => c.slug === currentParams.category)?.name;
+
+  const removeParam = (...keys: string[]) => {
+    const params = new URLSearchParams(searchParams.toString());
+    keys.forEach((key) => params.delete(key));
+    params.delete("page");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const chips: { label: string; onRemove: () => void }[] = [];
+  if (currentParams.q) chips.push({ label: `"${currentParams.q}"`, onRemove: () => removeParam("q") });
+  if (activeCategoryName) chips.push({ label: activeCategoryName, onRemove: () => removeParam("category") });
+  if (currentParams.minPrice !== undefined || currentParams.maxPrice !== undefined) {
+    const min = currentParams.minPrice !== undefined ? formatCurrency(currentParams.minPrice) : "";
+    const max = currentParams.maxPrice !== undefined ? formatCurrency(currentParams.maxPrice) : "";
+    chips.push({ label: min && max ? `${min} - ${max}` : min ? `Di atas ${min}` : `Di bawah ${max}`, onRemove: () => removeParam("minPrice", "maxPrice") });
+  }
 
   return (
     <div>
       {/* Header with count and sort */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-dark-600">
           Menampilkan <span className="font-semibold text-dark">{totalCount}</span> produk
-          {currentParams.q && (
-            <span>
-              {" "}untuk &quot;<span className="font-semibold text-primary">{currentParams.q}</span>&quot;
-            </span>
-          )}
-          {currentParams.category && (
-            <span>
-              {" "}di kategori <span className="font-semibold text-primary">{currentParams.category}</span>
-            </span>
-          )}
         </p>
 
         {/* Sort Dropdown */}
@@ -95,74 +105,81 @@ export function ProductGrid({ products, currentParams, totalCount }: Props) {
         </div>
       </div>
 
+      {/* Active filter chips */}
+      {chips.length > 0 && (
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          {chips.map((chip, i) => (
+            <button
+              key={i}
+              onClick={chip.onRemove}
+              className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 py-1 pl-3 pr-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+            >
+              {chip.label}
+              <X className="h-3.5 w-3.5" />
+            </button>
+          ))}
+          <button onClick={() => router.push(pathname, { scroll: false })} className="text-xs font-medium text-dark-400 underline-offset-2 hover:text-dark-600 hover:underline">
+            Hapus semua
+          </button>
+        </div>
+      )}
+
       {/* Products Grid */}
       {products.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
             <Link key={product.id} href={`/products/${product.slug}`}>
-              <Card className="group h-full overflow-hidden transition-all hover:shadow-premium-lg">
+              <Card className="group h-full overflow-hidden rounded-xl border-dark-100 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-premium-lg">
                 {/* Image */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-dark-100">
+                <div className="relative aspect-square overflow-hidden bg-dark-50">
                   {product.thumbnail ? (
                     <SiteImage
                       src={product.thumbnail}
                       alt={product.name}
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <MediaPlaceholder />
                   )}
                   {product.isFeatured && (
-                    <Badge className="absolute left-3 top-3" variant="default">
-                      Featured
+                    <Badge className="absolute left-2 top-2" variant="default">
+                      Terlaris
                     </Badge>
                   )}
-                  <div className="absolute inset-0 bg-dark/0 transition-colors group-hover:bg-dark/10" />
-                  <Button
-                    size="icon"
-                    className="absolute bottom-3 right-3 opacity-0 transition-all group-hover:opacity-100"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // Navigate to product detail for configuration
-                      window.location.href = `/products/${product.slug}`;
-                    }}
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                  </Button>
+                  {/* Quick-order overlay, Alibaba-style: a full CTA appears on hover instead of a bare icon */}
+                  <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-dark/80 to-transparent p-2 transition-transform duration-300 group-hover:translate-y-0">
+                    <span className="flex items-center justify-center gap-1.5 rounded-lg bg-white py-2 text-xs font-semibold text-dark shadow-sm">
+                      <ShoppingCart className="h-3.5 w-3.5" />Pesan Sekarang
+                    </span>
+                  </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                  <p className="text-sm text-dark-500">
-                    {product.categoryName || "Uncategorized"}
+                <div className="p-3">
+                  <p className="truncate text-xs text-dark-400">
+                    {product.categoryName || "Produk"}
                   </p>
-                  <h3 className="mt-1 font-semibold text-dark group-hover:text-primary">
+                  <h3 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-snug text-dark group-hover:text-primary">
                     {product.name}
                   </h3>
-                  {product.shortDescription && (
-                    <p className="mt-1 line-clamp-2 text-sm text-dark-500">
-                      {product.shortDescription}
-                    </p>
-                  )}
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">
-                        {product.rating || "0"}
-                      </span>
-                    </div>
-                    <span className="text-sm text-dark-400">
-                      ({product.reviewCount || 0} ulasan)
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-lg font-bold text-primary">
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-[11px] text-dark-400">Mulai</span>
+                    <span className="text-base font-bold text-primary">
                       {formatCurrency(Number(product.basePrice))}
                     </span>
-                    <span className="text-sm text-dark-500">
+                    <span className="text-xs text-dark-400">
                       /{product.unit || "pcs"}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-1">
+                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                    <span className="text-xs font-medium text-dark-700">
+                      {product.rating || "0"}
+                    </span>
+                    <span className="text-xs text-dark-400">
+                      ({product.reviewCount || 0})
                     </span>
                   </div>
                 </div>

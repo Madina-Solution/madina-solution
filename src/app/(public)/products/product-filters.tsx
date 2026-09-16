@@ -13,6 +13,7 @@ type Category = {
   id: string;
   name: string;
   slug: string;
+  productCount?: number;
 };
 
 type Props = {
@@ -157,13 +158,16 @@ export function ProductFilters({ categories, currentParams }: Props) {
                 key={category.id}
                 onClick={() => updateParams("category", category.slug)}
                 className={cn(
-                  "block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                  "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors",
                   currentParams.category === category.slug
                     ? "bg-primary/10 font-medium text-primary"
                     : "text-dark-600 hover:bg-dark-50 hover:text-dark"
                 )}
               >
-                {category.name}
+                <span className="truncate">{category.name}</span>
+                {typeof category.productCount === "number" && (
+                  <span className={cn("ml-2 shrink-0 text-xs", currentParams.category === category.slug ? "text-primary/70" : "text-dark-400")}>{category.productCount}</span>
+                )}
               </button>
             ))}
           </div>

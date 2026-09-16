@@ -12,7 +12,7 @@ import { useCart } from "@/lib/cart/cart-provider";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useRouter } from "next/navigation";
-import { ShoppingCart, Heart, Share2, Upload, Loader2, X, Check } from "lucide-react";
+import { ShoppingCart, Heart, Share2, Upload, Loader2, X, Check, ShieldCheck, BadgeCheck, Truck } from "lucide-react";
 
 type Props = {
   productId: string;
@@ -488,6 +488,22 @@ export function ProductConfiguration({
         <Button type="button" size="lg" variant="outline" className="w-14 shrink-0 px-0" aria-label="Bagikan produk ini" onClick={() => void handleShare()}>
           {shareCopied ? <Check className="h-5 w-5 text-green-600" /> : <Share2 className="h-5 w-5" />}
         </Button>
+      </div>
+
+      {/* Trust badges */}
+      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-dark-100 pt-4">
+        <div className="flex flex-col items-center gap-1 text-center">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <span className="text-[11px] leading-tight text-dark-500">Garansi Revisi Desain</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <BadgeCheck className="h-5 w-5 text-primary" />
+          <span className="text-[11px] leading-tight text-dark-500">Pembayaran Aman</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <Truck className="h-5 w-5 text-primary" />
+          <span className="text-[11px] leading-tight text-dark-500">Estimasi Jelas</span>
+        </div>
       </div>
     </div>
   );
