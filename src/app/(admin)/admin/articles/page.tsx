@@ -104,7 +104,7 @@ export default function AdminArticlesPage() {
             <tr key={a.id} className="border-b border-dark-50 last:border-0 hover:bg-dark-50/50">
               <td className="px-5 py-3.5"><p className="font-medium text-dark">{a.title}</p>{a.excerpt && <p className="text-xs text-dark-400 line-clamp-1">{a.excerpt}</p>}</td>
               <td className="px-5 py-3.5 text-dark-600">{a.category || "—"}</td>
-              <td className="px-5 py-3.5"><button onClick={() => togglePublish(a.id, !!a.isPublished)}><Badge variant={a.isPublished ? "success" : "warning"}>{a.isPublished ? "Terbit" : "Draft"}</Badge></button></td>
+              <td className="px-5 py-3.5"><button type="button" aria-label={`${a.isPublished ? "Jadikan draft" : "Terbitkan"} artikel ${a.title}`} onClick={() => togglePublish(a.id, !!a.isPublished)}><Badge variant={a.isPublished ? "success" : "warning"}>{a.isPublished ? "Terbit" : "Draft"}</Badge></button></td>
               <td className="px-5 py-3.5 text-xs text-dark-500">{formatDate(a.createdAt)}</td>
               <td className="px-5 py-3.5"><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => startEdit(a)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: a.id, title: a.title })}><Trash2 className="h-4 w-4 text-red-500" /></Button></div></td>
             </tr>

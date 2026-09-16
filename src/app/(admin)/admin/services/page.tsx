@@ -106,7 +106,7 @@ export default function AdminServicesPage() {
                 <td className="px-5 py-3.5"><p className="font-medium text-dark">{s.name}</p>{s.shortDescription && <p className="text-xs text-dark-400 line-clamp-1">{s.shortDescription}</p>}</td>
                 <td className="px-5 py-3.5 text-right text-dark-600">{s.startingPrice ? formatCurrency(Number(s.startingPrice)) : "—"}</td>
                 <td className="px-5 py-3.5 text-dark-600">{s.estimatedDays || 7} hari</td>
-                <td className="px-5 py-3.5"><button onClick={() => handleToggle(s.id, "isActive", s.isActive)}><Badge variant={s.isActive ? "success" : "error"}>{s.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
+                <td className="px-5 py-3.5"><button type="button" aria-label={`${s.isActive ? "Nonaktifkan" : "Aktifkan"} layanan ${s.name}`} onClick={() => handleToggle(s.id, "isActive", s.isActive)}><Badge variant={s.isActive ? "success" : "error"}>{s.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
                 <td className="px-5 py-3.5"><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => startEdit(s)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: s.id, name: s.name })}><Trash2 className="h-4 w-4 text-red-500" /></Button></div></td>
               </tr>
             ))}

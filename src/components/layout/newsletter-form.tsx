@@ -46,17 +46,21 @@ export function NewsletterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-2">
+      <label className="sr-only" htmlFor="newsletter-email">Alamat email untuk newsletter</label>
       <Input
+        id="newsletter-email"
+        name="email"
         type="email"
+        autoComplete="email"
         placeholder="Masukkan email Anda"
         value={email}
         onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
         className="border-dark-600 bg-dark-800 text-white placeholder:text-dark-400 focus:border-primary"
       />
-      <Button type="submit" disabled={status === "loading"}>
+      <Button type="submit" disabled={status === "loading"} aria-label="Berlangganan newsletter" title="Berlangganan newsletter">
         {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
           <span className="hidden sm:inline">Berlangganan</span>
-          <ArrowRight className="h-4 w-4 sm:ml-2" />
+          <ArrowRight className="h-4 w-4 sm:ml-2" aria-hidden="true" />
         </>}
       </Button>
     </form>

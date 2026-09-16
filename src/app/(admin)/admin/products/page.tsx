@@ -69,17 +69,36 @@ export default function AdminProductsPage() {
   const [activeTab, setActiveTab] = React.useState<"general"|"content"|"pricing"|"inventory"|"shipping"|"seo"|"variants">("general");
   const [form, setForm] = React.useState<ProductForm>(deepClone(EMPTY_FORM));
 
-  const fetchData = React.useCallback(async () => {
+  const reloadData = React.useCallback(async () => {
     try {
       const [prodRes, catRes] = await Promise.all([fetch("/api/admin/products/list"), fetch("/api/admin/categories")]);
       const [prodData, catData] = await Promise.all([prodRes.json(), catRes.json()]);
       if (prodData.success) setProducts(prodData.products);
       if (catData.success) setCategories(catData.categories);
-    } catch { toast({ type: "error", title: "Gagal memuat data produk" }); }
-    finally { setIsLoading(false); }
+      return true;
+    } catch {
+      toast({ type: "error", title: "Gagal memuat data produk" });
+      return false;
+    }
   }, [toast]);
 
-  React.useEffect(() => { void fetchData(); }, [fetchData]);
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [prodRes, catRes] = await Promise.all([fetch("/api/admin/products/list"), fetch("/api/admin/categories")]);
+        const [prodData, catData] = await Promise.all([prodRes.json(), catRes.json()]);
+        if (cancelled) return;
+        if (prodData.success) setProducts(prodData.products);
+        if (catData.success) setCategories(catData.categories);
+      } catch {
+        if (!cancelled) toast({ type: "error", title: "Gagal memuat data produk" });
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [toast]);
 
   const filteredProducts = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -118,7 +137,7 @@ export default function AdminProductsPage() {
       if (!data.success) throw new Error(data.error?.message || "Gagal menyimpan");
       toast({ type: "success", title: editId ? "Produk diperbarui" : "Produk dibuat" });
       resetForm();
-      await fetchData();
+      await reloadData();
     } catch (error) {
       toast({ type: "error", title: error instanceof Error ? error.message : "Gagal menyimpan produk" });
     } finally { setIsSaving(false); }
@@ -132,7 +151,7 @@ export default function AdminProductsPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error?.message || "Gagal");
       toast({ type: "success", title: "Produk dinonaktifkan" });
-      await fetchData();
+      await reloadData();
     } catch (error) { toast({ type: "error", title: error instanceof Error ? error.message : "Gagal" }); }
     finally { setIsDeleting(false); setDeleteTarget(null); }
   };
@@ -142,7 +161,7 @@ export default function AdminProductsPage() {
       const res = await fetch(`/api/admin/products/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ [field]: !value }) });
       const data = await res.json();
       if (!data.success) throw new Error();
-      await fetchData();
+      await reloadData();
     } catch { toast({ type: "error", title: "Gagal memperbarui produk" }); }
   };
 

@@ -7,7 +7,7 @@
 
 @theme {
   /* ---------- Brand Colors ---------- */
-  --color-primary: #E8590C;
+  --color-primary: #C44D0A;
   --color-primary-dark: #C44D0A;
   --color-primary-light: #FF6B1A;
   --color-primary-50: #FFF7ED;
@@ -15,7 +15,7 @@
   --color-primary-200: #FED7AA;
   --color-primary-300: #FDBA74;
   --color-primary-400: #FB923C;
-  --color-primary-500: #E8590C;
+  --color-primary-500: #C44D0A;
   --color-primary-600: #C44D0A;
   --color-primary-700: #9A3412;
   --color-primary-800: #7C2D12;
@@ -41,7 +41,7 @@
   --color-muted-foreground: #71717A;
   --color-border: #E4E4E7;
   --color-input: #E4E4E7;
-  --color-ring: #E8590C;
+  --color-ring: #9A3412;
   --color-card: #FFFFFF;
   --color-card-foreground: #1A1A1A;
   --color-surface: #FAFAFA;
@@ -111,7 +111,7 @@
 
   /* Selection */
   ::selection {
-    background-color: rgba(232, 89, 12, 0.2);
+    background-color: rgba(196, 77, 10, 0.18);
     color: var(--color-foreground);
   }
 }

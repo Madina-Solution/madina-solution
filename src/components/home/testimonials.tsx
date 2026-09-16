@@ -24,7 +24,7 @@ export async function Testimonials() {
                 <p className="mt-4 text-dark-200">{t.content}</p>
                 <div className="mt-4 flex gap-1">{Array.from({ length: t.rating || 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}</div>
                 <div className="mt-4 flex items-center gap-3">
-                  {t.avatar ? <SiteImage src={t.avatar} alt={t.name} width={40} height={40} className="h-10 w-10 rounded-full object-cover" /> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary" aria-hidden="true">{t.name.charAt(0)}</div>}
+                  {t.avatar ? <SiteImage src={t.avatar} alt="" aria-hidden="true" width={40} height={40} className="h-10 w-10 rounded-full object-cover" /> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary" aria-hidden="true">{t.name.charAt(0)}</div>}
                   <div><p className="font-semibold text-white">{t.name}</p><p className="text-sm text-dark-400">{[t.role, t.company].filter(Boolean).join(", ")}</p></div>
                 </div>
               </CardContent>

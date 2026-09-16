@@ -64,7 +64,10 @@ export default async function BlogDetailPage({ params }: Props) {
   const tags = (article.tags as string[] | null) || [];
   const readingMinutes = article.metadata?.editorial?.readingTime || estimateReadingMinutes(article.content);
   const richContent = article.content || "<p>Konten artikel belum tersedia.</p>";
-  const rawHeadings = Array.from(richContent.matchAll(/<h([2-3])[^>]*>(.*?)<\/h[2-3]>/gis)).slice(0, 8);
+  const headingRegex = /<h([2-3])[^>]*>([\s\S]*?)<\/h[2-3]>/gi;
+  const rawHeadings: RegExpExecArray[] = [];
+  let headingMatch: RegExpExecArray | null;
+  while (rawHeadings.length < 8 && (headingMatch = headingRegex.exec(richContent)) !== null) rawHeadings.push(headingMatch);
   const headings = rawHeadings.map((m, i) => ({ id: `section-${i + 1}`, level: Number(m[1]), title: m[2].replace(/<[^>]+>/g, "").trim() }));
   let indexedContent = richContent;
   headings.forEach((h, i) => { indexedContent = indexedContent.replace(rawHeadings[i][0], rawHeadings[i][0].replace(/^<h([2-3])/, `<h$1 id="${h.id}"`)); });
@@ -98,14 +101,14 @@ export default async function BlogDetailPage({ params }: Props) {
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
             {/* Main column */}
-            <article className="min-w-0">
+            <article className="min-w-0" aria-label={`Artikel: ${article.title}`}>
               {article.category && <Badge variant="secondary" className="mb-4">{article.category}</Badge>}
               <h1 className="text-3xl font-bold leading-tight text-dark lg:text-4xl">{article.title}</h1>
 
               <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-dark-500">
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">
-                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt={article.authorName || siteConfig.siteName} fill sizes="24px" className="object-cover" /> : <User className="h-3.5 w-3.5" />}
+                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt="" aria-hidden="true" fill sizes="24px" className="object-cover" /> : <User className="h-3.5 w-3.5" />}
                   </span>
                   {article.authorName || siteConfig.siteName}
                 </div>
@@ -150,7 +153,7 @@ export default async function BlogDetailPage({ params }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-wide text-dark-400">Penulis</p>
                 <div className="mt-3 flex items-center gap-3">
                   <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">
-                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt={article.authorName || siteConfig.siteName} fill sizes="44px" className="object-cover" /> : <User className="h-5 w-5" />}
+                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt="" aria-hidden="true" fill sizes="44px" className="object-cover" /> : <User className="h-5 w-5" />}
                   </span>
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-dark">{article.authorName || siteConfig.siteName}</p>
