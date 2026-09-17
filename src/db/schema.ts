@@ -298,11 +298,6 @@ export const testimonials = pgTable("testimonials", {
 });
 
 // Articles Table
-export type ArticleAdminMetadata = {
-  seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogImage?: string; ogTitle?: string; ogDescription?: string; twitterTitle?: string; twitterDescription?: string };
-  editorial?: { authorName?: string; readingTime?: number; featured?: boolean; allowComments?: boolean };
-};
-
 export const articles = pgTable("articles", {
   id: uuid("id").primaryKey().defaultRandom(),
   authorId: uuid("author_id").references(() => users.id),
@@ -378,26 +373,27 @@ export const settings = pgTable("settings", {
 });
 
 // Types for JSON fields
-export type ProductOptionValue = {
+export type ProductAdminMetadata = {
+  sku?: string; barcode?: string; brand?: string;
+  pricing?: { compareAtPrice?: string; costPrice?: string; wholesaleTiers?: { minQuantity:number; unitPrice:string }[] };
+  stock?: { status?: "in_stock"|"out_of_stock"|"preorder"|"made_to_order"; quantity?: number; lowStock?: number };
+  shipping?: { weightGrams?:number; lengthCm?:number; widthCm?:number; heightCm?:number; origin?:string; leadTimeDays?:number; freeShipping?:boolean };
+  content?: { highlights?:string[]; tags?:string[]; faq?:{question:string;answer:string}[]; warranty?:string; returnPolicy?:string; videoUrl?:string; relatedProductIds?:string[] };
+  seo?: { title?:string; description?:string; keywords?:string[]; canonicalUrl?:string; noIndex?:boolean; ogTitle?:string; ogDescription?:string; ogImage?:string; twitterTitle?:string; twitterDescription?:string };
+  variants?: { enabled?:boolean; attributes?: { name:string; values:{label:string;value:string;priceModifier?:number;sku?:string;stock?:number;image?:string}[] }[] };
+  marketing?: { badge?:string; promoText?:string; campaign?:string };
+};
+
+export type ArticleAdminMetadata = {
+  seo?: { title?:string; description?:string; keywords?:string[]; canonicalUrl?:string; noIndex?:boolean; ogTitle?:string; ogDescription?:string; ogImage?:string; twitterTitle?:string; twitterDescription?:string };
+  editorial?: { featured?:boolean; authorName?:string; readingTime?:number; allowComments?:boolean };
+};
+
+type ProductOptionValue = {
   label: string;
   value: string;
   priceModifier?: number;
   description?: string;
-};
-
-export type ProductAdminMetadata = {
-  sku?: string;
-  barcode?: string;
-  brand?: string;
-  condition?: "new" | "used" | "refurbished";
-  stock?: { status?: "in_stock" | "out_of_stock" | "preorder" | "made_to_order"; quantity?: number; lowStock?: number };
-  pricing?: { compareAtPrice?: string; costPrice?: string; wholesaleTiers?: { minQuantity: number; unitPrice: string }[] };
-  shipping?: { weightGrams?: number; lengthCm?: number; widthCm?: number; heightCm?: number; shippingClass?: string; origin?: string; leadTimeDays?: number; freeShipping?: boolean };
-  content?: { highlights?: string[]; tags?: string[]; faq?: { question: string; answer: string }[]; videoUrl?: string; warranty?: string; returnPolicy?: string; relatedProductIds?: string[] };
-  seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogTitle?: string; ogDescription?: string; ogImage?: string; twitterTitle?: string; twitterDescription?: string };
-  schema?: { mpn?: string; gtin?: string };
-  marketing?: { badge?: string; promoText?: string; campaign?: string };
-  variants?: { enabled?: boolean; attributes?: { name: string; values: { label: string; value: string; priceModifier?: number; sku?: string; stock?: number; image?: string }[] }[] };
 };
 
 export type ProductOption = {

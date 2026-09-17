@@ -9,9 +9,11 @@ const required = [
   ["services", "options"],
   ["services", "process_steps"],
   ["services", "fulfillment_type"],
+  ["products", "metadata"],
   ["products", "options"],
   ["products", "fulfillment_type"],
   ["order_items", "fulfillment_type"],
+  ["articles", "metadata"],
 ];
 
 // Derived from DATABASE_URL instead of `inet_server_host()`: on pooled/proxied

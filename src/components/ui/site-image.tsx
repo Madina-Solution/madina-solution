@@ -9,7 +9,6 @@ export type SiteImageProps = {
   fill?: boolean;
   sizes?: string;
   priority?: boolean;
-  quality?: number;
 };
 
 /**
@@ -40,7 +39,6 @@ export function SiteImage({
   fill,
   sizes,
   priority,
-  quality,
 }: SiteImageProps) {
   if (!src) return null;
 
@@ -54,7 +52,6 @@ export function SiteImage({
       fill={fill}
       sizes={fill ? sizes ?? "100vw" : undefined}
       priority={priority}
-      quality={quality}
       unoptimized={!isOptimizable(src)}
     />
   );

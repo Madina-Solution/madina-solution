@@ -5,8 +5,8 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { ProductOption } from "@/db/schema";
 import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
+import type { ProductOption } from "@/db/schema";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -31,7 +31,7 @@ const updateProductSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
-export async function GET(request: NextRequest, context: Ctx) {
+export async function GET(_request: NextRequest, context: Ctx) {
   try {
     const session = await getSession();
     if (!session || !hasPermission(session.role, "products.read")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest, context: Ctx) {
   } catch { return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal" } }, { status: 500 }); }
 }
 
-export async function DELETE(request: NextRequest, context: Ctx) {
+export async function DELETE(_request: NextRequest, context: Ctx) {
   try {
     const session = await getSession();
     if (!session || !hasPermission(session.role, "products.delete")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });

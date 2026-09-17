@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 type FAQ = { id: string; question: string; answer: string; category: string | null; order: number | null; isActive: boolean };
 
@@ -73,7 +73,7 @@ export default function AdminFAQsPage() {
           <h2 className="mb-4 font-semibold text-dark">{editId ? "Edit FAQ" : "Tambah FAQ"}</h2>
           <div className="space-y-4">
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Pertanyaan *</label><Input value={form.question} onChange={(e) => setForm(p => ({ ...p, question: e.target.value }))} placeholder="Pertanyaan" /></div>
-            <div className="sm:col-span-2"><RichTextEditor label="Jawaban FAQ *" helpText="Tambahkan link, list, penekanan, dan struktur jawaban yang mudah dipindai." value={form.answer} onChange={(answer) => setForm(p => ({ ...p, answer }))} minHeight={260} /></div>
+            <div className="sm:col-span-2"><RichTextEditor label="Jawaban FAQ *" value={form.answer} onChange={(answer) => setForm(p => ({ ...p, answer }))} minHeight={260} /></div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div><label className="mb-1.5 block text-sm font-medium text-dark">Kategori</label><Input value={form.category} onChange={(e) => setForm(p => ({ ...p, category: e.target.value }))} placeholder="Umum" /></div>
               <div><label className="mb-1.5 block text-sm font-medium text-dark">Urutan</label><Input type="number" value={form.order} onChange={(e) => setForm(p => ({ ...p, order: parseInt(e.target.value) || 0 }))} /></div>

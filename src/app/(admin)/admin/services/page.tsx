@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { useToast } from "@/components/ui/toast";
+import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
 import { formatCurrency } from "@/lib/utils";
 import { OptionsEditor } from "@/components/admin/options-editor";
-import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
 import type { ProductOption } from "@/db/schema";
 
 type Service = { id: string; name: string; slug: string; shortDescription: string | null; description: string | null; thumbnail: string | null; gallery: string[] | null; startingPrice: string | null; estimatedDays: number | null; isFeatured: boolean | null; isActive: boolean; options?: ProductOption[] | null; fulfillmentType: string };
@@ -83,13 +83,7 @@ export default function AdminServicesPage() {
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Harga Mulai</label><Input value={form.startingPrice} onChange={(e) => setForm(p => ({ ...p, startingPrice: e.target.value }))} placeholder="500000" /></div>
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Estimasi (hari)</label><Input type="number" value={form.estimatedDays} onChange={(e) => setForm(p => ({ ...p, estimatedDays: parseInt(e.target.value) || 7 }))} /></div>
             <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-dark">Deskripsi Singkat</label><Input value={form.shortDescription} onChange={(e) => setForm(p => ({ ...p, shortDescription: e.target.value }))} placeholder="Deskripsi singkat layanan" /></div>
-            <div className="sm:col-span-2">
-              <RichTextEditor label="Deskripsi lengkap layanan" helpText="Konten rich text untuk halaman detail layanan." value={form.description} onChange={(description) => setForm(p => ({ ...p, description }))} minHeight={320} />
-              <div className="mt-5"><OptionsEditor value={form.options} onChange={(options) => setForm(p => ({ ...p, options }))} title="Spesifikasi layanan" description="Atur format brief, ukuran, paket, file referensi, dan pilihan lain yang hanya muncul untuk layanan ini." />
-                <div className="mt-4 rounded-2xl border border-dark-100 bg-white p-4"><label className="mb-2 block text-sm font-semibold text-dark">Jenis pemenuhan</label><select value={form.fulfillmentType} onChange={(e) => setForm(p => ({ ...p, fulfillmentType: e.target.value }))} className="h-11 w-full rounded-xl border border-dark-200 bg-white px-4 text-sm"><option value="physical">Fisik</option><option value="digital">Digital</option><option value="hybrid">Hybrid</option></select></div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 sm:col-span-2">
+            <div className="sm:col-span-2"><RichTextEditor label="Deskripsi lengkap layanan" value={form.description} onChange={(description) => setForm(p => ({ ...p, description }))} minHeight={320} /></div><div className="sm:col-span-2"><OptionsEditor value={form.options} onChange={(options) => setForm(p => ({ ...p, options }))} title="Spesifikasi layanan" description="Atur format brief, ukuran, paket, file referensi, dan pilihan lain yang hanya muncul untuk layanan ini." /><div className="mt-4 rounded-2xl border border-dark-100 bg-white p-4"><label className="mb-2 block text-sm font-semibold text-dark">Jenis pemenuhan</label><select value={form.fulfillmentType} onChange={(e) => setForm(p => ({ ...p, fulfillmentType: e.target.value }))} className="h-11 w-full rounded-xl border border-dark-200 bg-white px-4 text-sm"><option value="physical">Fisik</option><option value="digital">Digital</option><option value="hybrid">Hybrid</option></select></div></div><div className="flex items-center gap-4 sm:col-span-2">
               <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm(p => ({ ...p, isFeatured: e.target.checked }))} className="h-4 w-4 rounded border-dark-300 text-primary" /><span className="text-sm text-dark-600">Unggulan</span></label>
               <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm(p => ({ ...p, isActive: e.target.checked }))} className="h-4 w-4 rounded border-dark-300 text-primary" /><span className="text-sm text-dark-600">Aktif</span></label>
             </div>
@@ -113,7 +107,7 @@ export default function AdminServicesPage() {
                 <td className="px-5 py-3.5"><p className="font-medium text-dark">{s.name}</p>{s.shortDescription && <p className="text-xs text-dark-400 line-clamp-1">{s.shortDescription}</p>}</td>
                 <td className="px-5 py-3.5 text-right text-dark-600">{s.startingPrice ? formatCurrency(Number(s.startingPrice)) : "—"}</td>
                 <td className="px-5 py-3.5 text-dark-600">{s.estimatedDays || 7} hari</td>
-                <td className="px-5 py-3.5"><button type="button" aria-label={`${s.isActive ? "Nonaktifkan" : "Aktifkan"} layanan ${s.name}`} onClick={() => handleToggle(s.id, "isActive", s.isActive)}><Badge variant={s.isActive ? "success" : "error"}>{s.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
+                <td className="px-5 py-3.5"><button onClick={() => handleToggle(s.id, "isActive", s.isActive)}><Badge variant={s.isActive ? "success" : "error"}>{s.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
                 <td className="px-5 py-3.5"><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => startEdit(s)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: s.id, name: s.name })}><Trash2 className="h-4 w-4 text-red-500" /></Button></div></td>
               </tr>
             ))}

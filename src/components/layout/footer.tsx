@@ -22,10 +22,10 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">
           <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
             <div>
-              <h3 className="text-2xl font-bold">
+              <h3 className="text-2xl font-bold text-white">
                 Dapatkan Update & Penawaran Terbaru
               </h3>
-              <p className="mt-2 text-dark-300">
+              <p className="mt-2 text-dark-200">
                 Berlangganan newsletter kami untuk tips bisnis dan promo eksklusif
               </p>
             </div>
@@ -40,7 +40,7 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3">
-              {siteLogo ? <div className="relative flex h-12 max-w-[180px] shrink-0 items-center"><SiteImage src={siteLogo} alt={siteName} width={180} height={52} sizes="180px" className="h-auto max-h-12 w-auto max-w-[180px] object-contain" /></div> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white"><span className="text-2xl font-bold">{siteName.charAt(0).toUpperCase()}</span></div>}
+              {siteLogo ? <div className="relative flex h-12 max-w-[190px] shrink-0 items-center"><SiteImage src={siteLogo} alt={siteName} width={190} height={52} sizes="190px" className="h-auto max-h-12 w-auto max-w-[190px] object-contain" /></div> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white"><span className="text-2xl font-bold">{siteName.charAt(0).toUpperCase()}</span></div>}
               <div>
                 <h2 className="font-display text-xl font-extrabold leading-none tracking-tight text-white">{siteName}</h2>
                 <p className="mt-1 text-sm text-dark-400">{siteTagline}</p>

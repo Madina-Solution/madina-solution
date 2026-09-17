@@ -11,6 +11,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
 
 type Category = {
   id: string;

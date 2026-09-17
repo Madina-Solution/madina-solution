@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { ensureRuntimeSchema } from "@/db/ensure-runtime-schema";
 import { articles, auditLogs } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { z } from "zod";
@@ -20,11 +19,7 @@ export async function POST(request: NextRequest) {
     const session = await getSession();
     if (!session || !hasPermission(session.role, "content.create")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     const body = await request.json();
-    const parsed = z.object({
-      title: z.string().min(2), slug: z.string().min(2).regex(/^[a-z0-9-]+$/), excerpt: z.string().max(1000).optional(),
-      content: z.string().max(100000).optional(), category: z.string().optional(), thumbnail: z.string().url().optional().or(z.literal("")),
-      tags: z.array(z.string()).optional(), metadata: z.record(z.string(), z.unknown()).optional(), isPublished: z.boolean().optional()
-    }).safeParse(body);
+    const parsed = z.object({ title: z.string().min(2).max(255), slug: z.string().min(2).regex(/^[a-z0-9-]+$/), excerpt: z.string().max(1000).optional(), content: z.string().max(100000).optional(), category: z.string().optional(), thumbnail: z.string().url().optional().or(z.literal("")), tags: z.array(z.string()).max(30).optional(), metadata: z.record(z.string(), z.unknown()).optional(), isPublished: z.boolean().optional() }).safeParse(body);
     if (!parsed.success) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Data tidak valid" } }, { status: 400 });
     const [created] = await db.insert(articles).values({ ...parsed.data, content: sanitizeRichHtml(parsed.data.content || ""), authorId: session.userId, tags: parsed.data.tags || [], isPublished: parsed.data.isPublished ?? false, publishedAt: parsed.data.isPublished ? new Date() : null }).returning();
     await db.insert(auditLogs).values({ userId: session.userId, action: "ARTICLE_CREATED", resource: "articles", resourceId: created.id, metadata: { title: created.title } });

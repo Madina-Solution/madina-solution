@@ -83,7 +83,7 @@ export default function AdminCouponsPage() {
               <td className="px-5 py-3.5 text-dark-600">{c.discountType === "percentage" ? `${c.discountValue}%` : formatCurrency(Number(c.discountValue))}</td>
               <td className="px-5 py-3.5 text-dark-600">{c.usageCount || 0}/{c.usageLimit || "∞"}</td>
               <td className="px-5 py-3.5 text-xs text-dark-500">{c.endDate ? formatDate(c.endDate) : "Tanpa batas"}</td>
-              <td className="px-5 py-3.5"><button type="button" aria-label={`${c.isActive ? "Nonaktifkan" : "Aktifkan"} kupon ${c.code}`} onClick={() => toggleActive(c.id, c.isActive)}><Badge variant={c.isActive ? "success" : "error"}>{c.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
+              <td className="px-5 py-3.5"><button onClick={() => toggleActive(c.id, c.isActive)}><Badge variant={c.isActive ? "success" : "error"}>{c.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
               <td className="px-5 py-3.5"><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => startEdit(c)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: c.id, code: c.code })}><Trash2 className="h-4 w-4 text-red-500" /></Button></div></td>
             </tr>
           ))}</tbody></table></div>

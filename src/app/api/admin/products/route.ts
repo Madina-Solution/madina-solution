@@ -4,8 +4,8 @@ import { products, auditLogs } from "@/db/schema";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { ProductOption } from "@/db/schema";
 import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
+import type { ProductOption } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 const createProductSchema = z.object({

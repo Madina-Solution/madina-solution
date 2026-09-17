@@ -20,7 +20,7 @@
     "validate:persistence": "node scripts/validate-persistence.mjs",
     "validate:ui": "node scripts/validate-ui-contract.mjs",
     "validate:seo": "node scripts/validate-seo.mjs",
-    "db:migrate": "(drizzle-kit migrate || true) && node scripts/ensure-db-schema.mjs",
+    "db:migrate": "drizzle-kit migrate && node scripts/ensure-db-schema.mjs",
     "validate:commerce": "node scripts/validate-commerce.mjs"
   },
   "dependencies": {

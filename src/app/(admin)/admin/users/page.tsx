@@ -84,7 +84,7 @@ export default function AdminUsersPage() {
                   {ASSIGNABLE_ROLES.filter((r) => r === u.role || (actor ? canAssignRole(actor.role, r) : false)).map(r => <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>)}
                 </select>
               </td>
-              <td className="px-5 py-3.5"><button type="button" aria-label={`${u.isActive ? "Nonaktifkan" : "Aktifkan"} pengguna ${u.name}`} onClick={() => handleToggleActive(u.id, u.isActive)}><Badge variant={u.isActive ? "success" : "error"}>{u.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
+              <td className="px-5 py-3.5"><button onClick={() => handleToggleActive(u.id, u.isActive)}><Badge variant={u.isActive ? "success" : "error"}>{u.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
               <td className="px-5 py-3.5 text-xs text-dark-500">{formatDate(u.createdAt)}</td>
               <td className="px-5 py-3.5"><span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROLE_COLORS[u.role] || "bg-dark-100 text-dark-600"}`}>{ROLE_LABELS[u.role] || u.role}</span></td>
             </tr>

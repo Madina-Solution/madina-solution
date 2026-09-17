@@ -3,16 +3,16 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/db";
-import { ensureRuntimeSchema } from "@/db/ensure-runtime-schema";
-import { articles, users } from "@/db/schema";
+import { articles, users, type ArticleAdminMetadata } from "@/db/schema";
 import { eq, and, ne, sql, desc } from "drizzle-orm";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, ArrowLeft, Calendar, Clock, Eye, Tag as TagIcon, User, ListTree } from "lucide-react";
+import { ChevronRight, ArrowLeft, Calendar, Clock, Eye, Tag as TagIcon, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdSenseUnit } from "@/components/ads/adsense";
 import { getPublicSiteConfig } from "@/lib/site-config";
 import { buildPageMetadata } from "@/lib/seo";
+import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/seo/json-ld";
 import { RelatedArticles } from "./related-articles";
 
@@ -27,16 +27,13 @@ function estimateReadingMinutes(content: string | null): number {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  await ensureRuntimeSchema();
   const { slug } = await params;
   const result = await db.select({ title: articles.title, excerpt: articles.excerpt, thumbnail: articles.thumbnail, metadata: articles.metadata }).from(articles).where(eq(articles.slug, slug)).limit(1);
   if (!result[0]) return { title: "Artikel Tidak Ditemukan" };
-
-  return buildPageMetadata({ title: result[0].metadata?.seo?.title || result[0].title, description: result[0].metadata?.seo?.description || result[0].excerpt || `${result[0].title} — Madina Solution`, path: `/blog/${encodeURIComponent(slug)}`, canonicalUrl: result[0].metadata?.seo?.canonicalUrl, image: result[0].metadata?.seo?.ogImage || result[0].thumbnail || undefined, noIndex: !!result[0].metadata?.seo?.noIndex, keywords: result[0].metadata?.seo?.keywords || [], openGraphTitle: result[0].metadata?.seo?.ogTitle, openGraphDescription: result[0].metadata?.seo?.ogDescription, twitterTitle: result[0].metadata?.seo?.twitterTitle, twitterDescription: result[0].metadata?.seo?.twitterDescription });
+  const meta = (result[0].metadata as ArticleAdminMetadata | null) || {}; return buildPageMetadata({ title: meta.seo?.title || result[0].title, description: meta.seo?.description || result[0].excerpt || `${result[0].title} — Madina Solution`, path: `/blog/${encodeURIComponent(slug)}`, canonicalUrl: meta.seo?.canonicalUrl, image: meta.seo?.ogImage || result[0].thumbnail || undefined, noIndex: !!meta.seo?.noIndex, keywords: meta.seo?.keywords || [] });
 }
 
 export default async function BlogDetailPage({ params }: Props) {
-  await ensureRuntimeSchema();
   const { slug } = await params;
   const [article] = await db
     .select({
@@ -66,14 +63,9 @@ export default async function BlogDetailPage({ params }: Props) {
   const pageUrl = `${siteConfig.siteUrl}/blog/${encodeURIComponent(slug)}`;
   const tags = (article.tags as string[] | null) || [];
   const readingMinutes = article.metadata?.editorial?.readingTime || estimateReadingMinutes(article.content);
-  const richContent = article.content || "<p>Konten artikel belum tersedia.</p>";
-  const headingRegex = /<h([2-3])[^>]*>([\s\S]*?)<\/h[2-3]>/gi;
-  const rawHeadings: RegExpExecArray[] = [];
-  let headingMatch: RegExpExecArray | null;
-  while (rawHeadings.length < 8 && (headingMatch = headingRegex.exec(richContent)) !== null) rawHeadings.push(headingMatch);
-  const headings = rawHeadings.map((m, i) => ({ id: `section-${i + 1}`, level: Number(m[1]), title: m[2].replace(/<[^>]+>/g, "").trim() }));
-  let indexedContent = richContent;
-  headings.forEach((h, i) => { indexedContent = indexedContent.replace(rawHeadings[i][0], rawHeadings[i][0].replace(/^<h([2-3])/, `<h$1 id="${h.id}"`)); });
+  const richContent = sanitizeRichHtml(article.content || "<p>Konten artikel belum tersedia.</p>");
+  const headingRegex = /<h([2-3])[^>]*>([\s\S]*?)<\/h[2-3]>/gi; const headings: { id:string; level:number; title:string }[] = []; let m:RegExpExecArray|null; while(headings.length<8 && (m=headingRegex.exec(richContent))!==null) headings.push({id:`section-${headings.length+1}`,level:Number(m[1]),title:m[2].replace(/<[^>]+>/g,"").trim()});
+  let indexedContent = richContent; for(const h of headings){indexedContent=indexedContent.replace(/<h([2-3])[^>]*>/i, `<h$1 id="${h.id}">`);}
 
   const related = await db
     .select({ id: articles.id, title: articles.title, slug: articles.slug, excerpt: articles.excerpt, thumbnail: articles.thumbnail, category: articles.category, publishedAt: articles.publishedAt })
@@ -104,14 +96,14 @@ export default async function BlogDetailPage({ params }: Props) {
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
             {/* Main column */}
-            <article className="min-w-0" aria-label={`Artikel: ${article.title}`}>
+            <article className="min-w-0">
               {article.category && <Badge variant="secondary" className="mb-4">{article.category}</Badge>}
               <h1 className="text-3xl font-bold leading-tight text-dark lg:text-4xl">{article.title}</h1>
 
               <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-dark-500">
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">
-                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt="" aria-hidden="true" fill sizes="24px" className="object-cover" /> : <User className="h-3.5 w-3.5" />}
+                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt={article.authorName || siteConfig.siteName} fill sizes="24px" className="object-cover" /> : <User className="h-3.5 w-3.5" />}
                   </span>
                   {article.authorName || siteConfig.siteName}
                 </div>
@@ -132,8 +124,7 @@ export default async function BlogDetailPage({ params }: Props) {
                 <div className="my-8"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.article} className="mx-auto" label="Iklan" /></div>
               ) : null}
 
-              {headings.length > 0 && <nav aria-label="Daftar isi" className="mt-8 rounded-2xl border border-dark-100 bg-dark-50 p-5"><div className="flex items-center gap-2 text-sm font-bold text-dark"><ListTree className="h-4 w-4 text-primary"/>Daftar isi</div><ol className="mt-3 space-y-2">{headings.map((h) => <li key={h.id} className={h.level === 3 ? "pl-4" : ""}><a href={`#${h.id}`} className="text-sm text-dark-600 hover:text-primary">{h.title}</a></li>)}</ol></nav>}
-
+              {headings.length > 0 && <nav aria-label="Daftar isi" className="mt-8 rounded-2xl border border-dark-100 bg-dark-50 p-5"><p className="text-sm font-bold text-dark">Daftar isi</p><ol className="mt-3 space-y-2">{headings.map(h=><li key={h.id} className={h.level===3?"pl-4":""}><a href={`#${h.id}`} className="text-sm text-dark-600 hover:text-primary">{h.title}</a></li>)}</ol></nav>}
               <div className="rich-article-content mt-8" dangerouslySetInnerHTML={{ __html: indexedContent }} />
 
               {tags.length > 0 && (
@@ -156,7 +147,7 @@ export default async function BlogDetailPage({ params }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-wide text-dark-400">Penulis</p>
                 <div className="mt-3 flex items-center gap-3">
                   <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">
-                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt="" aria-hidden="true" fill sizes="44px" className="object-cover" /> : <User className="h-5 w-5" />}
+                    {article.authorAvatar ? <SiteImage src={article.authorAvatar} alt={article.authorName || siteConfig.siteName} fill sizes="44px" className="object-cover" /> : <User className="h-5 w-5" />}
                   </span>
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-dark">{article.authorName || siteConfig.siteName}</p>
