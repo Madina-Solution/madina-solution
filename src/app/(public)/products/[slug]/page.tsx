@@ -210,14 +210,6 @@ export default async function ProductDetailPage({ params }: Props) {
   const trust = metadata.trust || {};
   const trade = metadata.trade || {};
   const pageUrl = `${siteUrl}/products/${product.slug}`;
-  const tocItems: [string, string][] = [
-    ["overview", "Ringkasan"],
-    ...(Object.keys(specs).length > 0 ? ([["specifications", "Spesifikasi"]] as [string, string][]) : []),
-    ...(tieredPrices.length > 0 ? ([["pricing", "Harga grosir"]] as [string, string][]) : []),
-    ["shipping", "Pengiriman"],
-    ...(faq.length > 0 ? ([["faq", "FAQ"]] as [string, string][]) : []),
-    ["reviews", "Ulasan"],
-  ];
 
   return (
     <>
@@ -253,7 +245,7 @@ export default async function ProductDetailPage({ params }: Props) {
           </nav>
 
           <section className="overflow-hidden rounded-[2rem] border border-dark-200/80 bg-white shadow-[0_30px_100px_rgba(15,23,42,.10)]">
-            <div className="grid lg:grid-cols-[minmax(0,1.04fr)_minmax(440px,.96fr)]">
+            <div className="grid items-start lg:grid-cols-[minmax(0,1.04fr)_minmax(440px,.96fr)]">
               <div className="min-w-0 border-b border-dark-100 p-3 sm:p-5 lg:border-b-0 lg:border-r lg:p-7 xl:p-8">
                 <ProductGallery thumbnail={product.thumbnail} gallery={gallery} productName={product.name} />
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -310,7 +302,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
           <nav aria-label="Navigasi detail produk" className="sticky top-16 z-20 mt-4 overflow-x-auto rounded-2xl border border-dark-200 bg-white/95 p-2 shadow-lg backdrop-blur-xl">
             <div className="flex min-w-max items-center gap-1">
-              {tocItems.map(([href,label]) => <a key={href} href={`#${href}`} className="rounded-xl px-3 py-2 text-xs font-bold text-dark-500 transition hover:bg-dark-50 hover:text-dark sm:px-4">{label}</a>)}
+              {[['overview','Ringkasan'],['specifications','Spesifikasi'],['pricing','Harga grosir'],['shipping','Pengiriman'],['faq','FAQ'],['reviews','Ulasan']].map(([href,label]) => <a key={href} href={`#${href}`} className="rounded-xl px-3 py-2 text-xs font-bold text-dark-500 transition hover:bg-dark-50 hover:text-dark sm:px-4">{label}</a>)}
             </div>
           </nav>
 
@@ -321,8 +313,33 @@ export default async function ProductDetailPage({ params }: Props) {
                 {highlights.length > 0 && <div className="mt-6 grid gap-3 sm:grid-cols-2">{highlights.map((item) => <div key={item} className="flex gap-3 rounded-2xl border border-dark-100 bg-dark-50/60 p-4"><Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><span className="text-sm font-medium leading-6 text-dark-600">{item}</span></div>)}</div>}
                 <div className="prose prose-slate mt-7 max-w-none text-[15px] leading-8 prose-headings:tracking-tight prose-h2:mt-10 prose-h2:text-2xl prose-h3:text-xl prose-img:rounded-2xl" dangerouslySetInnerHTML={{ __html: richDescription || `<p>Deskripsi produk belum tersedia.</p>` }} />
               </CardContent></Card>
-
-              {Object.keys(specs).length > 0 && <Card id="specifications" className="mt-6 scroll-mt-28 border-dark-200 shadow-sm"><CardContent className="p-5 sm:p-7"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Technical data</p><h2 className="mt-2 text-2xl font-black text-dark">Spesifikasi teknis</h2><div className="mt-5 overflow-hidden rounded-2xl border border-dark-100"><div className="divide-y divide-dark-100">{Object.entries(specs).map(([key,value]) => <div key={key} className="grid gap-2 px-4 py-4 sm:grid-cols-[220px_1fr] sm:px-5"><span className="text-xs font-bold uppercase tracking-wider text-dark-400">{key}</span><span className="text-sm leading-6 text-dark-700">{value}</span></div>)}</div></div></CardContent></Card>}
+              {(Object.keys(specs).length > 0 || metadata.schema?.mpn || metadata.schema?.gtin || metadata.barcode || metadata.condition) && (
+                <Card id="specifications" className="scroll-mt-28 border-dark-200 shadow-sm">
+                  <CardContent className="p-5 sm:p-7">
+                    <p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Technical data</p>
+                    <h2 className="mt-2 text-2xl font-black text-dark">Spesifikasi teknis</h2>
+                    <div className="mt-5 overflow-hidden rounded-2xl border border-dark-100">
+                      <div className="divide-y divide-dark-100">
+                        {Object.entries(specs).map(([key, value]) => (
+                          <div key={key} className="grid gap-2 px-4 py-4 sm:grid-cols-[220px_1fr] sm:px-5">
+                            <span className="text-xs font-bold uppercase tracking-wider text-dark-400">{key}</span>
+                            <span className="text-sm leading-6 text-dark-700">{value}</span>
+                          </div>
+                        ))}
+                        {metadata.schema?.mpn && (
+                          <div className="grid gap-2 px-4 py-4 sm:grid-cols-[220px_1fr] sm:px-5"><span className="text-xs font-bold uppercase tracking-wider text-dark-400">MPN</span><span className="text-sm leading-6 text-dark-700">{metadata.schema.mpn}</span></div>
+                        )}
+                        {(metadata.schema?.gtin || metadata.barcode) && (
+                          <div className="grid gap-2 px-4 py-4 sm:grid-cols-[220px_1fr] sm:px-5"><span className="text-xs font-bold uppercase tracking-wider text-dark-400">GTIN / Barcode</span><span className="text-sm leading-6 text-dark-700">{metadata.schema?.gtin || metadata.barcode}</span></div>
+                        )}
+                        {metadata.condition && (
+                          <div className="grid gap-2 px-4 py-4 sm:grid-cols-[220px_1fr] sm:px-5"><span className="text-xs font-bold uppercase tracking-wider text-dark-400">Condition</span><span className="text-sm capitalize leading-6 text-dark-700">{metadata.condition}</span></div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {tieredPrices.length > 0 && <Card id="pricing" className="mt-6 scroll-mt-28 border-dark-200 shadow-sm"><CardContent className="p-5 sm:p-7"><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">B2B pricing</p><h2 className="mt-2 text-2xl font-black text-dark">Harga berdasarkan volume</h2></div><span className="text-xs text-dark-400">Semakin besar qty, semakin rendah harga</span></div><div className="mt-6 overflow-hidden rounded-2xl border border-dark-100"><div className="grid grid-cols-[1fr_1fr_1fr] bg-dark px-4 py-3 text-[10px] font-bold uppercase tracking-[.14em] text-white"><span>Min. qty</span><span>Label</span><span className="text-right">Harga / {unit}</span></div>{tieredPrices.map((tier,i)=><div key={`${tier.minQuantity}-${i}`} className="grid grid-cols-[1fr_1fr_1fr] items-center border-t border-dark-100 px-4 py-4 text-sm"><span className="font-semibold text-dark">{tier.maxQuantity ? `${tier.minQuantity}–${tier.maxQuantity} ${unit}` : `${tier.minQuantity}+ ${unit}`}</span><span className="text-dark-500">{tier.label || (i === 0 ? "Volume" : i === tieredPrices.length - 1 ? "Best value" : "Bulk")}</span><strong className="text-right text-dark">{formatCurrency(Number(tier.unitPrice))}</strong></div>)}</div></CardContent></Card>}
 
@@ -335,7 +352,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
               {faq.length > 0 && <Card id="faq" className="mt-6 scroll-mt-28 border-dark-200 shadow-sm"><CardContent className="p-5 sm:p-7"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Buyer questions</p><h2 className="mt-2 text-2xl font-black text-dark">Pertanyaan yang sering diajukan</h2><div className="mt-6 space-y-3">{faq.map((item) => <details key={item.question} className="group rounded-2xl border border-dark-100 bg-white p-4"><summary className="cursor-pointer list-none pr-8 text-sm font-bold text-dark marker:hidden">{item.question}</summary><p className="mt-3 text-sm leading-7 text-dark-600">{item.answer}</p></details>)}</div></CardContent></Card>}
 
-              <Card id="reviews" className="mt-6 scroll-mt-28 border-dark-200 shadow-sm"><CardContent className="p-5 sm:p-7"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Buyer feedback</p><h2 className="mt-2 text-2xl font-black text-dark">Ulasan pelanggan</h2></div><div className="flex items-center gap-2"><StarRating value={liveRating} size="md" /><strong className="text-dark">{liveReviewCount ? liveRating.toFixed(1) : "—"}</strong><span className="text-sm text-dark-400">{liveReviewCount} ulasan</span></div></div>{productReviews.length > 0 ? <div className="mt-6 space-y-5">{productReviews.map((review) => <article key={review.id} className="border-b border-dark-100 pb-5 last:border-0"><div className="flex gap-4">{review.userAvatar ? <SiteImage src={review.userAvatar} alt={review.userName || "Pengguna"} width={40} height={40} className="h-10 w-10 rounded-full object-cover" /> : <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary" aria-hidden="true"><UserCircle className="h-5 w-5" /></div>}<div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="font-semibold text-dark">{review.userName || "Pengguna"}</span>{review.isVerified && <Badge variant="success"><Check className="mr-1 h-3 w-3" aria-hidden="true" />Terverifikasi</Badge>}</div><div className="mt-1 flex items-center gap-2"><StarRating value={review.rating} /><span className="text-xs text-dark-400">{review.rating}.0</span></div>{review.comment && <p className="mt-2 text-sm leading-7 text-dark-600">{review.comment}</p>}</div></div></article>)}</div> : <p className="mt-6 rounded-2xl bg-dark-50 p-5 text-sm text-dark-500">Belum ada ulasan untuk produk ini.</p>}<ReviewForm productId={product.id} isLoggedIn={!!session} existingReview={myReview} /></CardContent></Card>
+              <Card id="reviews" className="mt-6 scroll-mt-28 border-dark-200 shadow-sm"><CardContent className="p-5 sm:p-7"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Buyer feedback</p><h2 className="mt-2 text-2xl font-black text-dark">Ulasan pelanggan</h2></div><span className="text-sm font-semibold text-dark-500">{liveReviewCount} ulasan</span></div>{productReviews.length > 0 ? <div className="mt-6 space-y-5">{productReviews.map((review) => <article key={review.id} className="border-b border-dark-100 pb-5 last:border-0"><div className="flex gap-4">{review.userAvatar ? <SiteImage src={review.userAvatar} alt={review.userName || "Pengguna"} width={40} height={40} className="h-10 w-10 rounded-full object-cover" /> : <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary" aria-hidden="true"><UserCircle className="h-5 w-5" /></div>}<div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="font-semibold text-dark">{review.userName || "Pengguna"}</span>{review.isVerified && <Badge variant="success"><Check className="mr-1 h-3 w-3" aria-hidden="true" />Terverifikasi</Badge>}</div><div className="mt-1 flex items-center gap-2"><StarRating value={review.rating} /><span className="text-xs text-dark-400">{review.rating}.0</span></div>{review.comment && <p className="mt-2 text-sm leading-7 text-dark-600">{review.comment}</p>}</div></div></article>)}</div> : <p className="mt-6 rounded-2xl bg-dark-50 p-5 text-sm text-dark-500">Belum ada ulasan untuk produk ini.</p>}<ReviewForm productId={product.id} isLoggedIn={!!session} existingReview={myReview} /></CardContent></Card>
             </div>
 
             <aside className="space-y-5 lg:sticky lg:top-24">
@@ -343,7 +360,6 @@ export default async function ProductDetailPage({ params }: Props) {
 
               <Card className="border-dark-200 shadow-sm"><CardContent className="p-5"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Procurement checklist</p><h3 className="mt-2 text-lg font-black text-dark">Sebelum checkout</h3><div className="mt-4 space-y-3">{["Pastikan spesifikasi & material", "Tentukan quantity / MOQ", "Siapkan file desain jika diperlukan", "Periksa lead time dan alamat pengiriman"].map((item) => <div key={item} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" /><span className="text-dark-600">{item}</span></div>)}</div></CardContent></Card>
 
-              {(metadata.schema?.mpn || metadata.schema?.gtin || metadata.barcode || metadata.condition) && <Card className="border-dark-200 shadow-sm"><CardContent className="p-5"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Identifiers</p><div className="mt-4 space-y-3 text-sm">{metadata.schema?.mpn && <div key="mpn" className="flex justify-between gap-4"><span className="text-dark-400">MPN</span><strong className="text-dark">{metadata.schema.mpn}</strong></div>}{(metadata.schema?.gtin || metadata.barcode) && <div key="gtin" className="flex justify-between gap-4"><span className="text-dark-400">GTIN / Barcode</span><strong className="text-dark">{metadata.schema?.gtin || metadata.barcode}</strong></div>}{metadata.condition && <div key="condition" className="flex justify-between gap-4"><span className="text-dark-400">Condition</span><strong className="capitalize text-dark">{metadata.condition}</strong></div>}</div></CardContent></Card>}
 
               {(metadata.shipping?.weightGrams || metadata.shipping?.lengthCm || metadata.shipping?.widthCm || metadata.shipping?.heightCm) && <Card className="border-dark-200 shadow-sm"><CardContent className="p-5"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Package data</p><div className="mt-4 space-y-3 text-sm">{metadata.shipping.weightGrams ? <div className="flex justify-between gap-4"><span className="text-dark-400">Berat</span><strong className="text-dark">{metadata.shipping.weightGrams} g</strong></div> : null}{(metadata.shipping.lengthCm || metadata.shipping.widthCm || metadata.shipping.heightCm) ? <div className="flex justify-between gap-4"><span className="text-dark-400">Dimensi</span><strong className="text-dark">{metadata.shipping.lengthCm || "—"} × {metadata.shipping.widthCm || "—"} × {metadata.shipping.heightCm || "—"} cm</strong></div> : null}</div></CardContent></Card>}
             </aside>

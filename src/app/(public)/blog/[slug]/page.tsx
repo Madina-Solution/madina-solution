@@ -109,9 +109,8 @@ export default async function BlogDetailPage({ params }: Props) {
             <h1 className="mt-4 text-3xl font-black tracking-[-0.03em] text-dark sm:text-4xl lg:text-5xl lg:leading-[1.08]">{article.title}</h1>
             {article.excerpt && <p className="mx-auto mt-5 max-w-3xl text-base leading-8 text-dark-600 lg:text-lg">{article.excerpt}</p>}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-dark-500">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 ring-1 ring-dark-100"><span className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">{article.authorAvatar ? <img src={article.authorAvatar} alt="" className="h-full w-full object-cover" /> : <User className="h-3.5 w-3.5" aria-hidden="true" />}</span><span className="font-semibold text-dark">{editorialName}</span></span>
               <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" aria-hidden="true" />Terbit {formatDate(article.publishedAt || article.createdAt)}</span>
-              <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4" aria-hidden="true" />{readingMinutes} menit</span>
+              <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4" aria-hidden="true" />{readingMinutes} menit baca</span>
               <span className="inline-flex items-center gap-1.5"><Eye className="h-4 w-4" aria-hidden="true" />{(article.viewCount ?? 0) + 1} views</span>
             </div>
             {updatedDate && <p className="mt-3 text-xs font-medium text-dark-400">Terakhir diperbarui {formatDate(updatedDate)}</p>}
@@ -119,8 +118,7 @@ export default async function BlogDetailPage({ params }: Props) {
 
           {article.thumbnail && <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] border border-dark-100 bg-white p-2 shadow-[0_25px_70px_rgba(15,23,42,.1)]"><img src={article.thumbnail} alt={article.title} width="1600" height="900" className="aspect-[16/9] w-full rounded-[1.5rem] object-cover" /></div>}
 
-          <div className="mx-auto mt-10 grid max-w-6xl gap-10 lg:grid-cols-[240px_minmax(0,760px)_280px] lg:items-start">
-            <aside className="hidden lg:block"><ArticleToc headings={headings} /></aside>
+          <div className="mx-auto mt-10 grid max-w-[1240px] gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start xl:gap-10">
             <main className="min-w-0">
               <div className="mb-6 lg:hidden"><ArticleToc headings={headings} /></div>
               {siteConfig.adsEnabled && siteConfig.adsClient && siteConfig.adsSlots.article ? <div className="mb-8"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.article} className="mx-auto" label="Iklan" /></div> : null}
@@ -142,9 +140,16 @@ export default async function BlogDetailPage({ params }: Props) {
               <div className="mt-8 flex flex-wrap gap-3"><Button variant="outline" asChild><Link href="/blog"><ArrowLeft className="mr-2 h-4 w-4" />Kembali ke Blog</Link></Button><Button variant="secondary" asChild><Link href="/contact">Konsultasi dengan tim <ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div>
             </main>
 
-            <aside className="space-y-6 lg:sticky lg:top-24">
-              <div className="rounded-3xl border border-dark-100 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase tracking-[.16em] text-dark-400">Penulis</p><div className="mt-3"><p className="font-bold text-dark">{editorialName}</p><p className="mt-1 text-xs text-dark-500">{authorRole}</p></div>{metadata.editorial?.authorCredentials && <p className="mt-3 text-xs font-medium text-emerald-700">{metadata.editorial.authorCredentials}</p>}<div className="mt-4 border-t border-dark-100 pt-4"><p className="text-xs text-dark-400">Pembaruan terakhir</p><p className="mt-1 text-sm font-semibold text-dark">{formatDate(updatedDate || article.createdAt)}</p></div></div>
-              <div className="rounded-3xl border border-dark-100 bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase tracking-[.16em] text-dark-400">Dalam artikel</p><div className="mt-3 space-y-2 text-sm text-dark-600"><div className="flex justify-between"><span>Waktu baca</span><strong className="text-dark">{readingMinutes} mnt</strong></div><div className="flex justify-between"><span>Subtopik</span><strong className="text-dark">{headings.length}</strong></div><div className="flex justify-between"><span>Views</span><strong className="text-dark">{(article.viewCount ?? 0) + 1}</strong></div></div></div>
+            <aside className="min-w-0 lg:sticky lg:top-24">
+              <ArticleToc headings={headings} />
+              <div className="mt-5 rounded-3xl border border-dark-100 bg-white p-5 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-[.16em] text-dark-400">Tentang artikel</p>
+                <div className="mt-3 space-y-2 text-sm text-dark-600">
+                  <div className="flex justify-between gap-4"><span>Penulis</span><strong className="text-right text-dark">{editorialName}</strong></div>
+                  <div className="flex justify-between gap-4"><span>Diperbarui</span><strong className="text-right text-dark">{formatDate(updatedDate || article.createdAt)}</strong></div>
+                  <div className="flex justify-between gap-4"><span>Subtopik</span><strong className="text-dark">{headings.length}</strong></div>
+                </div>
+              </div>
             </aside>
           </div>
 

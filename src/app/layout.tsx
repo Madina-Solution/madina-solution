@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/constants";
 import { SearchProvider } from "@/components/search/search-provider";
@@ -14,12 +14,6 @@ import { getSiteUrl, parseKeywords, normalizeDescription } from "@/lib/seo";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "swap",
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
   display: "swap",
 });
 
@@ -100,7 +94,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="id" data-scroll-behavior="smooth" className={`${inter.variable} ${plusJakarta.variable}`}>
+    <html lang="id" data-scroll-behavior="smooth" className={inter.variable}>
       <body className="min-h-screen bg-white font-sans text-dark-900 antialiased">
         <ToastProvider>
           <AuthProvider>
