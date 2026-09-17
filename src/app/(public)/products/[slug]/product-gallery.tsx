@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -67,7 +66,7 @@ export function ProductGallery({ thumbnail, gallery, productName }: Props) {
         <div className="lg:flex lg:gap-3">
           {/* Thumbnails — vertical rail on desktop (left of the main image, Alibaba-style), horizontal scroll strip on mobile */}
           {media.length > 1 && (
-            <div className="order-2 mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide lg:order-1 lg:mt-0 lg:max-h-[520px] lg:w-20 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0" role="tablist" aria-label="Galeri produk">
+            <div className="order-2 mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide lg:order-1 lg:mt-0 lg:max-h-[min(36rem,calc(100vh-8rem))] lg:w-20 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0" role="tablist" aria-label="Galeri produk">
               {media.map((src, i) => (
                 <button key={`${src}-${i}`} type="button" role="tab" aria-selected={safeIndex === i} onClick={() => setIndex(i)} className={cn("relative h-20 w-24 shrink-0 overflow-hidden rounded-xl border bg-dark-50 lg:w-full", safeIndex === i ? "border-primary ring-2 ring-primary/20" : "border-dark-100 hover:border-dark-300")}>
                   {isVideo(src) ? <><video src={src} muted playsInline preload="metadata" className="h-full w-full object-cover" /><span className="absolute inset-0 grid place-items-center bg-black/20"><span className="rounded-full bg-white/90 p-1.5"><Play className="h-3.5 w-3.5 fill-current" /></span></span></> : <SiteImage src={src} alt={`${productName} thumbnail ${i + 1}`} fill sizes="96px" className="object-cover" />}
@@ -77,7 +76,7 @@ export function ProductGallery({ thumbnail, gallery, productName }: Props) {
           )}
 
           <div
-            className="relative order-1 aspect-square flex-1 overflow-hidden rounded-3xl border border-dark-100 bg-dark-50 shadow-sm lg:order-2"
+            className="relative order-1 aspect-[16/10] min-w-0 flex-1 overflow-hidden rounded-3xl border border-dark-100 bg-dark-50 shadow-[0_18px_60px_rgba(15,23,42,.08)] lg:order-2"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             onTouchStart={(event) => { touchStart.current = event.changedTouches[0]?.clientX ?? null; }}
@@ -90,19 +89,13 @@ export function ProductGallery({ thumbnail, gallery, productName }: Props) {
               if (Math.abs(delta) > 48) delta < 0 ? next() : prev();
             }}
           >
-            <motion.div
-              key={active}
-              initial={{ opacity: 0, x: 14 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
-              className="relative flex h-full w-full items-center justify-center"
-            >
+            <div key={active} className="relative flex h-full w-full items-center justify-center">
               {activeIsVideo ? (
                 <video src={active} muted loop autoPlay playsInline controls preload="metadata" className="h-full w-full object-contain bg-black" aria-label={`${productName} video ${index + 1}`} />
               ) : (
                 <SiteImage src={active} alt={`${productName} — media ${index + 1}`} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain" priority={index === 0} />
               )}
-            </motion.div>
+            </div>
 
             {media.length > 1 && (
               <>

@@ -13,7 +13,7 @@ import { formatDate } from "@/lib/utils";
 
 interface MediaRow { id: string; filename: string; mimeType: string; size: number; url: string; purpose: string; visibility: string; createdAt: string; uploaderName: string | null; }
 
-const PURPOSES = ["", "portfolio", "service_image", "product_image", "article_image", "category_image", "testimonial_avatar", "site_hero", "site_logo", "order_asset", "customer_upload", "design_revision", "production_asset", "avatar"];
+const PURPOSES = ["", "portfolio", "service_image", "product_image", "article_image", "content_image", "category_image", "testimonial_avatar", "site_hero", "site_logo", "order_asset", "customer_upload", "design_revision", "production_asset", "avatar"];
 
 function formatSize(bytes: number) { if (bytes < 1024) return `${bytes} B`; if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`; return `${(bytes / 1048576).toFixed(1)} MB`; }
 function isVideo(mime: string, url: string) { return mime.startsWith("video/") || /\.(mp4|webm|mov)(?:[?#].*)?$/i.test(url); }
@@ -81,7 +81,7 @@ export default function AdminMediaPage() {
                 <option value="portfolio">Portfolio</option>
                 <option value="service_image">Layanan</option>
                 <option value="product_image">Produk</option>
-                <option value="article_image">Artikel</option>
+                <option value="article_image">Artikel</option><option value="content_image">Rich content</option>
                 <option value="site_hero">Hero situs</option>
               </select>
             </div>

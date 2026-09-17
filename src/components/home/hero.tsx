@@ -55,7 +55,8 @@ export async function Hero() {
                 alt={content.heroImageAlt}
                 fill
                 priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                quality={78}
+                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 85vw, 50vw"
                 className="h-full w-full rounded-[1.25rem] object-cover"
               />}
               <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-black/60 p-5 text-white backdrop-blur-md">

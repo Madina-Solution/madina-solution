@@ -29,9 +29,13 @@ export function buildPageMetadata({
   description,
   path,
   image,
+  canonicalUrl,
   noIndex = false,
   keywords = [],
-  canonicalUrl,
+  openGraphTitle,
+  openGraphDescription,
+  twitterTitle,
+  twitterDescription,
 }: {
   title: string;
   description: string;
@@ -40,6 +44,10 @@ export function buildPageMetadata({
   noIndex?: boolean;
   keywords?: string[];
   canonicalUrl?: string;
+  openGraphTitle?: string;
+  openGraphDescription?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
 }): Metadata {
   const siteUrl = getSiteUrl();
   const canonical = canonicalUrl || absoluteUrl(path, siteUrl);
@@ -58,14 +66,14 @@ export function buildPageMetadata({
       locale: "id_ID",
       url: canonical,
       siteName: BRAND.name,
-      title,
-      description: normalizeDescription(description),
+      title: openGraphTitle || title,
+      description: normalizeDescription(openGraphDescription || description),
       images: [{ url: imageUrl, width: 1200, height: 630, alt: `${title} — ${BRAND.name}` }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description: normalizeDescription(description),
+      title: twitterTitle || title,
+      description: normalizeDescription(twitterDescription || description),
       images: [imageUrl],
     },
   };

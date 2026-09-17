@@ -1,19 +1,27 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  Star,
-  Clock,
-  Package,
-  Shield,
-  ChevronRight,
-  MessageCircle,
+  ArrowRight,
+  BadgeCheck,
+  Boxes,
   Check,
+  ChevronRight,
+  Clock3,
+  FileCheck2,
+  MessageCircle,
+  MessageSquareQuote,
+  Package,
+  Palette,
+  ShieldCheck,
+  ShoppingBag,
+  Star,
+  Truck,
   UserCircle,
 } from "lucide-react";
 import { db } from "@/db";
-import { products, categories, reviews, users } from "@/db/schema";
-import { eq, and, ne, desc, sql, count } from "drizzle-orm";
+import { categories, products, reviews, users } from "@/db/schema";
+import { and, count, desc, eq, ne, sql } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,472 +38,362 @@ import { getPublicSiteConfig } from "@/lib/site-config";
 import { getSession } from "@/lib/auth/session";
 import { buildPageMetadata } from "@/lib/seo";
 import { ReviewForm } from "./review-form";
+import type { ProductAdminMetadata, ProductOption } from "@/db/schema";
+import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 
-type Props = {
-  params: Promise<{ slug: string }>;
-};
+type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  
-  const product = await db
+  const [product] = await db
     .select({
       name: products.name,
       shortDescription: products.shortDescription,
       thumbnail: products.thumbnail,
+      metadata: products.metadata,
     })
     .from(products)
     .where(eq(products.slug, slug))
     .limit(1);
 
-  if (!product[0]) {
-    return {
-      title: "Produk Tidak Ditemukan",
-    };
-  }
+  if (!product) return { title: "Produk Tidak Ditemukan" };
+  const seo = (product.metadata as ProductAdminMetadata | null)?.seo;
+  return buildPageMetadata({
+    title: seo?.title || product.name,
+    description: seo?.description || product.shortDescription || `${product.name} — Madina Solution`,
+    path: `/products/${encodeURIComponent(slug)}`,
+    image: seo?.ogImage || product.thumbnail || undefined,
+    noIndex: !!seo?.noIndex,
+    keywords: seo?.keywords || [],
+  });
+}
 
-  return buildPageMetadata({ title: product[0].name, description: product[0].shortDescription || `${product[0].name} - Madina Solution`, path: `/products/${encodeURIComponent(slug)}`, image: product[0].thumbnail || undefined });
+function StarRating({ value, size = "sm" }: { value: number; size?: "sm" | "md" }) {
+  const starClass = size === "md" ? "h-5 w-5" : "h-4 w-4";
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`Rating ${value.toFixed(1)} dari 5`}>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <Star
+          key={index}
+          className={`${starClass} ${index < Math.round(value) ? "fill-amber-400 text-amber-400" : "fill-dark-100 text-dark-200"}`}
+          aria-hidden="true"
+        />
+      ))}
+    </div>
+  );
 }
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://madinasolution.web.app";
 
-  // Fetch product with category
-  const productResult = await db
-    .select({
-      id: products.id,
-      name: products.name,
-      slug: products.slug,
-      shortDescription: products.shortDescription,
-      description: products.description,
-      thumbnail: products.thumbnail,
-      gallery: products.gallery,
-      basePrice: products.basePrice,
-      unit: products.unit,
-      minOrder: products.minOrder,
-      specifications: products.specifications,
-      options: products.options,
-      productionDays: products.productionDays,
-      isFeatured: products.isFeatured,
-      rating: products.rating,
-      reviewCount: products.reviewCount,
-      categoryId: products.categoryId,
-      categoryName: categories.name,
-      categorySlug: categories.slug,
-    })
-    .from(products)
-    .leftJoin(categories, eq(products.categoryId, categories.id))
-    .where(and(eq(products.slug, slug), eq(products.isActive, true)))
-    .limit(1);
+  const [productResult, session, siteConfig] = await Promise.all([
+    db
+      .select({
+        id: products.id,
+        name: products.name,
+        slug: products.slug,
+        shortDescription: products.shortDescription,
+        description: products.description,
+        thumbnail: products.thumbnail,
+        gallery: products.gallery,
+        basePrice: products.basePrice,
+        unit: products.unit,
+        minOrder: products.minOrder,
+        specifications: products.specifications,
+        options: products.options,
+        metadata: products.metadata,
+        productionDays: products.productionDays,
+        isFeatured: products.isFeatured,
+        categoryId: products.categoryId,
+        categoryName: categories.name,
+        categorySlug: categories.slug,
+      })
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(and(eq(products.slug, slug), eq(products.isActive, true)))
+      .limit(1),
+    getSession(),
+    getPublicSiteConfig(),
+  ]);
 
   const product = productResult[0];
+  if (!product) notFound();
 
-  if (!product) {
-    notFound();
-  }
-
-  // Fetch reviews for this product
-  const productReviews = await db
-    .select({
-      id: reviews.id,
-      rating: reviews.rating,
-      comment: reviews.comment,
-      images: reviews.images,
-      isVerified: reviews.isVerified,
-      createdAt: reviews.createdAt,
-      userName: users.name,
-      userAvatar: users.avatar,
-    })
-    .from(reviews)
-    .leftJoin(users, eq(reviews.userId, users.id))
-    .where(and(eq(reviews.productId, product.id), eq(reviews.isApproved, true)))
-    .orderBy(desc(reviews.createdAt))
-    .limit(5);
-
-  // Live rating aggregate — computed from the actual approved reviews, instead of the
-  // products.rating/reviewCount columns which can drift out of sync with real review data.
-  const [ratingAgg] = await db
-    .select({ avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`, count: count() })
-    .from(reviews)
-    .where(and(eq(reviews.productId, product.id), eq(reviews.isApproved, true)));
-  const liveRating = Number(ratingAgg?.avg ?? 0);
-  const liveReviewCount = ratingAgg?.count ?? 0;
-
-  const session = await getSession();
-  let myReview: { rating: number; comment: string | null } | null = null;
-  if (session) {
-    const [mine] = await db
-      .select({ rating: reviews.rating, comment: reviews.comment })
+  const [productReviews, ratingAgg, myReview, relatedProducts] = await Promise.all([
+    db
+      .select({
+        id: reviews.id,
+        rating: reviews.rating,
+        comment: reviews.comment,
+        images: reviews.images,
+        isVerified: reviews.isVerified,
+        createdAt: reviews.createdAt,
+        userName: users.name,
+        userAvatar: users.avatar,
+      })
       .from(reviews)
-      .where(and(eq(reviews.productId, product.id), eq(reviews.userId, session.userId)))
-      .limit(1);
-    myReview = mine ?? null;
-  }
+      .leftJoin(users, eq(reviews.userId, users.id))
+      .where(and(eq(reviews.productId, product.id), eq(reviews.isApproved, true)))
+      .orderBy(desc(reviews.createdAt))
+      .limit(8),
+    db
+      .select({ avg: sql<string>`coalesce(avg(${reviews.rating}), 0)`, count: count() })
+      .from(reviews)
+      .where(and(eq(reviews.productId, product.id), eq(reviews.isApproved, true))),
+    session
+      ? db
+          .select({ rating: reviews.rating, comment: reviews.comment })
+          .from(reviews)
+          .where(and(eq(reviews.productId, product.id), eq(reviews.userId, session.userId)))
+          .limit(1)
+          .then(([review]) => review ?? null)
+      : Promise.resolve(null),
+    product.categoryId
+      ? db
+          .select({
+            id: products.id,
+            name: products.name,
+            slug: products.slug,
+            thumbnail: products.thumbnail,
+            basePrice: products.basePrice,
+            unit: products.unit,
+            rating: products.rating,
+          })
+          .from(products)
+          .where(and(eq(products.categoryId, product.categoryId), ne(products.id, product.id), eq(products.isActive, true)))
+          .limit(4)
+      : Promise.resolve([]),
+  ]);
 
-  // Fetch related products (same category)
-  const relatedProducts = product.categoryId
-    ? await db
-        .select({
-          id: products.id,
-          name: products.name,
-          slug: products.slug,
-          thumbnail: products.thumbnail,
-          basePrice: products.basePrice,
-          unit: products.unit,
-          rating: products.rating,
-        })
-        .from(products)
-        .where(
-          and(
-            eq(products.categoryId, product.categoryId),
-            ne(products.id, product.id),
-            eq(products.isActive, true)
-          )
-        )
-        .limit(4)
+  const liveRating = Number(ratingAgg[0]?.avg ?? 0);
+  const liveReviewCount = ratingAgg[0]?.count ?? 0;
+  const metadata = (product.metadata as ProductAdminMetadata | null) || {};
+  const specs = (product.specifications as Record<string, string> | null) || {};
+  const gallery = Array.from(new Set([
+    ...(Array.isArray(product.gallery) ? (product.gallery as string[]) : []),
+    metadata.content?.videoUrl || "",
+    ...((metadata.variants?.attributes || []).flatMap((attribute) => attribute.values.map((value) => value.image || ""))),
+  ].filter(Boolean)));
+  const richDescription = sanitizeRichHtml(product.description || product.shortDescription || "");
+  const stockStatus = metadata.stock?.status || "made_to_order";
+  const unit = product.unit || "pcs";
+  const variantOptions: ProductOption[] = metadata.variants?.enabled
+    ? (metadata.variants.attributes || []).map((attr, index) => ({
+        id: `variant_${product.id}_${index}`,
+        name: attr.name,
+        key: `variant_${index}_${attr.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
+        type: "radio",
+        required: true,
+        values: attr.values.map((value) => ({
+          label: value.label,
+          value: value.value,
+          priceModifier: value.priceModifier,
+          description: value.stock !== undefined ? `Stok varian: ${value.stock}` : undefined,
+        })),
+        displayOrder: index,
+      }))
     : [];
-
-  const specs = product.specifications as Record<string, string> || {};
-  const gallery = (product.gallery as string[]) || [];
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://madinasolution.web.app";
-  const siteConfig = await getPublicSiteConfig();
+  const allOptions = [...(product.options || []), ...variantOptions];
+  const tieredPrices = [...(metadata.pricing?.wholesaleTiers || [])].sort((a, b) => a.minQuantity - b.minQuantity);
+  const pageUrl = `${siteUrl}/products/${product.slug}`;
 
   return (
     <>
-    <ProductSchema
-      name={product.name}
-      description={product.shortDescription || product.description || product.name}
-      price={Number(product.basePrice)}
-      url={`${siteUrl}/products/${product.slug}`}
-      image={product.thumbnail || undefined}
-      rating={liveReviewCount > 0 ? liveRating : undefined}
-      reviewCount={liveReviewCount > 0 ? liveReviewCount : undefined}
-    />
-    <BreadcrumbSchema
-      items={[
-        { name: "Home", url: siteUrl },
-        { name: "Products", url: `${siteUrl}/products` },
-        ...(product.categoryName ? [{ name: product.categoryName, url: `${siteUrl}/products/category/${product.categorySlug}` }] : []),
-        { name: product.name, url: `${siteUrl}/products/${product.slug}` },
-      ]}
-    />
-    <div className="py-8 lg:py-12">
-      <div className="mx-auto max-w-7xl px-4 lg:px-6">
-        {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-2 text-sm text-dark-500">
-          <Link href="/" className="hover:text-primary">
-            Beranda
-          </Link>
-          <ChevronRight className="h-4 w-4" />
-          <Link href="/products" className="hover:text-primary">
-            Produk
-          </Link>
-          {product.categoryName && (
-            <>
-              <ChevronRight className="h-4 w-4" />
-              <Link
-                href={`/products/category/${product.categorySlug}`}
-                className="hover:text-primary"
-              >
-                {product.categoryName}
-              </Link>
-            </>
-          )}
-          <ChevronRight className="h-4 w-4" />
-          <span className="text-dark">{product.name}</span>
-        </nav>
+      <ProductSchema
+        name={product.name}
+        description={product.shortDescription || product.description || product.name}
+        price={Number(product.basePrice)}
+        url={pageUrl}
+        image={product.thumbnail || undefined}
+        sku={metadata.sku}
+        availability={stockStatus === "out_of_stock" ? "OutOfStock" : "InStock"}
+        rating={liveReviewCount > 0 ? liveRating : undefined}
+        reviewCount={liveReviewCount > 0 ? liveReviewCount : undefined}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: siteUrl },
+          { name: "Products", url: `${siteUrl}/products` },
+          ...(product.categoryName ? [{ name: product.categoryName, url: `${siteUrl}/products/category/${product.categorySlug}` }] : []),
+          { name: product.name, url: pageUrl },
+        ]}
+      />
 
-        {/* Main Content */}
-        <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Gallery */}
-          <ProductGallery
-            thumbnail={product.thumbnail}
-            gallery={gallery}
-            productName={product.name}
-          />
-
-          {/* Product Info */}
-          <div className="min-w-0">
-            {/* Category & Featured Badge */}
-            <div className="flex items-center gap-2">
-              {product.categoryName && (
-                <Badge variant="secondary">{product.categoryName}</Badge>
-              )}
-              {product.isFeatured && <Badge variant="default">Featured</Badge>}
-            </div>
-
-            {/* Title */}
-            <h1 className="mt-3 break-words text-3xl font-bold leading-tight text-dark lg:text-4xl">
-              {product.name}
-            </h1>
-
-            {/* Rating */}
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-5 w-5 ${
-                      i < Math.round(liveRating)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "fill-dark-200 text-dark-200"
-                    }`}
-                  />
-                ))}
-                <span className="ml-1 font-medium">
-                  {liveReviewCount > 0 ? liveRating.toFixed(1) : "0"}
-                </span>
-              </div>
-              <span className="text-dark-400">
-                ({liveReviewCount} ulasan)
-              </span>
-            </div>
-
-            {/* Price */}
-            <div className="mt-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-primary">
-                  {formatCurrency(Number(product.basePrice))}
-                </span>
-                <span className="text-lg text-dark-500">
-                  /{product.unit || "pcs"}
-                </span>
-              </div>
-              {product.minOrder && product.minOrder > 1 && (
-                <p className="mt-1 text-sm text-dark-500">
-                  Minimal pemesanan: {product.minOrder} {product.unit}
-                </p>
-              )}
-            </div>
-
-            {/* Short Description */}
-            {product.shortDescription && (
-              <p className="mt-4 text-dark-600">{product.shortDescription}</p>
+      <main className="bg-[#fbfaf8] py-6 sm:py-8 lg:py-10">
+        <div className="mx-auto max-w-[1440px] px-4 lg:px-8">
+          <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-2 overflow-x-auto whitespace-nowrap text-sm text-dark-500">
+            <Link href="/" className="hover:text-primary">Beranda</Link>
+            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <Link href="/products" className="hover:text-primary">Produk</Link>
+            {product.categoryName && (
+              <>
+                <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <Link href={`/products/category/${product.categorySlug}`} className="hover:text-primary">{product.categoryName}</Link>
+              </>
             )}
+            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate font-medium text-dark">{product.name}</span>
+          </nav>
 
-            <Separator className="my-6" />
-
-            {/* Features */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Clock className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm text-dark-500">Estimasi Pengerjaan</p>
-                  <p className="font-semibold text-dark">
-                    {product.productionDays || 3} hari kerja
-                  </p>
-                </div>
+          <section className="rounded-[2rem] border border-dark-100 bg-white p-3 shadow-[0_24px_90px_rgba(15,23,42,.08)] sm:p-5 lg:p-6">
+            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.03fr)_minmax(380px,.97fr)] xl:gap-12">
+              <div className="min-w-0">
+                <ProductGallery thumbnail={product.thumbnail} gallery={gallery} productName={product.name} />
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600">
-                  <Shield className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm text-dark-500">Garansi</p>
-                  <p className="font-semibold text-dark">Kualitas Terjamin</p>
-                </div>
-              </div>
-            </div>
 
-            <Separator className="my-6" />
-
-            {/* Configuration */}
-            <ProductConfiguration
-              productId={product.id}
-              productName={product.name}
-              productSlug={product.slug}
-              productThumbnail={product.thumbnail}
-              basePrice={Number(product.basePrice)}
-              unit={product.unit || "pcs"}
-              minOrder={product.minOrder || 1}
-              options={product.options || []}
-            />
-
-            {/* Actions are rendered inside ProductConfiguration */}
-
-            {/* WhatsApp */}
-            <Button
-              variant="secondary"
-              size="lg"
-              className="mt-3 w-full"
-              asChild
-            >
-              <a
-                href={`https://wa.me/${BRAND.whatsapp}?text=Halo%20Madina%20Solution%2C%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(product.name)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                Tanya via WhatsApp
-              </a>
-            </Button>
-          </div>
-        </div>
-
-        {/* Product Details */}
-        <div className="mt-12 grid gap-8 lg:grid-cols-3">
-          {/* Description */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-dark">
-                  Deskripsi Produk
-                </h2>
-                <div className="mt-4 prose prose-dark max-w-none">
-                  <p className="text-dark-600 whitespace-pre-wrap">
-                    {product.description || product.shortDescription || "Tidak ada deskripsi tersedia."}
-                  </p>
+              <div className="min-w-0 lg:pt-1">
+                <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.16em]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-dark-200 bg-dark-50 px-3 py-1.5 text-dark-600"><BadgeCheck className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> Product listing</span>
+                  {metadata.variants?.enabled && <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700"><Palette className="h-3.5 w-3.5" aria-hidden="true" /> Customizable</span>}
+                  {tieredPrices.length > 0 && <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-blue-700"><Boxes className="h-3.5 w-3.5" aria-hidden="true" /> Wholesale</span>}
                 </div>
 
-                {/* Specifications */}
-                {Object.keys(specs).length > 0 && (
-                  <>
-                    <h3 className="mt-8 text-lg font-semibold text-dark">
-                      Spesifikasi
-                    </h3>
-                    <div className="mt-4 space-y-3">
-                      {Object.entries(specs).map(([key, value]) => (
-                        <div
-                          key={key}
-                          className="flex items-center justify-between border-b border-dark-100 pb-3"
-                        >
-                          <span className="text-dark-500 capitalize">
-                            {key.replace(/_/g, " ")}
-                          </span>
-                          <span className="font-medium text-dark">{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Reviews */}
-            <Card className="mt-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-dark">Ulasan</h2>
-                  <Badge variant="secondary">
-                    {liveReviewCount} ulasan
-                  </Badge>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {product.categoryName && <Badge variant="secondary">{product.categoryName}</Badge>}
+                  {product.isFeatured && <Badge>Featured</Badge>}
                 </div>
 
-                {productReviews.length > 0 ? (
-                  <div className="mt-6 space-y-6">
-                    {productReviews.map((review) => (
-                      <div key={review.id} className="border-b border-dark-100 pb-6 last:border-0">
-                        <div className="flex items-start gap-4">
-                          {review.userAvatar ? <SiteImage src={review.userAvatar} alt={review.userName || "Pengguna"} width={40} height={40} className="h-10 w-10 rounded-full object-cover" /> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary" aria-hidden="true"><UserCircle className="h-5 w-5" /></div>}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-dark">
-                                {review.userName || "Pengguna"}
-                              </span>
-                              {review.isVerified && (
-                                <Badge variant="success" className="text-xs">
-                                  <Check className="mr-1 h-3 w-3" />
-                                  Terverifikasi
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="mt-1 flex items-center gap-1">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < review.rating
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "fill-dark-200 text-dark-200"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            {review.comment && (
-                              <p className="mt-2 text-dark-600">
-                                {review.comment}
-                              </p>
-                            )}
-                          </div>
-                        </div>
+                <h1 className="mt-4 text-[2rem] font-semibold leading-[1.08] tracking-[-0.035em] text-dark sm:text-[2.4rem] lg:text-[2.8rem]">{product.name}</h1>
+
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-dark-100 pb-4 text-sm">
+                  <div className="flex items-center gap-2"><StarRating value={liveRating} size="md" /><span className="font-semibold text-dark">{liveReviewCount ? liveRating.toFixed(1) : "—"}</span></div>
+                  <span className="text-dark-400">{liveReviewCount} ulasan</span>
+                  {metadata.brand && <span className="text-dark-500">Brand: <strong className="text-dark">{metadata.brand}</strong></span>}
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-primary/10 bg-primary/[.045] p-4 sm:p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[.16em] text-dark-400">Harga mulai</p>
+                  <div className="mt-1 flex flex-wrap items-end gap-2">
+                    <span className="text-4xl font-bold tracking-tight text-primary sm:text-[2.75rem]">{formatCurrency(Number(product.basePrice))}</span>
+                    <span className="pb-1 text-base text-dark-500">/ {unit}</span>
+                    {metadata.pricing?.compareAtPrice && Number(metadata.pricing.compareAtPrice) > Number(product.basePrice) && <span className="pb-1 text-sm text-dark-400 line-through">{formatCurrency(Number(metadata.pricing.compareAtPrice))}</span>}
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {[
+                      ["MOQ", `${product.minOrder || 1} ${unit}`],
+                      ["Lead time", `${metadata.shipping?.leadTimeDays || product.productionDays || 3} hari`],
+                      ["Order", stockStatus === "in_stock" ? "Ready" : stockStatus === "preorder" ? "Pre-order" : "Custom"],
+                      ["SKU", metadata.sku || "—"],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-xl bg-white/90 p-3 ring-1 ring-dark-100">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-dark-400">{label}</p>
+                        <p className="mt-1 truncate text-sm font-semibold text-dark">{value}</p>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="mt-6 text-center py-8">
-                    <p className="text-dark-500">
-                      Belum ada ulasan untuk produk ini.
-                    </p>
-                  </div>
-                )}
-                <ReviewForm productId={product.id} isLoggedIn={!!session} existingReview={myReview} />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Delivery Info */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-dark">Informasi Pengiriman</h3>
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Package className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-dark">Pengiriman</p>
-                      <p className="text-sm text-dark-500">
-                        Tersedia pengiriman ke seluruh Indonesia
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-dark">Estimasi</p>
-                      <p className="text-sm text-dark-500">
-                        {product.productionDays || 3} hari pengerjaan + ongkir
-                      </p>
-                    </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Badge variant={stockStatus === "out_of_stock" ? "error" : "success"}>{stockStatus === "out_of_stock" ? "Stok habis" : stockStatus === "preorder" ? "Pre-order" : stockStatus === "made_to_order" ? "Made to order" : "Stok tersedia"}</Badge>
+                    {metadata.content?.tags?.slice(0, 4).map((tag) => <span key={tag} className="rounded-full bg-white px-3 py-1 text-xs text-dark-500 ring-1 ring-dark-100">{tag}</span>)}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Contact */}
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-dark">Butuh Bantuan?</h3>
-                <p className="mt-2 text-sm text-dark-600">
-                  Tim kami siap membantu konsultasi kebutuhan cetak Anda.
-                </p>
-                <Button className="mt-4 w-full" asChild>
-                  <a
-                    href={`https://wa.me/${BRAND.whatsapp}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Hubungi Kami
+                {product.shortDescription && <p className="mt-4 text-sm leading-7 text-dark-600 sm:text-base">{product.shortDescription}</p>}
+                {metadata.marketing?.promoText && <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900"><span className="font-bold">{metadata.marketing.badge || "Penawaran"}</span>{metadata.marketing.badge ? " — " : ""}{metadata.marketing.promoText}</div>}
+
+                {tieredPrices.length > 0 && (
+                  <div className="mt-5 overflow-hidden rounded-2xl border border-dark-100">
+                    <div className="flex items-center justify-between bg-dark-50 px-4 py-3"><p className="text-xs font-bold uppercase tracking-wider text-dark-600">Harga grosir</p><span className="text-[11px] text-dark-400">Harga per {unit}</span></div>
+                    <div className="grid sm:grid-cols-2">
+                      {tieredPrices.map((tier, index) => (
+                        <div key={`${tier.minQuantity}-${tier.unitPrice}`} className={`flex items-center justify-between px-4 py-3 text-sm ${index > 0 ? "border-t border-dark-100 sm:border-l" : "border-t border-dark-100 sm:border-t-0"}`}>
+                          <span className="text-dark-600">{tier.minQuantity}+ {unit}</span>
+                          <strong className="text-dark">{formatCurrency(Number(tier.unitPrice))}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-dark-100 p-4"><div className="flex items-start gap-3"><ShoppingBag className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="text-sm font-semibold text-dark">Order custom & bulk</p><p className="mt-1 text-xs leading-5 text-dark-500">Konfigurasi spesifikasi dan kuantitas sesuai kebutuhan Anda.</p></div></div></div>
+                  <div className="rounded-2xl border border-dark-100 p-4"><div className="flex items-start gap-3"><FileCheck2 className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="text-sm font-semibold text-dark">File review</p><p className="mt-1 text-xs leading-5 text-dark-500">Upload file tersedia pada opsi produk yang mendukung.</p></div></div></div>
+                </div>
+
+                <Separator className="my-6" />
+                <ProductConfiguration
+                  productId={product.id}
+                  productName={product.name}
+                  productSlug={product.slug}
+                  productThumbnail={product.thumbnail}
+                  basePrice={Number(product.basePrice)}
+                  unit={unit}
+                  minOrder={product.minOrder || 1}
+                  options={allOptions}
+                  wholesaleTiers={tieredPrices}
+                />
+                <Button variant="secondary" size="lg" className="mt-3 w-full" asChild>
+                  <a href={`https://wa.me/${BRAND.whatsapp}?text=Halo%20Madina%20Solution%2C%20saya%20ingin%20membahas%20${encodeURIComponent(product.name)}`} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />Tanya & konsultasi
                   </a>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </section>
+
+          <nav aria-label="Navigasi detail produk" className="mt-6 overflow-x-auto rounded-2xl border border-dark-100 bg-white shadow-sm">
+            <div className="flex min-w-max gap-1 p-1.5 text-sm font-semibold">
+              <a href="#overview" className="rounded-xl px-4 py-2.5 text-dark-600 hover:bg-dark-50 hover:text-dark">Overview</a>
+              <a href="#specifications" className="rounded-xl px-4 py-2.5 text-dark-600 hover:bg-dark-50 hover:text-dark">Spesifikasi</a>
+              <a href="#customization" className="rounded-xl px-4 py-2.5 text-dark-600 hover:bg-dark-50 hover:text-dark">Customization</a>
+              <a href="#shipping" className="rounded-xl px-4 py-2.5 text-dark-600 hover:bg-dark-50 hover:text-dark">Produksi & pengiriman</a>
+              <a href="#faq" className="rounded-xl px-4 py-2.5 text-dark-600 hover:bg-dark-50 hover:text-dark">FAQ</a>
+              <a href="#reviews" className="rounded-xl px-4 py-2.5 text-dark-600 hover:bg-dark-50 hover:text-dark">Ulasan</a>
+            </div>
+          </nav>
+
+          <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_330px]">
+            <div className="min-w-0">
+              <Card id="overview" className="scroll-mt-24 overflow-hidden border-dark-100 shadow-sm">
+                <CardContent className="p-5 sm:p-7">
+                  <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Product story</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-dark">Deskripsi produk</h2></div><Badge variant="secondary">{metadata.condition === "new" ? "New" : metadata.condition || "Product"}</Badge></div>
+                  <div className="mt-5 rich-product-content prose prose-dark max-w-none" dangerouslySetInnerHTML={{ __html: richDescription || "<p>Deskripsi produk belum tersedia.</p>" }} />
+
+                  {metadata.content?.highlights?.filter(Boolean).length ? (
+                    <div id="customization" className="mt-8 scroll-mt-24 border-t border-dark-100 pt-8">
+                      <h3 className="text-lg font-semibold text-dark">Keunggulan & opsi</h3>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">{metadata.content.highlights.filter(Boolean).map((item) => <div key={item} className="flex gap-3 rounded-xl border border-dark-100 bg-dark-50/60 p-3 text-sm font-medium text-dark-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{item}</div>)}</div>
+                    </div>
+                  ) : null}
+
+                  {Object.keys(specs).length > 0 && (
+                    <div id="specifications" className="mt-8 scroll-mt-24 border-t border-dark-100 pt-8">
+                      <div className="flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Technical data</p><h3 className="mt-2 text-lg font-semibold text-dark">Spesifikasi</h3></div><span className="text-xs text-dark-400">Detail produksi</span></div>
+                      <div className="mt-4 overflow-hidden rounded-2xl border border-dark-100"><div className="divide-y divide-dark-100">{Object.entries(specs).map(([key, value]) => <div key={key} className="grid gap-2 px-4 py-3 sm:grid-cols-[190px_1fr]"><span className="text-sm text-dark-500 capitalize">{key.replace(/_/g, " ")}</span><span className="text-sm font-medium text-dark">{value}</span></div>)}</div></div>
+                    </div>
+                  )}
+
+                  <div className="mt-8 grid gap-3 border-t border-dark-100 pt-8 sm:grid-cols-3">
+                    <div className="rounded-2xl bg-dark-50 p-4"><Clock3 className="h-5 w-5 text-primary" aria-hidden="true" /><p className="mt-3 text-xs text-dark-500">Lead time</p><p className="mt-1 font-semibold text-dark">{metadata.shipping?.leadTimeDays || product.productionDays || 3} hari kerja</p></div>
+                    <div className="rounded-2xl bg-dark-50 p-4"><ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" /><p className="mt-3 text-xs text-dark-500">Kualitas</p><p className="mt-1 font-semibold text-dark">QC sebelum pengiriman</p></div>
+                    <div className="rounded-2xl bg-dark-50 p-4"><Package className="h-5 w-5 text-primary" aria-hidden="true" /><p className="mt-3 text-xs text-dark-500">Fulfillment</p><p className="mt-1 font-semibold text-dark">{stockStatus === "in_stock" ? "Ready stock" : "Made to order"}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {faq.length > 0 && (
+                <Card id="faq" className="mt-6 scroll-mt-24 border-dark-100 shadow-sm"><CardContent className="p-6"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Buyer questions</p><h2 className="mt-2 text-2xl font-semibold text-dark">Pertanyaan yang sering diajukan</h2><div className="mt-5 space-y-3">{faq.map((item) => <details key={item.question} className="group rounded-2xl border border-dark-100 p-4"><summary className="cursor-pointer list-none pr-8 text-sm font-semibold text-dark marker:hidden">{item.question}</summary><div className="mt-3 text-sm leading-7 text-dark-600">{item.answer}</div></details>)}</div></CardContent></Card>
+              )}
+
+              <Card id="reviews" className="mt-6 scroll-mt-24 border-dark-100 shadow-sm"><CardContent className="p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Buyer feedback</p><h2 className="mt-2 text-2xl font-semibold text-dark">Ulasan pelanggan</h2></div><div className="flex items-center gap-2"><StarRating value={liveRating} size="md" /><span className="font-semibold text-dark">{liveReviewCount ? liveRating.toFixed(1) : "—"}</span><span className="text-sm text-dark-400">({liveReviewCount})</span></div></div>
+                {productReviews.length > 0 ? <div className="mt-6 space-y-6">{productReviews.map((review) => <article key={review.id} className="border-b border-dark-100 pb-6 last:border-0"><div className="flex gap-4">{review.userAvatar ? <SiteImage src={review.userAvatar} alt={review.userName || "Pengguna"} width={40} height={40} className="h-10 w-10 rounded-full object-cover" /> : <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary" aria-hidden="true"><UserCircle className="h-5 w-5" /></div>}<div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="font-semibold text-dark">{review.userName || "Pengguna"}</span>{review.isVerified && <Badge variant="success"><Check className="mr-1 h-3 w-3" aria-hidden="true" />Terverifikasi</Badge>}</div><div className="mt-1 flex items-center gap-2"><StarRating value={review.rating} /><span className="text-xs text-dark-400">{review.rating}.0</span></div>{review.comment && <p className="mt-2 text-sm leading-7 text-dark-600">{review.comment}</p>}</div></div></article>)}</div> : <p className="mt-6 rounded-2xl bg-dark-50 p-5 text-sm text-dark-500">Belum ada ulasan untuk produk ini.</p>}
+                <ReviewForm productId={product.id} isLoggedIn={!!session} existingReview={myReview} />
+              </CardContent></Card>
+            </div>
+
+            <aside className="space-y-5">
+              <Card className="border-dark-100 shadow-sm lg:sticky lg:top-24"><CardContent className="p-5"><div className="flex items-center gap-3 border-b border-dark-100 pb-4"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-dark text-white"><span className="text-xs font-bold">MS</span></div><div><p className="text-sm font-bold text-dark">Madina Solution</p><p className="text-xs text-dark-500">Creative & Printing Partner</p></div><BadgeCheck className="ml-auto h-5 w-5 text-primary" aria-label="Madina Solution partner" /></div><div className="mt-4 space-y-3 text-sm"><div className="flex gap-3"><MessageSquareQuote className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /><span className="text-dark-600">Konsultasi spesifikasi dan kebutuhan custom.</span></div><div className="flex gap-3"><FileCheck2 className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /><span className="text-dark-600">Review file sebelum produksi sesuai opsi pesanan.</span></div><div className="flex gap-3"><Truck className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /><span className="text-dark-600">Pengiriman disesuaikan dengan pesanan dan lokasi.</span></div></div><Button className="mt-5 w-full" size="lg" asChild><a href={`https://wa.me/${BRAND.whatsapp}?text=Halo%20Madina%20Solution%2C%20saya%20ingin%20meminta%20penawaran%20untuk%20${encodeURIComponent(product.name)}`} target="_blank" rel="noopener noreferrer"><MessageCircle className="mr-2 h-4 w-4" aria-hidden="true" />Minta penawaran</a></Button></CardContent></Card>
+
+              <Card id="shipping" className="scroll-mt-24 border-dark-100 shadow-sm"><CardContent className="p-5"><h3 className="font-semibold text-dark">Produksi & pengiriman</h3><div className="mt-4 space-y-4 text-sm"><div className="flex gap-3"><Truck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Pengiriman</p><p className="mt-1 text-dark-500">Tersedia pengiriman ke seluruh Indonesia.</p></div></div><div className="flex gap-3"><Clock3 className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Lead time</p><p className="mt-1 text-dark-500">{metadata.shipping?.leadTimeDays || product.productionDays || 3} hari pengerjaan + pengiriman.</p></div></div>{metadata.shipping?.freeShipping && <div className="flex gap-3"><Truck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Shipping</p><p className="mt-1 text-dark-500">Free shipping sesuai konfigurasi produk.</p></div></div>}{metadata.shipping?.origin && <div className="flex gap-3"><Package className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Lokasi produksi</p><p className="mt-1 text-dark-500">{metadata.shipping.origin}</p></div></div>}{(metadata.shipping?.lengthCm || metadata.shipping?.widthCm || metadata.shipping?.heightCm) && <div className="flex gap-3"><Boxes className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Dimensi paket</p><p className="mt-1 text-dark-500">{metadata.shipping.lengthCm || "—"} × {metadata.shipping.widthCm || "—"} × {metadata.shipping.heightCm || "—"} cm</p></div></div>}</div></CardContent></Card>
+
+              <Card className="border-dark-100 shadow-sm"><CardContent className="p-5"><h3 className="font-semibold text-dark">Alur pemesanan</h3><div className="mt-4 space-y-4">{[["01","Pilih spesifikasi"],["02","Tentukan kuantitas"],["03","Upload / kirim desain"],["04","Review & produksi"]].map(([n,title]) => <div key={n} className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-dark text-[10px] font-bold text-white">{n}</span><span className="text-sm font-medium text-dark">{title}</span></div>)}</div></CardContent></Card>
+            </aside>
           </div>
+
+          {siteConfig.adsEnabled && siteConfig.adsClient && siteConfig.adsSlots.product ? <div className="mt-10"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.product} className="mx-auto max-w-4xl" label="Iklan" /></div> : null}
+          {relatedProducts.length > 0 ? <RelatedProducts products={relatedProducts} /> : null}
         </div>
-
-        {/* Product ad: optional, separated from purchase controls */}
-        {siteConfig.adsEnabled && siteConfig.adsClient && siteConfig.adsSlots.product ? (
-          <div className="mt-10"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.product} className="mx-auto max-w-4xl" label="Iklan" /></div>
-        ) : null}
-
-        {/* Related Products */}
-        {relatedProducts.length > 0 ? <RelatedProducts products={relatedProducts} /> : null}
-      </div>
-    </div>
+      </main>
     </>
   );
 }

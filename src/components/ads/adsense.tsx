@@ -39,10 +39,7 @@ export function AdSenseScript({ client, enabled }: { client: string; enabled: bo
 }
 
 export function AdSenseUnit({ client, slot, format = "auto", responsive = true, className, label = "Iklan" }: AdSenseProps) {
-  const [allowed, setAllowed] = React.useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    try { return window.localStorage.getItem(CONSENT_KEY) === "accepted"; } catch { return false; }
-  });
+  const [allowed, setAllowed] = React.useState(false);
   const pushAd = React.useCallback(() => {
     try {
       const queue = (window as typeof window & { adsbygoogle?: unknown[] }).adsbygoogle;
@@ -51,6 +48,7 @@ export function AdSenseUnit({ client, slot, format = "auto", responsive = true, 
   }, []);
 
   React.useEffect(() => {
+    try { setAllowed(window.localStorage.getItem(CONSENT_KEY) === "accepted"); } catch { /* keep false */ }
     const handler = (event: Event) => setAllowed((event as CustomEvent<string>).detail === "accepted");
     window.addEventListener("madina:cookie-consent", handler);
     return () => window.removeEventListener("madina:cookie-consent", handler);

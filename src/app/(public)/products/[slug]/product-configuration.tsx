@@ -23,6 +23,7 @@ type Props = {
   unit: string;
   minOrder: number;
   options: ProductOption[];
+  wholesaleTiers?: { minQuantity: number; unitPrice: string }[];
 };
 
 export function ProductConfiguration({
@@ -34,6 +35,7 @@ export function ProductConfiguration({
   unit,
   minOrder,
   options,
+  wholesaleTiers = [],
 }: Props) {
   const [quantity, setQuantity] = React.useState(minOrder);
   const [selectedOptions, setSelectedOptions] = React.useState<Record<string, string>>(() => {
@@ -142,10 +144,20 @@ export function ProductConfiguration({
     return [...options].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   }, [options]);
 
-  // Calculate price
+  // Calculate price using the highest applicable wholesale tier, then apply product options.
+  const effectiveBasePrice = React.useMemo(() => {
+    const tiers = [...wholesaleTiers].filter((tier) => Number.isFinite(Number(tier.unitPrice)) && tier.minQuantity > 0).sort((a, b) => a.minQuantity - b.minQuantity);
+    let price = basePrice;
+    for (const tier of tiers) {
+      if (quantity >= tier.minQuantity) price = Number(tier.unitPrice);
+      else break;
+    }
+    return price;
+  }, [basePrice, quantity, wholesaleTiers]);
+
   const { unitPrice, subtotal, breakdown } = React.useMemo(() => {
-    return calculateTotalPrice(basePrice, quantity, selectedOptions, options);
-  }, [basePrice, quantity, selectedOptions, options]);
+    return calculateTotalPrice(effectiveBasePrice, quantity, selectedOptions, options);
+  }, [effectiveBasePrice, quantity, selectedOptions, options]);
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = quantity + delta;
@@ -435,7 +447,10 @@ export function ProductConfiguration({
       )}
 
       {/* Price Summary */}
-      <div className="rounded-xl bg-dark-50 p-4">
+      <div className="rounded-2xl border border-dark-100 bg-dark-50 p-4">
+        {wholesaleTiers.length > 0 && effectiveBasePrice !== basePrice && (
+          <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">Harga grosir otomatis aktif untuk {quantity} {unit}.</div>
+        )}
         <div className="space-y-2">
           {breakdown.length > 1 && (
             <div className="space-y-1 border-b border-dark-200 pb-2">

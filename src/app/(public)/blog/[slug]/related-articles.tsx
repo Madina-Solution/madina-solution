@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,14 +29,8 @@ export function RelatedArticles({ articles }: Props) {
     <section className="mt-16 border-t border-dark-100 pt-12">
       <h2 className="text-2xl font-bold text-dark">Artikel Terkait</h2>
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {articles.map((article, index) => (
-          <motion.div
-            key={article.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-          >
+        {articles.map((article) => (
+          <div key={article.id}>
             <Link href={`/blog/${article.slug}`}>
               <Card className="group h-full overflow-hidden transition-all hover:shadow-premium-lg">
                 <div className="relative aspect-[16/9] overflow-hidden bg-dark-100">
@@ -66,7 +59,7 @@ export function RelatedArticles({ articles }: Props) {
                 </div>
               </Card>
             </Link>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

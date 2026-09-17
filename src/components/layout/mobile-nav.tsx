@@ -3,7 +3,6 @@
 import { SiteImage } from "@/components/ui/site-image";
 import * as React from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   X, Search, UserCircle, ArrowRight, Phone, Mail, ChevronDown,
@@ -52,15 +51,13 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
   // "Mulai Pesanan" CTA at the bottom) — it used to also be listed here as a
   // standalone link, which duplicated it.
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
+  return isOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleClose} className="absolute inset-0 bg-dark-900/65 backdrop-blur-sm" aria-hidden="true" />
-          <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+          <div onClick={handleClose} className="absolute inset-0 bg-dark-900/65 backdrop-blur-sm" aria-hidden="true" />
+          <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl" role="dialog" aria-modal="true" aria-label="Navigasi mobile">
             <div className="flex items-center justify-between border-b border-dark-100 bg-white p-4">
               <Link href="/" onClick={handleClose} className="flex items-center gap-3" aria-label="Madina Solution Home">
-                {siteLogo ? <span className="relative flex h-10 max-w-[160px] shrink-0 items-center"><SiteImage src={siteLogo} alt={siteName} width={160} height={44} sizes="160px" className="h-auto max-h-10 w-auto max-w-[160px] object-contain" /></span> : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-900 text-sm font-black text-white shadow-sm ring-1 ring-primary/20">{siteName.charAt(0).toUpperCase()}</span>}
+                {siteLogo ? <span className="relative flex h-10 max-w-[150px] shrink-0 items-center"><SiteImage src={siteLogo} alt={siteName} width={150} height={44} sizes="150px" className="h-auto max-h-10 w-auto max-w-[150px] object-contain" /></span> : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-900 text-sm font-black text-white shadow-sm ring-1 ring-primary/20">{siteName.charAt(0).toUpperCase()}</span>}
                 <span className="font-display font-extrabold tracking-tight text-dark-900"><span className="text-lg leading-none">{siteName}</span><span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.14em] text-dark-500">{siteTagline}</span></span>
               </Link>
               <button type="button" onClick={handleClose} className="rounded-xl p-2 text-dark-500 hover:bg-dark-100 hover:text-dark-900" aria-label="Close menu"><X className="h-5 w-5" /></button>
@@ -81,42 +78,42 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
                   <button onClick={() => toggle("services")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-dark-800 hover:bg-primary-50 hover:text-primary" aria-expanded={expanded === "services"}>
                     <BriefcaseBusiness className="h-4 w-4 text-primary" /><span className="flex-1">Layanan</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "services" && "rotate-180")} />
                   </button>
-                  <AnimatePresence initial={false}>{expanded === "services" && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden"><div className="space-y-1 pb-2 pl-4 pr-1 pt-1">
+                  {expanded === "services" && <div className="overflow-hidden"><div className="space-y-1 pb-2 pl-4 pr-1 pt-1">
                     {navServices.map((item) => { const Icon = NAV_ICON_MAP[item.icon]; return (
                       <Link key={item.href} href={item.href} onClick={handleClose} className="flex items-center gap-3 rounded-xl px-2.5 py-2 text-xs font-medium text-dark-600 hover:bg-primary-50 hover:text-primary">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="h-4 w-4" /></span>
                         <span className="min-w-0 flex-1"><span className="block truncate font-semibold text-dark-800">{item.name}</span>{item.description ? <span className="block truncate text-[10px] text-dark-400">{item.description}</span> : null}</span>
                       </Link>
                     ); })}
-                  </div></motion.div>}</AnimatePresence>
+                  </div></div>}
                 </li>
 
                 <li>
                   <button onClick={() => toggle("products")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-dark-800 hover:bg-primary-50 hover:text-primary" aria-expanded={expanded === "products"}>
                     <ShoppingBag className="h-4 w-4 text-primary" /><span className="flex-1">Produk</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "products" && "rotate-180")} />
                   </button>
-                  <AnimatePresence initial={false}>{expanded === "products" && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden"><div className="grid grid-cols-2 gap-1.5 pb-2 pl-4 pr-1 pt-1">
+                  {expanded === "products" && <div className="overflow-hidden"><div className="grid grid-cols-2 gap-1.5 pb-2 pl-4 pr-1 pt-1">
                     {navProducts.map((item) => { const Icon = NAV_ICON_MAP[item.icon]; return (
                       <Link key={item.href} href={item.href} onClick={handleClose} className="flex items-center gap-2 rounded-xl border border-dark-100 bg-white px-2.5 py-2 text-xs font-semibold text-dark-600 hover:border-primary/20 hover:bg-primary-50 hover:text-primary">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-dark-50 text-dark-500"><Icon className="h-3.5 w-3.5" /></span>
                         <span className="min-w-0 truncate">{item.name}</span>
                       </Link>
                     ); })}
-                  </div></motion.div>}</AnimatePresence>
+                  </div></div>}
                 </li>
 
                 <li>
                   <button onClick={() => toggle("explore")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-dark-800 hover:bg-primary-50 hover:text-primary" aria-expanded={expanded === "explore"}>
                     <Compass className="h-4 w-4 text-primary" /><span className="flex-1">Eksplor</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "explore" && "rotate-180")} />
                   </button>
-                  <AnimatePresence initial={false}>{expanded === "explore" && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden"><div className="space-y-1 pb-2 pl-4 pr-1 pt-1">
+                  {expanded === "explore" && <div className="overflow-hidden"><div className="space-y-1 pb-2 pl-4 pr-1 pt-1">
                     {navExplore.map((item) => { const Icon = NAV_ICON_MAP[item.icon]; return (
                       <Link key={item.href} href={item.href} onClick={handleClose} className="flex items-center gap-3 rounded-xl px-2.5 py-2 text-xs font-medium text-dark-600 hover:bg-dark-50 hover:text-primary">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-dark-50 text-dark-600"><Icon className="h-4 w-4" /></span>
                         <span className="min-w-0 truncate font-semibold text-dark-800">{item.name}</span>
                       </Link>
                     ); })}
-                  </div></motion.div>}</AnimatePresence>
+                  </div></div>}
                 </li>
 
               </ul>
@@ -139,9 +136,7 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
               )}
               <Link href="/contact" onClick={handleClose} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark">Mulai Pesanan<ArrowRight className="h-4 w-4" /></Link>
             </div>
-          </motion.div>
+          </div>
         </div>
-      )}
-    </AnimatePresence>
-  );
+  ) : null;
 }

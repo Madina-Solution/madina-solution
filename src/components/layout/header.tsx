@@ -57,9 +57,12 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
   }, []);
 
   const handleMenuEnter = (label: string) => {
-    if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
-    const group = label === "Layanan" ? "services" : label === "Produk" ? "products" : label === "Eksplor" ? "explore" : null;
-    if (group) setActiveMenu(group);
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    const key = label === "Layanan" ? "services" : label === "Produk" ? "products" : label === "Eksplor" ? "explore" : null;
+    if (key) setActiveMenu(key);
   };
 
   const handleLogout = async () => {
@@ -119,8 +122,8 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             aria-label="Madina Solution Home"
           >
             {siteLogo ? (
-              <div className="relative flex h-11 max-w-[190px] shrink-0 items-center">
-                <SiteImage src={siteLogo} alt={siteName} width={190} height={52} sizes="190px" className="h-auto max-h-11 w-auto max-w-[190px] object-contain" />
+              <div className="relative flex h-11 max-w-[180px] shrink-0 items-center">
+                <SiteImage src={siteLogo} alt={siteName} width={180} height={52} sizes="180px" className="h-auto max-h-11 w-auto max-w-[180px] object-contain" />
               </div>
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-premium">
@@ -139,16 +142,29 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             aria-label="Main navigation"
           >
             <ul className="flex items-center gap-1">
-              <li><Link href="/" className="rounded-lg px-4 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50">Beranda</Link></li>
-              {([ ["Layanan","services"], ["Produk","products"], ["Eksplor","explore"] ] as const).map(([label, group]) => (
-                <li key={group} className="relative" onMouseEnter={() => handleMenuEnter(label)} onMouseLeave={handleMenuLeave}>
-                  <button type="button" className={cn("flex items-center gap-1 rounded-xl px-4 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50", activeMenu === group && "bg-dark-50 text-dark-900")} aria-haspopup="true" aria-expanded={activeMenu === group} aria-controls={`mega-menu-${group}`} onFocus={() => handleMenuEnter(label)} onClick={() => setActiveMenu(activeMenu === group ? null : group)}>
-                    {label}<ChevronDown className={cn("h-3.5 w-3.5", activeMenu === group && "rotate-180")} />
+              <li><Link href="/" className="rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50">Beranda</Link></li>
+              {[
+                ["services","Layanan"],
+                ["products","Produk"],
+                ["explore","Eksplor"],
+              ].map(([key,label]) => (
+                <li key={key} className="relative">
+                  <button type="button" className="flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50 hover:text-dark" aria-haspopup="true" aria-expanded={activeMenu === key} onClick={() => setActiveMenu(activeMenu === key ? null : key)} onMouseEnter={() => handleMenuEnter(label)} onFocus={() => handleMenuEnter(label)}>
+                    {label}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", activeMenu === key && "rotate-180")} />
                   </button>
                 </li>
               ))}
             </ul>
-            {activeMenu && <div id={`mega-menu-${activeMenu}`} onMouseEnter={() => handleMenuEnter(activeMenu === "services" ? "Layanan" : activeMenu === "products" ? "Produk" : "Eksplor")} onMouseLeave={handleMenuLeave}><MegaMenu activeGroup={activeMenu as "services" | "products" | "explore"} navigation={navigation} /></div>}
+
+            {activeMenu && (
+              <div
+                id="main-mega-menu"
+                onMouseEnter={() => { if (activeMenu === "services") handleMenuEnter("Layanan"); else if (activeMenu === "products") handleMenuEnter("Produk"); else handleMenuEnter("Eksplor"); }}
+                onMouseLeave={handleMenuLeave}
+              >
+                <MegaMenu navigation={navigation} />
+              </div>
+            )}
           </nav>
 
           {/* Right Actions */}

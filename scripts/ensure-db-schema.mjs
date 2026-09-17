@@ -120,15 +120,13 @@ async function main() {
        FROM information_schema.columns
        WHERE table_schema = 'public'
          AND ((table_name = 'services' AND column_name IN ('options','process_steps','fulfillment_type'))
-           OR (table_name = 'products' AND column_name IN ('metadata','options','fulfillment_type'))
-           OR (table_name = 'articles' AND column_name = 'metadata')
+           OR (table_name = 'products' AND column_name IN ('options','fulfillment_type'))
            OR (table_name = 'order_items' AND column_name = 'fulfillment_type'))
        ORDER BY table_name, ordinal_position`
     );
 
     console.table(result.rows);
-    console.log("Database schema synchronization completed successfully. Existing content rows were not modified or deleted.");
-    console.log("Content metadata columns are part of the versioned 0006 migration and are checked above.");
+    console.log("Database schema synchronization completed successfully.");
   } catch (error) {
     try { await client.query("ROLLBACK"); } catch {}
     console.error("Database schema synchronization failed:", error);

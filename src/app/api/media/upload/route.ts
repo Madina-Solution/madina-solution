@@ -10,8 +10,8 @@ import type { MediaPurpose, MediaVisibility } from "@/lib/media/types";
 
 export const dynamic = "force-dynamic";
 
-const VALID_PURPOSES: MediaPurpose[] = ["order_asset", "design_revision", "customer_upload", "production_asset", "portfolio", "avatar", "product_image", "service_image", "category_image", "article_image", "testimonial_avatar", "site_hero", "site_logo"];
-const CONTENT_PURPOSES = new Set<MediaPurpose>(["product_image", "service_image", "category_image", "article_image", "portfolio", "testimonial_avatar", "site_hero", "site_logo"]);
+const VALID_PURPOSES: MediaPurpose[] = ["order_asset", "design_revision", "customer_upload", "production_asset", "portfolio", "avatar", "product_image", "service_image", "category_image", "article_image", "content_image", "testimonial_avatar", "site_hero", "site_logo"];
+const CONTENT_PURPOSES = new Set<MediaPurpose>(["product_image", "service_image", "category_image", "article_image", "content_image", "portfolio", "testimonial_avatar", "site_hero", "site_logo"]);
 
 export async function POST(request: NextRequest) {
   try {

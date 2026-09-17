@@ -8,15 +8,13 @@ const STORAGE_KEY = "madina-cookie-consent-v1";
 type ConsentState = "unknown" | "accepted" | "declined";
 
 export function CookieConsent({ privacyHref = "/privacy" }: { privacyHref?: string }) {
-  const [state, setState] = React.useState<ConsentState>(() => {
-    if (typeof window === "undefined") return "unknown";
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY) as ConsentState | null;
-      return saved === "accepted" || saved === "declined" ? saved : "unknown";
-    } catch { return "unknown"; }
-  });
+  const [state, setState] = React.useState<ConsentState>("unknown");
 
   React.useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY) as ConsentState | null;
+      if (saved === "accepted" || saved === "declined") setState(saved);
+    } catch { /* keep unknown */ }
     const reopen = () => setState("unknown");
     window.addEventListener("madina:open-cookie-preferences", reopen);
     return () => window.removeEventListener("madina:open-cookie-preferences", reopen);

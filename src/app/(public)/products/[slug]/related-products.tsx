@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -29,14 +28,8 @@ export function RelatedProducts({ products }: Props) {
     <section className="mt-16">
       <h2 className="text-2xl font-bold text-dark">Produk Terkait</h2>
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product, index) => (
-          <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-          >
+        {products.map((product) => (
+          <div key={product.id}>
             <Link href={`/products/${product.slug}`}>
               <Card className="group h-full overflow-hidden transition-all hover:shadow-premium-lg">
                 {/* Image */}
@@ -77,7 +70,7 @@ export function RelatedProducts({ products }: Props) {
                 </div>
               </Card>
             </Link>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

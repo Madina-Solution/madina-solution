@@ -17,6 +17,7 @@ export type MediaUploaderPurpose =
   | "service_image"
   | "category_image"
   | "article_image"
+  | "content_image"
   | "testimonial_avatar"
   | "site_hero"
   | "site_logo";

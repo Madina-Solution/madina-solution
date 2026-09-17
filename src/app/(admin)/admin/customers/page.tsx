@@ -71,7 +71,7 @@ export default function AdminCustomersPage() {
               <td className="px-5 py-3.5 text-dark-600">{c.phone || "—"}</td>
               <td className="px-5 py-3.5 text-dark-600">{c.orderCount}</td>
               <td className="px-5 py-3.5 text-right font-medium text-dark">{formatCurrency(c.totalSpend)}</td>
-              <td className="px-5 py-3.5"><button onClick={() => handleToggleActive(c.id, c.isActive)}><Badge variant={c.isActive ? "success" : "error"}>{c.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
+              <td className="px-5 py-3.5"><button type="button" aria-label={`${c.isActive ? "Nonaktifkan" : "Aktifkan"} pelanggan ${c.name}`} onClick={() => handleToggleActive(c.id, c.isActive)}><Badge variant={c.isActive ? "success" : "error"}>{c.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
               <td className="px-5 py-3.5 text-xs text-dark-500">{formatDate(c.createdAt)}</td>
             </tr>
           ))}</tbody></table></div>
