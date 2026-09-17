@@ -1,5 +1,5 @@
-const ALLOWED_TAGS = new Set(["p","br","h1","h2","h3","h4","h5","h6","strong","b","em","i","u","s","del","ul","ol","li","blockquote","pre","code","a","img","table","thead","tbody","tr","th","td","hr","div","span","figure","figcaption"]);
-const STYLE_TAGS = new Set(["p","h1","h2","h3","h4","h5","h6","div","span","th","td","blockquote","figcaption"]);
+const ALLOWED_TAGS = new Set(["p","br","h1","h2","h3","h4","h5","h6","strong","b","em","i","u","s","del","sup","sub","ul","ol","li","blockquote","pre","code","a","img","table","thead","tbody","tr","th","td","hr","div","span","section","aside","figure","figcaption"]);
+const STYLE_TAGS = new Set(["p","h1","h2","h3","h4","h5","h6","div","span","th","td","blockquote","figcaption","section","aside"]);
 function safeStyleDeclaration(property: string, value: string) {
   const p = property.trim().toLowerCase();
   const v = value.trim().toLowerCase().replace(/[<>"']/g, "");
@@ -50,10 +50,13 @@ export function sanitizeRichHtml(input: string | null | undefined): string {
         continue;
       }
       const allowed =
-        (tag === "a" && ["href","target","rel","title"].includes(name)) ||
+        (tag === "a" && ["href","target","rel","title","id","aria-label"].includes(name)) ||
         (tag === "img" && ["src","alt","title","width","height","loading"].includes(name)) ||
         ((tag === "th" || tag === "td") && ["colspan","rowspan"].includes(name)) ||
-        (name === "class" && ["p","h1","h2","h3","h4","h5","h6","div","span","figure","figcaption","table","thead","tbody","tr","ul","ol","li","blockquote","pre","code"].includes(tag));
+        (name === "id" && ["h1","h2","h3","h4","h5","h6","div","section","aside","li","sup","a"].includes(tag)) ||
+        (name === "role" && ["div","section","aside"].includes(tag)) ||
+        (name === "aria-label" && ["div","section","aside","a"].includes(tag)) ||
+        (name === "class" && ["p","h1","h2","h3","h4","h5","h6","div","span","section","aside","figure","figcaption","table","thead","tbody","tr","ul","ol","li","blockquote","pre","code","sup"].includes(tag));
       if (!allowed || /^(javascript:|vbscript:|data:text\/html)/i.test(value)) continue;
       attrs.push(` ${name}="${value.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}"`);
     }

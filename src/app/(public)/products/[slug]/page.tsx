@@ -196,6 +196,10 @@ export default async function ProductDetailPage({ params }: Props) {
     : [];
   const allOptions = [...(product.options || []), ...variantOptions];
   const tieredPrices = [...(metadata.pricing?.wholesaleTiers || [])].sort((a, b) => a.minQuantity - b.minQuantity);
+  const faq = metadata.content?.faq || [];
+  const highlights = metadata.content?.highlights?.filter(Boolean) || [];
+  const trust = metadata.trust || {};
+  const trade = metadata.trade || {};
   const pageUrl = `${siteUrl}/products/${product.slug}`;
 
   return (
@@ -291,6 +295,15 @@ export default async function ProductDetailPage({ params }: Props) {
                 {product.shortDescription && <p className="mt-4 text-sm leading-7 text-dark-600 sm:text-base">{product.shortDescription}</p>}
                 {metadata.marketing?.promoText && <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900"><span className="font-bold">{metadata.marketing.badge || "Penawaran"}</span>{metadata.marketing.badge ? " — " : ""}{metadata.marketing.promoText}</div>}
 
+                {(trust.sampleAvailable || trust.customization || trust.responseTime || trade.paymentTerms || trade.inspection || trade.packaging) && (
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {trust.sampleAvailable && <div className="rounded-2xl border border-dark-100 bg-white p-4"><p className="text-[10px] font-bold uppercase tracking-[.16em] text-dark-400">Sample</p><p className="mt-1 text-sm font-semibold text-dark">Sample order tersedia</p><p className="mt-1 text-xs leading-5 text-dark-500">Uji material dan finishing sebelum produksi volume.</p></div>}
+                    {trust.customization && <div className="rounded-2xl border border-dark-100 bg-white p-4"><p className="text-[10px] font-bold uppercase tracking-[.16em] text-dark-400">Customization</p><p className="mt-1 text-sm font-semibold text-dark">{trust.customization}</p></div>}
+                    {trust.responseTime && <div className="rounded-2xl border border-dark-100 bg-white p-4"><p className="text-[10px] font-bold uppercase tracking-[.16em] text-dark-400">Response</p><p className="mt-1 text-sm font-semibold text-dark">{trust.responseTime}</p></div>}
+                    {trade.paymentTerms && <div className="rounded-2xl border border-dark-100 bg-white p-4"><p className="text-[10px] font-bold uppercase tracking-[.16em] text-dark-400">Payment</p><p className="mt-1 text-sm font-semibold text-dark">{trade.paymentTerms}</p></div>}
+                  </div>
+                )}
+
                 {tieredPrices.length > 0 && (
                   <div className="mt-5 overflow-hidden rounded-2xl border border-dark-100">
                     <div className="flex items-center justify-between bg-dark-50 px-4 py-3"><p className="text-xs font-bold uppercase tracking-wider text-dark-600">Harga grosir</p><span className="text-[11px] text-dark-400">Harga per {unit}</span></div>
@@ -311,6 +324,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
 
                 <Separator className="my-6" />
+                <div id="configure" className="scroll-mt-24" />
                 <ProductConfiguration
                   productId={product.id}
                   productName={product.name}
@@ -349,10 +363,10 @@ export default async function ProductDetailPage({ params }: Props) {
                   <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">Product story</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-dark">Deskripsi produk</h2></div><Badge variant="secondary">{metadata.condition === "new" ? "New" : metadata.condition || "Product"}</Badge></div>
                   <div className="mt-5 rich-product-content prose prose-dark max-w-none" dangerouslySetInnerHTML={{ __html: richDescription || "<p>Deskripsi produk belum tersedia.</p>" }} />
 
-                  {metadata.content?.highlights?.filter(Boolean).length ? (
+                  {highlights.length ? (
                     <div id="customization" className="mt-8 scroll-mt-24 border-t border-dark-100 pt-8">
                       <h3 className="text-lg font-semibold text-dark">Keunggulan & opsi</h3>
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">{metadata.content.highlights.filter(Boolean).map((item) => <div key={item} className="flex gap-3 rounded-xl border border-dark-100 bg-dark-50/60 p-3 text-sm font-medium text-dark-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{item}</div>)}</div>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">{highlights.map((item) => <div key={item} className="flex gap-3 rounded-xl border border-dark-100 bg-dark-50/60 p-3 text-sm font-medium text-dark-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{item}</div>)}</div>
                     </div>
                   ) : null}
 
@@ -386,8 +400,16 @@ export default async function ProductDetailPage({ params }: Props) {
 
               <Card id="shipping" className="scroll-mt-24 border-dark-100 shadow-sm"><CardContent className="p-5"><h3 className="font-semibold text-dark">Produksi & pengiriman</h3><div className="mt-4 space-y-4 text-sm"><div className="flex gap-3"><Truck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Pengiriman</p><p className="mt-1 text-dark-500">Tersedia pengiriman ke seluruh Indonesia.</p></div></div><div className="flex gap-3"><Clock3 className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Lead time</p><p className="mt-1 text-dark-500">{metadata.shipping?.leadTimeDays || product.productionDays || 3} hari pengerjaan + pengiriman.</p></div></div>{metadata.shipping?.freeShipping && <div className="flex gap-3"><Truck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Shipping</p><p className="mt-1 text-dark-500">Free shipping sesuai konfigurasi produk.</p></div></div>}{metadata.shipping?.origin && <div className="flex gap-3"><Package className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Lokasi produksi</p><p className="mt-1 text-dark-500">{metadata.shipping.origin}</p></div></div>}{(metadata.shipping?.lengthCm || metadata.shipping?.widthCm || metadata.shipping?.heightCm) && <div className="flex gap-3"><Boxes className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="font-medium text-dark">Dimensi paket</p><p className="mt-1 text-dark-500">{metadata.shipping.lengthCm || "—"} × {metadata.shipping.widthCm || "—"} × {metadata.shipping.heightCm || "—"} cm</p></div></div>}</div></CardContent></Card>
 
+              {(trust.certifications?.length || trust.protection || trade.inspection || trade.packaging || trade.shippingTerms) ? <Card className="border-dark-100 shadow-sm"><CardContent className="p-5"><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" /><h3 className="font-semibold text-dark">Trust & procurement</h3></div><div className="mt-4 space-y-3 text-sm">{trust.protection && <div className="rounded-xl bg-emerald-50 p-3 text-emerald-900"><p className="font-semibold">Perlindungan pesanan</p><p className="mt-1 text-xs leading-5">{trust.protection}</p></div>}{trust.certifications?.length ? <div><p className="text-xs font-semibold uppercase tracking-wider text-dark-400">Sertifikasi / standar</p><div className="mt-2 flex flex-wrap gap-2">{trust.certifications.map((cert) => <span key={cert} className="rounded-full border border-dark-200 px-3 py-1 text-xs font-medium text-dark-600">{cert}</span>)}</div></div> : null}{trade.inspection && <div><p className="font-medium text-dark">Quality inspection</p><p className="mt-1 text-xs leading-5 text-dark-500">{trade.inspection}</p></div>}{trade.packaging && <div><p className="font-medium text-dark">Packaging</p><p className="mt-1 text-xs leading-5 text-dark-500">{trade.packaging}</p></div>}{trade.shippingTerms && <div><p className="font-medium text-dark">Shipping terms</p><p className="mt-1 text-xs leading-5 text-dark-500">{trade.shippingTerms}</p></div>}</div></CardContent></Card> : null}
+
               <Card className="border-dark-100 shadow-sm"><CardContent className="p-5"><h3 className="font-semibold text-dark">Alur pemesanan</h3><div className="mt-4 space-y-4">{[["01","Pilih spesifikasi"],["02","Tentukan kuantitas"],["03","Upload / kirim desain"],["04","Review & produksi"]].map(([n,title]) => <div key={n} className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-dark text-[10px] font-bold text-white">{n}</span><span className="text-sm font-medium text-dark">{title}</span></div>)}</div></CardContent></Card>
             </aside>
+          </div>
+
+          <div className="sticky bottom-3 z-30 mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-2xl border border-dark-200 bg-white/95 p-2 shadow-[0_18px_55px_rgba(15,23,42,.14)] backdrop-blur lg:hidden">
+            <div className="min-w-0 flex-1 px-2"><p className="truncate text-[10px] font-bold uppercase tracking-[.16em] text-dark-400">Mulai dari</p><p className="truncate text-base font-black text-dark">{formatCurrency(Number(product.basePrice))}<span className="ml-1 text-xs font-medium text-dark-400">/{unit}</span></p></div>
+            <Button variant="outline" size="sm" asChild><a href="#configure">Konfigurasi</a></Button>
+            <Button size="sm" asChild><a href={`https://wa.me/${BRAND.whatsapp}?text=Halo%20Madina%20Solution%2C%20saya%20ingin%20meminta%20penawaran%20${encodeURIComponent(product.name)}`} target="_blank" rel="noopener noreferrer"><MessageCircle className="mr-1.5 h-4 w-4" aria-hidden="true" />Penawaran</a></Button>
           </div>
 
           {siteConfig.adsEnabled && siteConfig.adsClient && siteConfig.adsSlots.product ? <div className="mt-10"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.product} className="mx-auto max-w-4xl" label="Iklan" /></div> : null}

@@ -10,6 +10,7 @@ import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 export const dynamic = "force-dynamic";
 export async function GET() {
   try {
+    await ensureRuntimeSchema();
     const session = await getSession();
     if (!session || !hasPermission(session.role, "content.read")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     return NextResponse.json({ success: true, articles: await db.select().from(articles).orderBy(desc(articles.createdAt)) });
@@ -17,6 +18,7 @@ export async function GET() {
 }
 export async function POST(request: NextRequest) {
   try {
+    await ensureRuntimeSchema();
     const session = await getSession();
     if (!session || !hasPermission(session.role, "content.create")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     const body = await request.json();

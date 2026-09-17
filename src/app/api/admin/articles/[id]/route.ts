@@ -16,6 +16,7 @@ const updateArticleSchema = z.object({
 type Ctx = { params: Promise<{ id: string }> };
 export async function PATCH(request: NextRequest, context: Ctx) {
   try {
+    await ensureRuntimeSchema();
     const session = await getSession();
     if (!session || !hasPermission(session.role, "content.update")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     const { id } = await context.params;
@@ -36,6 +37,7 @@ export async function PATCH(request: NextRequest, context: Ctx) {
 }
 export async function DELETE(request: NextRequest, context: Ctx) {
   try {
+    await ensureRuntimeSchema();
     const session = await getSession();
     if (!session || !hasPermission(session.role, "content.delete")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     const { id } = await context.params;

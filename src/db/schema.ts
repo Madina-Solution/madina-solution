@@ -300,7 +300,8 @@ export const testimonials = pgTable("testimonials", {
 // Articles Table
 export type ArticleAdminMetadata = {
   seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogImage?: string; ogTitle?: string; ogDescription?: string; twitterTitle?: string; twitterDescription?: string };
-  editorial?: { authorName?: string; readingTime?: number; featured?: boolean; allowComments?: boolean };
+  editorial?: { authorName?: string; authorRole?: string; authorBio?: string; authorCredentials?: string; readingTime?: number; featured?: boolean; allowComments?: boolean };
+  distribution?: { ctaTitle?: string; ctaText?: string; ctaLabel?: string; ctaHref?: string; newsletter?: boolean };
 };
 
 export const articles = pgTable("articles", {
@@ -398,6 +399,8 @@ export type ProductAdminMetadata = {
   schema?: { mpn?: string; gtin?: string };
   marketing?: { badge?: string; promoText?: string; campaign?: string };
   variants?: { enabled?: boolean; attributes?: { name: string; values: { label: string; value: string; priceModifier?: number; sku?: string; stock?: number; image?: string }[] }[] };
+  trust?: { sampleAvailable?: boolean; customization?: string; responseTime?: string; certifications?: string[]; protection?: string };
+  trade?: { paymentTerms?: string; packaging?: string; inspection?: string; shippingTerms?: string };
 };
 
 export type ProductOption = {

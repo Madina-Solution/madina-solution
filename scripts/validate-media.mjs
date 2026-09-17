@@ -46,7 +46,7 @@ for (const [file, ...markers] of persistenceChecks) {
   for (const marker of markers) if (!text.includes(marker)) errors.push(`${file}: missing persisted media update contract (${marker})`);
 }
 const gallery = fs.readFileSync(path.join(root, "src/app/(public)/products/[slug]/product-gallery.tsx"), "utf8");
-for (const marker of ["setInterval", "ArrowRight", "ArrowLeft", "<video", "className=\"relative flex h-full w-full items-center justify-center\"", "setZoom"]) if (!gallery.includes(marker)) errors.push(`product-gallery.tsx: missing ${marker}`);
+for (const marker of ["setInterval", "ChevronRight", "ChevronLeft", "<video", "aspect-[16/10]", "setLightbox", "role=\"dialog\""]) if (!gallery.includes(marker)) errors.push(`product-gallery.tsx: missing ${marker}`);
 if (errors.length) {
   console.error("Media validation failed:");
   errors.forEach((e) => console.error(`- ${e}`));
