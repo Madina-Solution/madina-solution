@@ -5,8 +5,9 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { ProductOption } from "@/db/schema";
+import type { ProductOption, ProductAdminMetadata } from "@/db/schema";
 import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
+import { syncProductPricingTiers } from "@/lib/product-pricing";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -53,6 +54,9 @@ export async function PATCH(request: NextRequest, context: Ctx) {
     const updateData = { ...parsed.data, ...(parsed.data.description !== undefined ? { description: sanitizeRichHtml(parsed.data.description || "") } : {}), options: parsed.data.options as ProductOption[] | undefined, updatedAt: new Date() };
     const [updated] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
     if (!updated) return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Produk tidak ditemukan" } }, { status: 404 });
+    if (parsed.data.metadata !== undefined) {
+      await syncProductPricingTiers(id, parsed.data.metadata as ProductAdminMetadata);
+    }
     await db.insert(auditLogs).values({ userId: session.userId, action: "PRODUCT_UPDATED", resource: "products", resourceId: id, metadata: parsed.data });
     return NextResponse.json({ success: true, product: updated });
   } catch { return NextResponse.json({ success: false, error: { code: "SERVER_ERROR", message: "Gagal" } }, { status: 500 }); }

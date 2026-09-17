@@ -297,14 +297,15 @@ export default function AdminProductsPage() {
                   <h3 className="font-semibold text-dark">Harga grosir / tier pricing</h3>
                   <div className="mt-3 space-y-2">
                     {(form.metadata.pricing?.wholesaleTiers||[]).map((tier,i)=>(
-                      <div className="grid grid-cols-[1fr_1fr_auto] gap-2" key={i}>
-                        <Input type="number" min={1} value={tier.minQuantity} onChange={(e)=>{const a=[...(form.metadata.pricing?.wholesaleTiers||[])];a[i]={...a[i],minQuantity:Number(e.target.value)||1};updateMeta("pricing",{wholesaleTiers:a})}} placeholder="Min qty"/>
-                        <Input value={tier.unitPrice} onChange={(e)=>{const a=[...(form.metadata.pricing?.wholesaleTiers||[])];a[i]={...a[i],unitPrice:e.target.value};updateMeta("pricing",{wholesaleTiers:a})}} placeholder="Harga/unit"/>
+                      <div className="grid gap-2 rounded-2xl border border-dark-100 bg-dark-50/50 p-3 sm:grid-cols-[.9fr_.9fr_1fr_auto]" key={i}>
+                        <Input type="number" min={1} value={tier.minQuantity} onChange={(e)=>{const a=[...(form.metadata.pricing?.wholesaleTiers||[])];a[i]={...a[i],minQuantity:Number(e.target.value)||1};updateMeta("pricing",{wholesaleTiers:a})}} placeholder="Min qty" aria-label={`Minimum quantity tier ${i+1}`}/>
+                        <Input type="number" min={1} value={tier.maxQuantity ?? ""} onChange={(e)=>{const a=[...(form.metadata.pricing?.wholesaleTiers||[])];a[i]={...a[i],maxQuantity:e.target.value ? Number(e.target.value) : undefined};updateMeta("pricing",{wholesaleTiers:a})}} placeholder="Max qty" aria-label={`Maximum quantity tier ${i+1}`}/>
+                        <div className="grid grid-cols-2 gap-2"><Input value={tier.unitPrice} onChange={(e)=>{const a=[...(form.metadata.pricing?.wholesaleTiers||[])];a[i]={...a[i],unitPrice:e.target.value};updateMeta("pricing",{wholesaleTiers:a})}} placeholder="Harga/unit" aria-label={`Harga tier ${i+1}`}/><Input value={tier.label || ""} onChange={(e)=>{const a=[...(form.metadata.pricing?.wholesaleTiers||[])];a[i]={...a[i],label:e.target.value};updateMeta("pricing",{wholesaleTiers:a})}} placeholder="Label" aria-label={`Label tier ${i+1}`}/></div>
                         <Button type="button" size="icon" variant="ghost" onClick={()=>updateMeta("pricing",{wholesaleTiers:(form.metadata.pricing?.wholesaleTiers||[]).filter((_,x)=>x!==i)})} aria-label="Hapus tier"><X className="h-4 w-4"/></Button>
                       </div>
                     ))}
                   </div>
-                  <Button type="button" size="sm" variant="outline" className="mt-3" onClick={()=>updateMeta("pricing",{wholesaleTiers:[...(form.metadata.pricing?.wholesaleTiers||[]),{minQuantity:10,unitPrice:""}]})}><Plus className="mr-1 h-4 w-4"/>Tambah tier harga</Button>
+                  <Button type="button" size="sm" variant="outline" className="mt-3" onClick={()=>updateMeta("pricing",{wholesaleTiers:[...(form.metadata.pricing?.wholesaleTiers||[]),{minQuantity:10,maxQuantity:undefined,unitPrice:"",label:""}]})}><Plus className="mr-1 h-4 w-4"/>Tambah tier harga</Button>
                 </CardContent></Card>
               </div>
             )}

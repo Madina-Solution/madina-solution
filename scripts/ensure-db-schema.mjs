@@ -39,7 +39,27 @@ const requiredStatements = [
      "created_at" timestamp NOT NULL DEFAULT now(),
      "updated_at" timestamp NOT NULL DEFAULT now()
    );`,
-];
+  `CREATE TABLE IF NOT EXISTS "product_pricing_tiers" (
+     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+     "product_id" uuid NOT NULL REFERENCES "products"("id") ON DELETE CASCADE,
+     "min_quantity" integer NOT NULL,
+     "max_quantity" integer,
+     "unit_price" numeric(12,2) NOT NULL,
+     "label" varchar(120),
+     "sort_order" integer NOT NULL DEFAULT 0,
+     "is_active" boolean NOT NULL DEFAULT true,
+     "created_at" timestamp NOT NULL DEFAULT now(),
+     "updated_at" timestamp NOT NULL DEFAULT now(),
+     CONSTRAINT "product_pricing_tiers_product_min_quantity_unique" UNIQUE ("product_id", "min_quantity")
+   );`,
+  `CREATE INDEX IF NOT EXISTS "product_pricing_tiers_product_id_idx" ON "product_pricing_tiers" USING btree ("product_id");`,
+  `INSERT INTO "product_pricing_tiers" ("product_id", "min_quantity", "unit_price", "sort_order")
+   SELECT p.id, (tier->>'minQuantity')::integer, (tier->>'unitPrice')::numeric(12,2), (row_number() OVER (PARTITION BY p.id ORDER BY (tier->>'minQuantity')::integer) - 1)::integer
+   FROM "products" p
+   CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(p.metadata #> '{pricing,wholesaleTiers}') = 'array' THEN p.metadata #> '{pricing,wholesaleTiers}' ELSE '[]'::jsonb END) AS tier
+   WHERE COALESCE(tier->>'minQuantity','') ~ '^[0-9]+$'
+     AND COALESCE(tier->>'unitPrice','') ~ '^[0-9]+([.][0-9]+)?$'
+   ON CONFLICT ("product_id", "min_quantity") DO NOTHING;`,];
 
 // One-time seed matching the static QUICK_NAV_* baseline in src/lib/navigation.ts,
 // so the new admin-managed table starts populated instead of empty and the
@@ -94,12 +114,12 @@ async function main() {
     });
     await client.query("BEGIN");
 
-    for (const sql of requiredStatements) {
-      await client.query(sql);
-    }
-
     for (const item of requiredColumns) {
       await client.query(item.sql);
+    }
+
+    for (const sql of requiredStatements) {
+      await client.query(sql);
     }
 
     const { rows: navCountRows } = await client.query(`SELECT count(*)::int AS count FROM "navigation_items"`);
@@ -121,7 +141,8 @@ async function main() {
        WHERE table_schema = 'public'
          AND ((table_name = 'services' AND column_name IN ('options','process_steps','fulfillment_type'))
            OR (table_name = 'products' AND column_name IN ('options','fulfillment_type'))
-           OR (table_name = 'order_items' AND column_name = 'fulfillment_type'))
+           OR (table_name = 'order_items' AND column_name = 'fulfillment_type')
+           OR (table_name = 'product_pricing_tiers' AND column_name IN ('product_id','min_quantity','max_quantity','unit_price','is_active')))
        ORDER BY table_name, ordinal_position`
     );
 

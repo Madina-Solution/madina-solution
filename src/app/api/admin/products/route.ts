@@ -6,6 +6,8 @@ import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 import type { ProductOption } from "@/db/schema";
 import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
+import { syncProductPricingTiers } from "@/lib/product-pricing";
+import type { ProductAdminMetadata } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 const createProductSchema = z.object({
@@ -61,6 +63,7 @@ export async function POST(request: NextRequest) {
       metadata: parsed.data.metadata || {},
     }).returning();
 
+    await syncProductPricingTiers(created.id, parsed.data.metadata as ProductAdminMetadata | undefined);
     await db.insert(auditLogs).values({ userId: session.userId, action: "PRODUCT_CREATED", resource: "products", resourceId: created.id, metadata: { name: created.name, slug: created.slug } });
 
     return NextResponse.json({ success: true, product: created }, { status: 201 });

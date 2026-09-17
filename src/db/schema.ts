@@ -114,6 +114,25 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Product pricing tiers
+// Normalized wholesale/B2B pricing rows. ProductAdminMetadata remains the
+// backwards-compatible authoring source; these rows power reliable public
+// pricing queries and can be indexed independently of the product JSON blob.
+export const productPricingTiers = pgTable("product_pricing_tiers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productId: uuid("product_id").references(() => products.id).notNull(),
+  minQuantity: integer("min_quantity").notNull(),
+  maxQuantity: integer("max_quantity"),
+  unitPrice: decimal("unit_price", { precision: 12, scale: 2 }).notNull(),
+  label: varchar("label", { length: 120 }),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  productMinQuantityUnique: uniqueIndex("product_pricing_tiers_product_min_quantity_unique").on(table.productId, table.minQuantity),
+}));
+
 // Services Table
 export const services = pgTable("services", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -392,7 +411,7 @@ export type ProductAdminMetadata = {
   brand?: string;
   condition?: "new" | "used" | "refurbished";
   stock?: { status?: "in_stock" | "out_of_stock" | "preorder" | "made_to_order"; quantity?: number; lowStock?: number };
-  pricing?: { compareAtPrice?: string; costPrice?: string; wholesaleTiers?: { minQuantity: number; unitPrice: string }[] };
+  pricing?: { compareAtPrice?: string; costPrice?: string; wholesaleTiers?: { minQuantity: number; maxQuantity?: number; unitPrice: string; label?: string }[] };
   shipping?: { weightGrams?: number; lengthCm?: number; widthCm?: number; heightCm?: number; shippingClass?: string; origin?: string; leadTimeDays?: number; freeShipping?: boolean };
   content?: { highlights?: string[]; tags?: string[]; faq?: { question: string; answer: string }[]; videoUrl?: string; warranty?: string; returnPolicy?: string; relatedProductIds?: string[] };
   seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogTitle?: string; ogDescription?: string; ogImage?: string; twitterTitle?: string; twitterDescription?: string };
@@ -546,6 +565,7 @@ export type NewUser = typeof users.$inferInsert;
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
 export type Product = typeof products.$inferSelect;
+export type ProductPricingTier = typeof productPricingTiers.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type Service = typeof services.$inferSelect;
 export type NewService = typeof services.$inferInsert;

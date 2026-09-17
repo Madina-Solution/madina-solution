@@ -12,6 +12,10 @@ const required = [
   ["products", "options"],
   ["products", "fulfillment_type"],
   ["order_items", "fulfillment_type"],
+  ["product_pricing_tiers", "product_id"],
+  ["product_pricing_tiers", "min_quantity"],
+  ["product_pricing_tiers", "unit_price"],
+  ["product_pricing_tiers", "is_active"],
 ];
 
 // Derived from DATABASE_URL instead of `inet_server_host()`: on pooled/proxied
@@ -59,7 +63,7 @@ async function main() {
       process.exit(1);
     }
 
-    console.log("Database schema validation passed: required service/product/order configuration columns exist.");
+    console.log("Database schema validation passed: required service/product/order configuration columns and B2B pricing table exist.");
   } finally {
     await client.end();
   }
