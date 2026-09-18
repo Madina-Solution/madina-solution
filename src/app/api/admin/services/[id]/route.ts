@@ -16,6 +16,10 @@ const updateServiceSchema = z.object({
   estimatedDays: z.number().int().positive().optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  translations: z.object({
+    id: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional(), features: z.array(z.string()).optional(), deliverables: z.array(z.string()).optional() }).optional(),
+    en: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional(), features: z.array(z.string()).optional(), deliverables: z.array(z.string()).optional() }).optional(),
+  }).optional(),
   thumbnail: z.string().url().optional().or(z.literal("")),
   gallery: z.array(z.string().url()).max(12).optional(),
   options: z.array(z.unknown()).max(30).optional(),

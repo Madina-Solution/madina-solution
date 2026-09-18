@@ -12,6 +12,16 @@ export function ensureRuntimeSchema() {
   if (!ensured) {
     ensured = (async () => {
       await db.execute(sql`ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "metadata" jsonb DEFAULT '{}'::jsonb`);
+      await db.execute(sql`ALTER TABLE "categories" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb`);
+      await db.execute(sql`UPDATE "categories" SET "translations" = jsonb_build_object('id', jsonb_build_object('name', "name", 'description', COALESCE("description", ''))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
+      await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb`);
+      await db.execute(sql`ALTER TABLE "services" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb`);
+      await db.execute(sql`ALTER TABLE "portfolio" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb`);
+      await db.execute(sql`ALTER TABLE "faqs" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb`);
+      await db.execute(sql`UPDATE "products" SET "translations" = jsonb_build_object('id', jsonb_build_object('name', "name", 'shortDescription', COALESCE("short_description", ''), 'description', COALESCE("description", ''), 'specifications', COALESCE("specifications", '{}'::jsonb))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
+      await db.execute(sql`UPDATE "services" SET "translations" = jsonb_build_object('id', jsonb_build_object('name', "name", 'shortDescription', COALESCE("short_description", ''), 'description', COALESCE("description", ''), 'features', COALESCE("features", '[]'::jsonb), 'deliverables', COALESCE("deliverables", '[]'::jsonb))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
+      await db.execute(sql`UPDATE "portfolio" SET "translations" = jsonb_build_object('id', jsonb_build_object('title', "title", 'description', COALESCE("description", ''), 'category', COALESCE("category", ''), 'client', COALESCE("client", ''), 'tags', COALESCE("tags", '[]'::jsonb))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
+      await db.execute(sql`UPDATE "faqs" SET "translations" = jsonb_build_object('id', jsonb_build_object('question', "question", 'answer', "answer", 'category', COALESCE("category", ''))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
       await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "metadata" jsonb DEFAULT '{}'::jsonb`);
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS "product_pricing_tiers" (

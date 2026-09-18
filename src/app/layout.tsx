@@ -9,6 +9,7 @@ import { CartProvider } from "@/lib/cart/cart-provider";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import { getPublicSiteConfig } from "@/lib/site-config";
+import { getLocale } from "next-intl/server";
 import { getSiteUrl, parseKeywords, normalizeDescription } from "@/lib/seo";
 
 const inter = Inter({
@@ -19,6 +20,7 @@ const inter = Inter({
 
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
   type SiteMetadataConfig = {
     siteName: string;
     siteTagline: string;
@@ -65,7 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
     formatDetection: { email: false, telephone: false, address: false },
     openGraph: {
       type: "website",
-      locale: "id_ID",
+      locale: locale === "en" ? "en_US" : "id_ID",
       siteName: config.siteName,
       title,
       description,
@@ -92,9 +94,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="id" data-scroll-behavior="smooth" className={inter.variable}>
+    <html lang={locale} data-scroll-behavior="smooth" className={inter.variable}>
       <body className="min-h-screen bg-white font-sans text-dark-900 antialiased">
         <ToastProvider>
           <AuthProvider>

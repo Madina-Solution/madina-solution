@@ -14,6 +14,9 @@ import { formatCurrency } from "@/lib/utils";
 import { BRAND } from "@/lib/constants";
 import { BreadcrumbSchema, CreativeWorkSchema } from "@/components/seo/json-ld";
 import { buildPageMetadata, getSiteUrl } from "@/lib/seo";
+import { getLocale } from "next-intl/server";
+import { resolveLocalizedService } from "@/lib/localized-content";
+import type { AppLocale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -29,12 +32,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ServiceDetailPage({ params }: Props) {
   const { slug } = await params;
+  const [rawLocale] = await Promise.all([getLocale()]);
+  const locale = rawLocale as AppLocale;
   const result = await db.select().from(services).where(and(eq(services.slug, slug), eq(services.isActive, true))).limit(1);
-  const service = result[0];
+  const service = result[0] ? resolveLocalizedService(result[0], locale) : undefined;
 
   if (!service) notFound();
 
-  const relatedServices = await db.select({ id: services.id, name: services.name, slug: services.slug, thumbnail: services.thumbnail, shortDescription: services.shortDescription, startingPrice: services.startingPrice }).from(services).where(and(ne(services.id, service.id), eq(services.isActive, true))).limit(3);
+  const relatedServicesSource = await db.select({ id: services.id, name: services.name, slug: services.slug, thumbnail: services.thumbnail, shortDescription: services.shortDescription, startingPrice: services.startingPrice, translations: services.translations }).from(services).where(and(ne(services.id, service.id), eq(services.isActive, true))).limit(3);
+  const relatedServices = relatedServicesSource.map((item) => resolveLocalizedService(item, locale));
 
   const siteUrl = getSiteUrl();
   const features = (service.features as string[]) || [];

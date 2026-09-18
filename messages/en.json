@@ -1,4 +1,43 @@
 {
+  "Navigation": {
+    "home": "Home",
+    "services": "Services",
+    "products": "Products",
+    "explore": "Explore",
+    "servicesTitle": "Build a stronger brand",
+    "servicesText": "Design and production services for every stage of your business.",
+    "servicesAll": "View all services",
+    "productsTitle": "Shop with confidence",
+    "productsText": "Browse products by category, compare options, then configure and order.",
+    "productsAll": "View full catalog",
+    "productsCustomTitle": "Need something custom?",
+    "productsCustomText": "Send your brief and our team will help with materials, sizes, finishing, and estimates.",
+    "consult": "Talk to our team",
+    "exploreTitle": "Ideas, proof & company",
+    "exploreText": "See our work, read practical insight, and learn more about Madina Solution.",
+    "insight": "Insight",
+    "insightText": "Articles & practical tips",
+    "company": "Company",
+    "companyText": "About, contact & support",
+    "contact": "Contact",
+    "startOrder": "Start a project"
+  },
+  "Blog": {
+    "badge": "Madina Editorial",
+    "title": "Ideas that help your brand move forward.",
+    "description": "Practical guides, industry insight, visual case studies, and strategies for design, printing, and business growth.",
+    "searchPlaceholder": "Search articles, topics, or keywords…",
+    "searchButton": "Search",
+    "all": "All",
+    "featured": "Featured",
+    "emptyTitle": "No matching articles found.",
+    "emptyText": "Try another keyword or category.",
+    "latestLabel": "Latest",
+    "latestTitle": "Latest articles",
+    "articleCount": "{count} articles",
+    "minRead": "{minutes} min read",
+    "read": "Read"
+  },
   "BlogArticle": {
     "toc": "Table of contents",
     "collapse": "Collapse table of contents",
@@ -13,7 +52,30 @@
     "readArticle": "Read article",
     "aboutAuthor": "About the author",
     "back": "Back to Blog",
-    "consult": "Talk to our team"
+    "consult": "Talk to our team",
+    "home": "Home",
+    "blog": "Blog",
+    "published": "Published",
+    "lastUpdated": "Last updated",
+    "minutesRead": "{minutes} min read",
+    "views": "{count} views",
+    "continueJourney": "Continue the journey",
+    "startNow": "Get started",
+    "imagePreview": "Article image preview",
+    "footnote": "Footnote",
+    "sourceReference": "Source / reference",
+    "close": "Close",
+    "share": "Share article",
+    "shareX": "Share to X",
+    "shareFacebook": "Share to Facebook",
+    "shareLinkedIn": "Share to LinkedIn",
+    "shareEmail": "Share by email",
+    "copyLink": "Copy article link",
+    "copied": "Link copied",
+    "shared": "Shared",
+    "relatedArticles": "Related articles",
+    "articleNotFound": "Article not found",
+    "articleNotFoundText": "The article you are looking for is not available."
   },
   "ProductDetail": {
     "home": "Home",
@@ -87,5 +149,14 @@
     "label": "Language",
     "id": "Indonesia",
     "en": "English"
+  },
+  "FAQPage": {
+    "title": "Frequently Asked Questions",
+    "description": "Find answers about services, products, orders, payments, design, and delivery.",
+    "home": "Home"
+  },
+  "ProductsPage": {
+    "title": "Products",
+    "description": "Madina Solution product catalog for design, printing, branding, and business promotion."
   }
 }

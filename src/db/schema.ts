@@ -80,6 +80,7 @@ export const categories = pgTable("categories", {
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   description: text("description"),
+  translations: jsonb("translations").$type<CategoryTranslations>().default({}),
   image: text("image"),
   parentId: uuid("parent_id"),
   order: integer("order").default(0),
@@ -87,6 +88,38 @@ export const categories = pgTable("categories", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export type CategoryTranslation = { name?: string; description?: string };
+export type CategoryTranslations = { id?: CategoryTranslation; en?: CategoryTranslation };
+
+export type ProductTranslation = {
+  name?: string;
+  shortDescription?: string;
+  description?: string;
+  specifications?: Record<string, string>;
+};
+export type ProductTranslations = { id?: ProductTranslation; en?: ProductTranslation };
+
+export type ServiceTranslation = {
+  name?: string;
+  shortDescription?: string;
+  description?: string;
+  features?: string[];
+  deliverables?: string[];
+};
+export type ServiceTranslations = { id?: ServiceTranslation; en?: ServiceTranslation };
+
+export type PortfolioTranslation = {
+  title?: string;
+  description?: string;
+  category?: string;
+  client?: string;
+  tags?: string[];
+};
+export type PortfolioTranslations = { id?: PortfolioTranslation; en?: PortfolioTranslation };
+
+export type FaqTranslation = { question?: string; answer?: string; category?: string };
+export type FaqTranslations = { id?: FaqTranslation; en?: FaqTranslation };
 
 // Products Table
 export const products = pgTable("products", {
@@ -104,6 +137,7 @@ export const products = pgTable("products", {
   specifications: jsonb("specifications").$type<Record<string, string>>().default({}),
   options: jsonb("options").$type<ProductOption[]>().default([]),
   metadata: jsonb("metadata").$type<ProductAdminMetadata>().default({}),
+  translations: jsonb("translations").$type<ProductTranslations>().default({}),
   productionDays: integer("production_days").default(3),
   isFeatured: boolean("is_featured").default(false),
   isActive: boolean("is_active").default(true).notNull(),
@@ -148,6 +182,7 @@ export const services = pgTable("services", {
   deliverables: jsonb("deliverables").$type<string[]>().default([]),
   processSteps: jsonb("process_steps").$type<ProcessStep[]>().default([]),
   options: jsonb("options").$type<ProductOption[]>().default([]),
+  translations: jsonb("translations").$type<ServiceTranslations>().default({}),
   fulfillmentType: varchar("fulfillment_type", { length: 12 }).default("physical").notNull(),
   estimatedDays: integer("estimated_days").default(7),
   isFeatured: boolean("is_featured").default(false),
@@ -294,6 +329,7 @@ export const portfolio = pgTable("portfolio", {
   thumbnail: text("thumbnail"),
   images: jsonb("images").$type<string[]>().default([]),
   tags: jsonb("tags").$type<string[]>().default([]),
+  translations: jsonb("translations").$type<PortfolioTranslations>().default({}),
   isFeatured: boolean("is_featured").default(false),
   isActive: boolean("is_active").default(true).notNull(),
   completedAt: timestamp("completed_at"),
@@ -317,6 +353,20 @@ export const testimonials = pgTable("testimonials", {
 });
 
 // Articles Table
+export type ArticleTranslation = {
+  title?: string;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  tags?: string[];
+  seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; ogTitle?: string; ogDescription?: string; twitterTitle?: string; twitterDescription?: string };
+};
+
+export type ArticleTranslations = { id?: ArticleTranslation; en?: ArticleTranslation };
+
+export type NavigationTranslation = { name?: string; description?: string | null };
+export type NavigationTranslations = { id?: NavigationTranslation; en?: NavigationTranslation };
+
 export type ArticleAdminMetadata = {
   seo?: { title?: string; description?: string; keywords?: string[]; canonicalUrl?: string; noIndex?: boolean; ogImage?: string; ogTitle?: string; ogDescription?: string; twitterTitle?: string; twitterDescription?: string };
   editorial?: { authorName?: string; authorRole?: string; authorBio?: string; authorCredentials?: string; readingTime?: number; featured?: boolean; allowComments?: boolean };
@@ -334,6 +384,7 @@ export const articles = pgTable("articles", {
   category: varchar("category", { length: 100 }),
   tags: jsonb("tags").$type<string[]>().default([]),
   metadata: jsonb("metadata").$type<ArticleAdminMetadata>().default({}),
+  translations: jsonb("translations").$type<ArticleTranslations>().default({}),
   isPublished: boolean("is_published").default(false),
   publishedAt: timestamp("published_at"),
   viewCount: integer("view_count").default(0),
@@ -347,6 +398,7 @@ export const faqs = pgTable("faqs", {
   question: text("question").notNull(),
   answer: text("answer").notNull(),
   category: varchar("category", { length: 100 }),
+  translations: jsonb("translations").$type<FaqTranslations>().default({}),
   order: integer("order").default(0),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -545,6 +597,7 @@ export const navigationItems = pgTable("navigation_items", {
   href: varchar("href", { length: 255 }).notNull(),
   icon: varchar("icon", { length: 40 }).notNull().default("sparkles"),
   description: varchar("description", { length: 160 }),
+  translations: jsonb("translations").$type<NavigationTranslations>().default({}),
   sortOrder: integer("sort_order").default(0).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

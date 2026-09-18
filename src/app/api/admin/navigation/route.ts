@@ -15,6 +15,7 @@ const navigationItemSchema = z.object({
   href: z.string().trim().min(1).max(255),
   icon: z.enum(QUICK_NAV_ICON_KEYS as [string, ...string[]]),
   description: z.string().trim().max(160).optional().nullable(),
+  translations: z.object({ id: z.object({ name: z.string().max(120).optional(), description: z.string().max(160).optional().nullable() }).optional(), en: z.object({ name: z.string().max(120).optional(), description: z.string().max(160).optional().nullable() }).optional() }).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
 });
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
         href: parsed.data.href,
         icon: parsed.data.icon,
         description: parsed.data.description || null,
+        translations: parsed.data.translations || {},
         sortOrder: parsed.data.sortOrder ?? 0,
         isActive: parsed.data.isActive ?? true,
       })

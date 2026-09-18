@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getPublicNavigation } from "@/lib/get-navigation";
+import { routing, type AppLocale } from "@/i18n/routing";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +13,9 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    const navigation = await getPublicNavigation();
+    const localeValue = (await cookies()).get(routing.localeCookie)?.value as AppLocale | undefined;
+    const locale = localeValue && routing.locales.includes(localeValue) ? localeValue : routing.defaultLocale;
+    const navigation = await getPublicNavigation(locale);
     return NextResponse.json({ success: true, ...navigation });
   } catch (error) {
     console.error("Navigation data error:", error);

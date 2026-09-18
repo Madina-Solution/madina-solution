@@ -13,6 +13,9 @@ import { MediaCarousel } from "@/components/ui/media-carousel";
 import { MediaPlaceholder } from "@/components/ui/media-placeholder";
 import { buildPageMetadata } from "@/lib/seo";
 import { BreadcrumbSchema, CreativeWorkSchema } from "@/components/seo/json-ld";
+import { getLocale } from "next-intl/server";
+import { resolveLocalizedPortfolio } from "@/lib/localized-content";
+import type { AppLocale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -21,9 +24,11 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const result = await db.select({ title: portfolio.title, description: portfolio.description, thumbnail: portfolio.thumbnail }).from(portfolio).where(eq(portfolio.slug, slug)).limit(1);
-  if (!result[0]) return { title: "Portfolio Tidak Ditemukan" };
-  return buildPageMetadata({ title: result[0].title, description: result[0].description || `${result[0].title} — Portfolio Madina Solution`, path: `/portfolio/${encodeURIComponent(slug)}`, image: result[0].thumbnail || undefined });
+  const locale = (await getLocale()) as AppLocale;
+  const result = await db.select({ title: portfolio.title, description: portfolio.description, category: portfolio.category, client: portfolio.client, tags: portfolio.tags, thumbnail: portfolio.thumbnail, translations: portfolio.translations }).from(portfolio).where(eq(portfolio.slug, slug)).limit(1);
+  if (!result[0]) return { title: locale === "en" ? "Portfolio Not Found" : "Portfolio Tidak Ditemukan" };
+  const localized = resolveLocalizedPortfolio(result[0], locale);
+  return buildPageMetadata({ title: localized.title, description: localized.description || `${localized.title} — Madina Solution Portfolio`, path: `/portfolio/${encodeURIComponent(slug)}`, image: result[0].thumbnail || undefined });
 }
 
 export default async function PortfolioDetailPage({ params }: Props) {
@@ -31,12 +36,15 @@ export default async function PortfolioDetailPage({ params }: Props) {
   const [result] = await Promise.all([
     db.select().from(portfolio).where(and(eq(portfolio.slug, slug), eq(portfolio.isActive, true))).limit(1),
   ]);
-  const item = result[0];
+  const rawItem = result[0];
+  const locale = (await getLocale()) as AppLocale;
+  const item = rawItem ? resolveLocalizedPortfolio(rawItem, locale) : undefined;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://madinasolution.vercel.app";
   const pageUrl = `${siteUrl}/portfolio/${encodeURIComponent(slug)}`;
   if (!item) notFound();
 
-  const related = await db.select({ id: portfolio.id, title: portfolio.title, slug: portfolio.slug, category: portfolio.category, client: portfolio.client, thumbnail: portfolio.thumbnail }).from(portfolio).where(and(ne(portfolio.id, item.id), eq(portfolio.isActive, true))).limit(4);
+  const relatedSource = await db.select({ id: portfolio.id, title: portfolio.title, slug: portfolio.slug, category: portfolio.category, client: portfolio.client, thumbnail: portfolio.thumbnail, description: portfolio.description, tags: portfolio.tags, translations: portfolio.translations }).from(portfolio).where(and(ne(portfolio.id, item.id), eq(portfolio.isActive, true))).limit(4);
+  const related = relatedSource.map((entry) => resolveLocalizedPortfolio(entry, locale));
   const tags = (item.tags as string[]) || [];
   const gallery = Array.from(new Set([item.thumbnail, ...((item.images as string[]) || [])].filter(Boolean) as string[]));
 

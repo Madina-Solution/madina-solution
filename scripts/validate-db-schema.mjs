@@ -16,6 +16,13 @@ const required = [
   ["product_pricing_tiers", "min_quantity"],
   ["product_pricing_tiers", "unit_price"],
   ["product_pricing_tiers", "is_active"],
+  ["categories", "translations"],
+  ["products", "translations"],
+  ["services", "translations"],
+  ["portfolio", "translations"],
+  ["articles", "translations"],
+  ["faqs", "translations"],
+  ["navigation_items", "translations"],
 ];
 
 // Derived from DATABASE_URL instead of `inet_server_host()`: on pooled/proxied

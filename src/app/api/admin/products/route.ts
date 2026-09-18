@@ -28,6 +28,10 @@ const createProductSchema = z.object({
   options: z.array(z.unknown()).max(30).optional(),
   fulfillmentType: z.enum(["physical", "digital", "hybrid"]).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  translations: z.object({
+    id: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional() }).optional(),
+    en: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional() }).optional(),
+  }).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -61,6 +65,10 @@ export async function POST(request: NextRequest) {
       options: (parsed.data.options || []) as ProductOption[],
       fulfillmentType: parsed.data.fulfillmentType || "physical",
       metadata: parsed.data.metadata || {},
+      translations: {
+        id: { ...(parsed.data.translations?.id || {}), description: sanitizeRichHtml(parsed.data.translations?.id?.description || "") },
+        en: { ...(parsed.data.translations?.en || {}), description: sanitizeRichHtml(parsed.data.translations?.en?.description || "") },
+      },
     }).returning();
 
     await syncProductPricingTiers(created.id, parsed.data.metadata as ProductAdminMetadata | undefined);

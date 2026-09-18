@@ -28,11 +28,12 @@ type Category = { id: string; name: string; slug: string };
 type WholesaleTier = { minQuantity: number; unitPrice: string };
 type VariantAttribute = { name: string; values: { label: string; value: string; priceModifier?: number; sku?: string; stock?: number; image?: string }[] };
 
+type ProductTranslationForm = { name: string; shortDescription: string; description: string };
 type ProductForm = {
   name: string; slug: string; categoryId: string; shortDescription: string; description: string;
   basePrice: string; unit: string; minOrder: number; productionDays: number; isFeatured: boolean; isActive: boolean;
   thumbnail: string; gallery: string[]; options: ProductOption[]; fulfillmentType: "physical" | "digital" | "hybrid";
-  specifications: Record<string, string>; metadata: ProductAdminMetadata;
+  specifications: Record<string, string>; metadata: ProductAdminMetadata; translations: { id: ProductTranslationForm; en: ProductTranslationForm };
 };
 
 const DEFAULT_META: ProductAdminMetadata = {
@@ -51,6 +52,7 @@ const EMPTY_FORM: ProductForm = {
   name: "", slug: "", categoryId: "", shortDescription: "", description: "", basePrice: "", unit: "pcs",
   minOrder: 1, productionDays: 3, isFeatured: false, isActive: true, thumbnail: "", gallery: [], options: [],
   fulfillmentType: "physical", specifications: {}, metadata: DEFAULT_META,
+  translations: { id: { name: "", shortDescription: "", description: "" }, en: { name: "", shortDescription: "", description: "" } },
 };
 
 const deepClone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
@@ -68,6 +70,7 @@ export default function AdminProductsPage() {
   const [isSaving, setIsSaving] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"general"|"content"|"pricing"|"inventory"|"shipping"|"seo"|"variants">("general");
   const [form, setForm] = React.useState<ProductForm>(deepClone(EMPTY_FORM));
+  const [languageTab, setLanguageTab] = React.useState<"id" | "en">("id");
 
   const reloadData = React.useCallback(async () => {
     try {
@@ -131,6 +134,7 @@ export default function AdminProductsPage() {
           categoryId: form.categoryId || undefined,
           metadata: form.metadata,
           specifications: form.specifications,
+          translations: form.translations,
         }),
       });
       const data = await res.json();
@@ -176,6 +180,7 @@ export default function AdminProductsPage() {
         productionDays: p.productionDays || 3, isFeatured: !!p.isFeatured, isActive: !!p.isActive,
         thumbnail: p.thumbnail || "", gallery: Array.isArray(p.gallery) ? p.gallery : [], options: Array.isArray(p.options) ? p.options : [],
         fulfillmentType: p.fulfillmentType || "physical", specifications: p.specifications || {},
+        translations: { id: { ...deepClone(EMPTY_FORM.translations.id), ...(p.translations?.id || {}) }, en: { ...deepClone(EMPTY_FORM.translations.en), ...(p.translations?.en || {}) } },
         metadata: { ...deepClone(DEFAULT_META), ...(p.metadata || {}),
           pricing: { ...DEFAULT_META.pricing, ...(p.metadata?.pricing || {}) },
           stock: { ...DEFAULT_META.stock, ...(p.metadata?.stock || {}) },
@@ -231,7 +236,19 @@ export default function AdminProductsPage() {
                     <Field label="Satuan"><Input value={form.unit} onChange={(e)=>setForm(p=>({...p,unit:e.target.value}))} placeholder="pcs"/></Field>
                     <Field label="Minimum order"><Input type="number" min={1} value={form.minOrder} onChange={(e)=>setForm(p=>({...p,minOrder:Math.max(1,Number(e.target.value)||1)}))}/></Field>
                   </div>
-                  <Field label="Deskripsi singkat" help="Gunakan untuk card, listing, meta description fallback, dan preview hasil pencarian."><Input value={form.shortDescription} onChange={(e)=>setForm(p=>({...p,shortDescription:e.target.value}))} maxLength={500}/></Field>
+                  <div className="rounded-2xl border border-dark-100 bg-dark-50/40 p-4 sm:col-span-2">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <div><p className="text-xs font-bold uppercase tracking-[.18em] text-primary">Content languages</p><p className="mt-1 text-xs text-dark-500">Pisahkan konten Indonesia dan English di database. Field utama tetap kompatibel dengan data lama.</p></div>
+                      <div className="flex rounded-xl border border-dark-200 bg-white p-1" role="tablist" aria-label="Bahasa konten produk">
+                        <button type="button" role="tab" aria-selected={languageTab === "id"} onClick={()=>setLanguageTab("id")} className={`rounded-lg px-3 py-1.5 text-xs font-bold ${languageTab === "id" ? "bg-dark-900 text-white" : "text-dark-500"}`}>Bahasa Indonesia</button>
+                        <button type="button" role="tab" aria-selected={languageTab === "en"} onClick={()=>setLanguageTab("en")} className={`rounded-lg px-3 py-1.5 text-xs font-bold ${languageTab === "en" ? "bg-dark-900 text-white" : "text-dark-500"}`}>English</button>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Field label={languageTab === "en" ? "English name" : "Nama Indonesia"}><Input value={form.translations[languageTab].name} onChange={(e)=>setForm(p=>({...p,translations:{...p.translations,[languageTab]:{...p.translations[languageTab],name:e.target.value}}}))} placeholder={languageTab === "en" ? "Premium Vinyl Banner" : "Banner Vinyl Premium"}/></Field>
+                      <Field label={languageTab === "en" ? "English short description" : "Deskripsi singkat Indonesia"}><Input value={form.translations[languageTab].shortDescription} onChange={(e)=>setForm(p=>({...p,translations:{...p.translations,[languageTab]:{...p.translations[languageTab],shortDescription:e.target.value}}}))} maxLength={500}/></Field>
+                    </div>
+                  </div>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <label className="flex items-center gap-2 rounded-xl border border-dark-200 p-3 text-sm"><input type="checkbox" checked={form.isActive} onChange={(e)=>setForm(p=>({...p,isActive:e.target.checked}))}/><span>Aktif</span></label>
                     <label className="flex items-center gap-2 rounded-xl border border-dark-200 p-3 text-sm"><input type="checkbox" checked={form.isFeatured} onChange={(e)=>setForm(p=>({...p,isFeatured:e.target.checked}))}/><span>Produk unggulan</span></label>
@@ -249,6 +266,10 @@ export default function AdminProductsPage() {
             {activeTab === "content" && (
               <div className="space-y-6">
                 <RichTextEditor label="Deskripsi lengkap / product story" helpText="HTML bersih untuk landing-style product detail. Mendukung heading, list, link, image, tabel, quote, code, fullscreen, dan HTML source." value={form.description} onChange={(description)=>setForm(p=>({...p,description}))} minHeight={420}/>
+                <div className="rounded-2xl border border-dark-100 bg-dark-50/40 p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-bold text-dark">English rich content</p><p className="mt-1 text-xs text-dark-500">Disimpan pada <code>products.translations.en.description</code>.</p></div><Badge variant="secondary">EN</Badge></div>
+                  <RichTextEditor label="English product story" value={form.translations.en.description} onChange={(description)=>setForm(p=>({...p,translations:{...p.translations,en:{...p.translations.en,description}}}))} minHeight={320} placeholder="Write the English product story…"/>
+                </div>
                 <div className="grid gap-5 lg:grid-cols-2">
                   <Card><CardContent className="p-5">
                     <h3 className="font-semibold text-dark">Highlight produk</h3>

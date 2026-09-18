@@ -23,6 +23,7 @@ import { MegaMenu } from "./mega-menu";
 import { MobileNav } from "./mobile-nav";
 import { QUICK_NAV_SERVICES, QUICK_NAV_PRODUCTS, QUICK_NAV_EXPLORE, type QuickNavItem } from "@/lib/navigation";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
+import { useTranslations } from "next-intl";
 
 type HeaderProps = {
   siteName?: string; siteLogo?: string; topBarEnabled?: boolean; topBarText?: string;
@@ -35,6 +36,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [activeMenu, setActiveMenu] = React.useState<string | null>(null);
   const [accountOpen, setAccountOpen] = React.useState(false);
+  const t = useTranslations("Navigation");
   const { openSearch } = useSearch();
   const { state: cartState, openDrawer: openCartDrawer } = useCart();
   const { user, logout } = useAuth();
@@ -57,13 +59,9 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
     };
   }, []);
 
-  const handleMenuEnter = (label: string) => {
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-    const key = label === "Layanan" ? "services" : label === "Produk" ? "products" : label === "Eksplor" ? "explore" : null;
-    if (key) setActiveMenu(key);
+  const handleMenuEnter = (key: "services" | "products" | "explore") => {
+    if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
+    setActiveMenu(key);
   };
 
   const handleLogout = async () => {
@@ -143,14 +141,14 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             aria-label="Main navigation"
           >
             <ul className="flex items-center gap-1">
-              <li><Link href="/" className="rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50">Beranda</Link></li>
-              {[
-                ["services","Layanan"],
-                ["products","Produk"],
-                ["explore","Eksplor"],
-              ].map(([key,label]) => (
+              <li><Link href="/" className="rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50">{t("home")}</Link></li>
+              {([
+                { key: "services", label: t("services") },
+                { key: "products", label: t("products") },
+                { key: "explore", label: t("explore") },
+              ] as const).map(({ key, label }) => (
                 <li key={key} className="relative">
-                  <button type="button" className="flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50 hover:text-dark" aria-haspopup="true" aria-expanded={activeMenu === key} onClick={() => setActiveMenu(activeMenu === key ? null : key)} onMouseEnter={() => handleMenuEnter(label)} onFocus={() => handleMenuEnter(label)}>
+                  <button type="button" className="flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-semibold text-dark-700 hover:bg-dark-50 hover:text-dark" aria-haspopup="true" aria-expanded={activeMenu === key} onClick={() => setActiveMenu(activeMenu === key ? null : key)} onMouseEnter={() => handleMenuEnter(key)} onFocus={() => handleMenuEnter(key)}>
                     {label}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", activeMenu === key && "rotate-180")} />
                   </button>
                 </li>
@@ -160,10 +158,10 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             {activeMenu && (
               <div
                 id="main-mega-menu"
-                onMouseEnter={() => { if (activeMenu === "services") handleMenuEnter("Layanan"); else if (activeMenu === "products") handleMenuEnter("Produk"); else handleMenuEnter("Eksplor"); }}
+                onMouseEnter={() => { if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; } }}
                 onMouseLeave={handleMenuLeave}
               >
-                <MegaMenu navigation={navigation} />
+                <MegaMenu navigation={navigation} activeMenu={activeMenu as "services" | "products" | "explore"} />
               </div>
             )}
           </nav>

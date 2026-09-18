@@ -23,6 +23,10 @@ const serviceSchema = z.object({
   fulfillmentType: z.enum(["physical", "digital", "hybrid"]).optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  translations: z.object({
+    id: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional(), features: z.array(z.string()).optional(), deliverables: z.array(z.string()).optional() }).optional(),
+    en: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional(), features: z.array(z.string()).optional(), deliverables: z.array(z.string()).optional() }).optional(),
+  }).optional(),
 });
 
 export async function GET() {
@@ -50,6 +54,7 @@ export async function POST(request: NextRequest) {
       options: (parsed.data.options || []) as ProductOption[],
       fulfillmentType: parsed.data.fulfillmentType || "physical",
       isFeatured: parsed.data.isFeatured ?? false, isActive: parsed.data.isActive ?? true,
+      translations: parsed.data.translations || {},
     }).returning();
     await db.insert(auditLogs).values({ userId: session.userId, action: "SERVICE_CREATED", resource: "services", resourceId: created.id, metadata: { name: created.name } });
     return NextResponse.json({ success: true, service: created }, { status: 201 });

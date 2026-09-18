@@ -9,6 +9,8 @@ import {
   type QuickNavItem,
   type QuickNavIcon,
 } from "@/lib/navigation";
+import { resolveLocalizedNavigation, resolveLocalizedQuickNavItem } from "@/lib/localized-content";
+import type { AppLocale } from "@/i18n/routing";
 
 export type PublicNavigation = {
   services: QuickNavItem[];
@@ -16,11 +18,13 @@ export type PublicNavigation = {
   explore: QuickNavItem[];
 };
 
-const STATIC_FALLBACK: PublicNavigation = {
-  services: QUICK_NAV_SERVICES,
-  products: QUICK_NAV_PRODUCTS,
-  explore: QUICK_NAV_EXPLORE,
-};
+function staticFallback(locale: AppLocale): PublicNavigation {
+  return {
+    services: QUICK_NAV_SERVICES.map((item) => resolveLocalizedQuickNavItem(item, locale)),
+    products: QUICK_NAV_PRODUCTS.map((item) => resolveLocalizedQuickNavItem(item, locale)),
+    explore: QUICK_NAV_EXPLORE.map((item) => resolveLocalizedQuickNavItem(item, locale)),
+  };
+}
 
 /**
  * Loads the admin-managed Mega Menu / Mobile Nav items from `navigation_items`.
@@ -31,7 +35,7 @@ const STATIC_FALLBACK: PublicNavigation = {
  *    yet and the table/enum don't exist.
  * This keeps the public site rendering correctly even mid-deploy.
  */
-export const getPublicNavigation = cache(async function getPublicNavigation(): Promise<PublicNavigation> {
+export const getPublicNavigation = cache(async function getPublicNavigation(locale: AppLocale = "id"): Promise<PublicNavigation> {
   try {
     const rows = await db
       .select()
@@ -39,14 +43,12 @@ export const getPublicNavigation = cache(async function getPublicNavigation(): P
       .where(eq(navigationItems.isActive, true))
       .orderBy(asc(navigationItems.group), asc(navigationItems.sortOrder));
 
-    if (rows.length === 0) return STATIC_FALLBACK;
+    if (rows.length === 0) return staticFallback(locale);
 
-    const toItem = (row: (typeof rows)[number]): QuickNavItem => ({
-      name: row.name,
-      href: row.href,
-      icon: row.icon as QuickNavIcon,
-      description: row.description ?? undefined,
-    });
+    const toItem = (row: (typeof rows)[number]): QuickNavItem => {
+      const localized = resolveLocalizedNavigation(row, locale);
+      return { name: localized.name, href: localized.href, icon: localized.icon as QuickNavIcon, description: localized.description };
+    };
 
     return {
       services: rows.filter((r) => r.group === "services").map(toItem),
@@ -54,22 +56,22 @@ export const getPublicNavigation = cache(async function getPublicNavigation(): P
       explore: rows.filter((r) => r.group === "explore").map(toItem),
     };
   } catch {
-    return STATIC_FALLBACK;
+    return staticFallback(locale);
   }
 });
 
 // Re-exported for the /api/navigation route and any other consumer that
 // needs a single active group instead of the full grouped payload.
-export async function getPublicNavigationGroup(group: "services" | "products" | "explore"): Promise<QuickNavItem[]> {
+export async function getPublicNavigationGroup(group: "services" | "products" | "explore", locale: AppLocale = "id"): Promise<QuickNavItem[]> {
   try {
     const rows = await db
       .select()
       .from(navigationItems)
       .where(and(eq(navigationItems.isActive, true), eq(navigationItems.group, group)))
       .orderBy(asc(navigationItems.sortOrder));
-    if (rows.length === 0) return STATIC_FALLBACK[group];
-    return rows.map((row) => ({ name: row.name, href: row.href, icon: row.icon as QuickNavIcon, description: row.description ?? undefined }));
+    if (rows.length === 0) return staticFallback(locale)[group];
+    return rows.map((row) => { const localized = resolveLocalizedNavigation(row, locale); return { name: localized.name, href: localized.href, icon: localized.icon as QuickNavIcon, description: localized.description }; });
   } catch {
-    return STATIC_FALLBACK[group];
+    return staticFallback(locale)[group];
   }
 }

@@ -12,6 +12,9 @@ import { formatCurrency } from "@/lib/utils";
 import { SiteImage } from "@/components/ui/site-image";
 import { MediaPlaceholder } from "@/components/ui/media-placeholder";
 import { buildPageMetadata } from "@/lib/seo";
+import { getLocale } from "next-intl/server";
+import { resolveLocalizedProduct, resolveLocalizedCategory } from "@/lib/localized-content";
+import type { AppLocale } from "@/i18n/routing";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -43,6 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
+  const locale = (await getLocale()) as AppLocale;
 
   // Fetch category
   const categoryResult = await db
@@ -51,7 +55,7 @@ export default async function CategoryPage({ params }: Props) {
     .where(and(eq(categories.slug, slug), eq(categories.isActive, true)))
     .limit(1);
 
-  const category = categoryResult[0];
+  const category = categoryResult[0] ? resolveLocalizedCategory(categoryResult[0], locale) : undefined;
 
   if (!category) {
     notFound();
@@ -70,12 +74,14 @@ export default async function CategoryPage({ params }: Props) {
       rating: products.rating,
       reviewCount: products.reviewCount,
       isFeatured: products.isFeatured,
+      translations: products.translations,
     })
     .from(products)
     .where(
       and(eq(products.categoryId, category.id), eq(products.isActive, true))
     )
     .orderBy(desc(products.isFeatured), desc(products.createdAt));
+  const localizedProducts = productList.map((item) => resolveLocalizedProduct(item, locale));
 
   // Fetch all categories for sidebar
   const allCategories = await db
@@ -83,9 +89,12 @@ export default async function CategoryPage({ params }: Props) {
       id: categories.id,
       name: categories.name,
       slug: categories.slug,
+      description: categories.description,
+      translations: categories.translations,
     })
     .from(categories)
     .where(eq(categories.isActive, true));
+  const localizedCategories = allCategories.map((item) => resolveLocalizedCategory(item, locale));
 
   return (
     <div className="py-12 lg:py-20">
@@ -127,7 +136,7 @@ export default async function CategoryPage({ params }: Props) {
                     Semua Produk
                   </Link>
                 </li>
-                {allCategories.map((cat) => (
+                {localizedCategories.map((cat) => (
                   <li key={cat.id}>
                     <Link
                       href={`/products/category/${cat.slug}`}
@@ -149,7 +158,7 @@ export default async function CategoryPage({ params }: Props) {
           <div className="lg:col-span-3">
             {productList.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {productList.map((product) => (
+                {localizedProducts.map((product) => (
                   <Link key={product.id} href={`/products/${product.slug}`}>
                     <Card className="group h-full overflow-hidden transition-all hover:shadow-premium-lg">
                       {/* Image */}

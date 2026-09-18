@@ -21,6 +21,7 @@ import { BRAND } from "@/lib/constants";
 import { useSearch } from "@/components/search/search-provider";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
+import { useTranslations } from "next-intl";
 
 type Props = {
   isOpen: boolean; onClose: () => void; siteName?: string; siteLogo?: string; siteTagline?: string;
@@ -33,6 +34,7 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
   const { openSearch } = useSearch();
   const { user, logout } = useAuth();
   const router = useRouter();
+  const t = useTranslations("Navigation");
   const [expanded, setExpanded] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -46,7 +48,7 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
   const handleSearch = () => { handleClose(); openSearch(); };
 
   const primaryLinks = [
-    { href: "/", label: "Beranda", icon: Home },
+    { href: "/", label: t("home"), icon: Home },
   ];
   // Kontak intentionally lives only inside the Eksplor group below (and the
   // "Mulai Pesanan" CTA at the bottom) — it used to also be listed here as a
@@ -79,7 +81,7 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
 
                 <li>
                   <button onClick={() => toggle("services")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-dark-800 hover:bg-primary-50 hover:text-primary" aria-expanded={expanded === "services"}>
-                    <BriefcaseBusiness className="h-4 w-4 text-primary" /><span className="flex-1">Layanan</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "services" && "rotate-180")} />
+                    <BriefcaseBusiness className="h-4 w-4 text-primary" /><span className="flex-1">{t("services")}</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "services" && "rotate-180")} />
                   </button>
                   {expanded === "services" && <div className="overflow-hidden"><div className="space-y-1 pb-2 pl-4 pr-1 pt-1">
                     {navServices.map((item) => { const Icon = NAV_ICON_MAP[item.icon]; return (
@@ -93,7 +95,7 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
 
                 <li>
                   <button onClick={() => toggle("products")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-dark-800 hover:bg-primary-50 hover:text-primary" aria-expanded={expanded === "products"}>
-                    <ShoppingBag className="h-4 w-4 text-primary" /><span className="flex-1">Produk</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "products" && "rotate-180")} />
+                    <ShoppingBag className="h-4 w-4 text-primary" /><span className="flex-1">{t("products")}</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "products" && "rotate-180")} />
                   </button>
                   {expanded === "products" && <div className="overflow-hidden"><div className="grid grid-cols-2 gap-1.5 pb-2 pl-4 pr-1 pt-1">
                     {navProducts.map((item) => { const Icon = NAV_ICON_MAP[item.icon]; return (
@@ -107,7 +109,7 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
 
                 <li>
                   <button onClick={() => toggle("explore")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-dark-800 hover:bg-primary-50 hover:text-primary" aria-expanded={expanded === "explore"}>
-                    <Compass className="h-4 w-4 text-primary" /><span className="flex-1">Eksplor</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "explore" && "rotate-180")} />
+                    <Compass className="h-4 w-4 text-primary" /><span className="flex-1">{t("explore")}</span><ChevronDown className={cn("h-4 w-4 transition-transform", expanded === "explore" && "rotate-180")} />
                   </button>
                   {expanded === "explore" && <div className="overflow-hidden"><div className="space-y-1 pb-2 pl-4 pr-1 pt-1">
                     {navExplore.map((item) => { const Icon = NAV_ICON_MAP[item.icon]; return (

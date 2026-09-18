@@ -38,8 +38,10 @@ import { getPublicSiteConfig } from "@/lib/site-config";
 import { buildPageMetadata } from "@/lib/seo";
 import { ReviewForm } from "./review-form";
 import type { ProductAdminMetadata, ProductOption } from "@/db/schema";
+import { resolveLocalizedProduct } from "@/lib/localized-content";
 import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 import { getLocale, getTranslations } from "next-intl/server";
+import type { AppLocale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -89,7 +91,8 @@ function StarRating({ value, size = "sm" }: { value: number; size?: "sm" | "md" 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://madinasolution.web.app";
-  const [locale, t] = await Promise.all([getLocale(), getTranslations("ProductDetail")]);
+  const [rawLocale, t] = await Promise.all([getLocale(), getTranslations("ProductDetail")]);
+  const locale = rawLocale as AppLocale;
 
   const [productResult, siteConfig] = await Promise.all([
     db
@@ -107,6 +110,7 @@ export default async function ProductDetailPage({ params }: Props) {
         specifications: products.specifications,
         options: products.options,
         metadata: products.metadata,
+        translations: products.translations,
         productionDays: products.productionDays,
         isFeatured: products.isFeatured,
         categoryId: products.categoryId,
@@ -120,8 +124,9 @@ export default async function ProductDetailPage({ params }: Props) {
     getPublicSiteConfig(),
   ]);
 
-  const product = productResult[0];
-  if (!product) notFound();
+  const rawProduct = productResult[0];
+  if (!rawProduct) notFound();
+  const product = resolveLocalizedProduct(rawProduct, locale);
 
   const [productReviews, ratingAgg, relatedProducts, normalizedTiers] = await Promise.all([
     db

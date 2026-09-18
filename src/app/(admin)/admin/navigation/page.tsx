@@ -14,14 +14,8 @@ import { QUICK_NAV_ICON_KEYS, type QuickNavIcon } from "@/lib/navigation";
 
 type NavGroup = "services" | "products" | "explore";
 type NavItem = {
-  id: string;
-  group: NavGroup;
-  name: string;
-  href: string;
-  icon: QuickNavIcon;
-  description: string | null;
-  sortOrder: number;
-  isActive: boolean;
+  id: string; group: NavGroup; name: string; href: string; icon: QuickNavIcon; description: string | null; sortOrder: number; isActive: boolean;
+  translations?: { id?: { name?: string; description?: string | null }; en?: { name?: string; description?: string | null } };
 };
 
 const GROUP_TABS: { value: NavGroup; label: string; hint: string }[] = [
@@ -32,7 +26,7 @@ const GROUP_TABS: { value: NavGroup; label: string; hint: string }[] = [
 
 const ICON_OPTIONS = QUICK_NAV_ICON_KEYS.map((key) => ({ value: key, label: NAV_ICON_LABELS[key] }));
 
-const emptyForm = { group: "services" as NavGroup, name: "", href: "", icon: "sparkles" as QuickNavIcon, description: "", sortOrder: 0, isActive: true };
+const emptyForm = { group: "services" as NavGroup, name: "", href: "", icon: "sparkles" as QuickNavIcon, description: "", enName: "", enDescription: "", sortOrder: 0, isActive: true };
 
 export default function AdminNavigationPage() {
   const { toast } = useToast();
@@ -67,7 +61,7 @@ export default function AdminNavigationPage() {
   const openCreate = () => { setEditId(null); setForm({ ...emptyForm, group: activeTab, sortOrder: groupItems.length }); setShowForm(true); };
   const openEdit = (item: NavItem) => {
     setEditId(item.id);
-    setForm({ group: item.group, name: item.name, href: item.href, icon: item.icon, description: item.description || "", sortOrder: item.sortOrder, isActive: item.isActive });
+    setForm({ group: item.group, name: item.name, href: item.href, icon: item.icon, description: item.description || "", enName: item.translations?.en?.name || "", enDescription: item.translations?.en?.description || "", sortOrder: item.sortOrder, isActive: item.isActive });
     setShowForm(true);
   };
 
@@ -80,7 +74,7 @@ export default function AdminNavigationPage() {
       const res = await fetch(url, {
         method: editId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, description: form.description.trim() || null }),
+        body: JSON.stringify({ group: form.group, name: form.name, href: form.href, icon: form.icon, description: form.description.trim() || null, sortOrder: form.sortOrder, isActive: form.isActive, translations: { id: { name: form.name.trim(), description: form.description.trim() || null }, en: { name: form.enName.trim(), description: form.enDescription.trim() || null } } }),
       });
       const data = await res.json();
       if (data.success) {
@@ -181,6 +175,13 @@ export default function AdminNavigationPage() {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-dark">Deskripsi singkat (opsional)</label>
                 <Input value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Muncul di bawah nama menu, khusus kolom Layanan & Eksplor" />
+              </div>
+              <div className="rounded-2xl border border-primary/15 bg-primary-50/40 p-4">
+                <div className="flex items-center gap-2"><span className="text-xs font-bold uppercase tracking-[.16em] text-primary">English translation</span><span className="text-[11px] text-dark-400">Disimpan di database untuk locale English.</span></div>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  <div><label className="mb-1.5 block text-sm font-medium text-dark">English menu name</label><Input value={form.enName} onChange={(e) => setForm((p) => ({ ...p, enName: e.target.value }))} placeholder="e.g. Logo Design" /></div>
+                  <div><label className="mb-1.5 block text-sm font-medium text-dark">English description</label><Input value={form.enDescription} onChange={(e) => setForm((p) => ({ ...p, enDescription: e.target.value }))} placeholder="Short description" /></div>
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-6">
                 <div className="flex items-center gap-2">

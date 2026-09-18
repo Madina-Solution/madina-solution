@@ -3,10 +3,12 @@
 import * as React from "react";
 import { Check, Copy, Mail, Share2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export function ArticleReadingTools({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = React.useState(false);
   const [shared, setShared] = React.useState(false);
+  const t = useTranslations("BlogArticle");
 
   const copyLink = async () => {
     try {
@@ -30,13 +32,13 @@ export function ArticleReadingTools({ url, title }: { url: string; title: string
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-dark-200 bg-white/95 p-1.5 shadow-[0_16px_50px_rgba(15,23,42,.16)] backdrop-blur lg:bottom-auto lg:left-auto lg:right-5 lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2 lg:flex-col" aria-label="Bagikan artikel">
-      <button type="button" aria-label="Bagikan artikel" title="Bagikan" onClick={nativeShare} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Share2 className="h-4 w-4" aria-hidden="true" /></button>
-      <button type="button" aria-label="Bagikan ke X" title="X" onClick={() => popup(`https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`)} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><X className="h-4 w-4" aria-hidden="true" /></button>
-      <button type="button" aria-label="Bagikan ke Facebook" title="Facebook" onClick={() => popup(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><span aria-hidden="true" className="text-[11px] font-black leading-none">f</span></button>
-      <button type="button" aria-label="Bagikan ke LinkedIn" title="LinkedIn" onClick={() => popup(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`)} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><span aria-hidden="true" className="text-[10px] font-black leading-none">in</span></button>
-      <a href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`} aria-label="Bagikan melalui email" title="Email" className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Mail className="h-4 w-4" aria-hidden="true" /></a>
-      <button type="button" aria-label={copied ? "Link sudah disalin" : "Salin link artikel"} title={copied ? "Tersalin" : "Salin link"} onClick={copyLink} className={cn("grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary", copied && "bg-emerald-50 text-emerald-700")}>{copied || shared ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}</button>
+    <div className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-dark-200 bg-white/95 p-1.5 shadow-[0_16px_50px_rgba(15,23,42,.16)] backdrop-blur lg:bottom-auto lg:left-auto lg:right-5 lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2 lg:flex-col" aria-label={t("share")}>
+      <button type="button" aria-label={t("share")} title={t("share")} onClick={nativeShare} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Share2 className="h-4 w-4" aria-hidden="true" /></button>
+      <button type="button" aria-label={t("shareX")} title="X" onClick={() => popup(`https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`)} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><X className="h-4 w-4" aria-hidden="true" /></button>
+      <button type="button" aria-label={t("shareFacebook")} title="Facebook" onClick={() => popup(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><span aria-hidden="true" className="text-[11px] font-black leading-none">f</span></button>
+      <button type="button" aria-label={t("shareLinkedIn")} title="LinkedIn" onClick={() => popup(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`)} className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><span aria-hidden="true" className="text-[10px] font-black leading-none">in</span></button>
+      <a href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`} aria-label={t("shareEmail")} title="Email" className="grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Mail className="h-4 w-4" aria-hidden="true" /></a>
+      <button type="button" aria-label={copied ? t("copied") : t("copyLink")} title={copied ? t("copied") : t("copyLink")} onClick={copyLink} className={cn("grid h-10 w-10 place-items-center rounded-xl text-dark-600 hover:bg-dark-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary", copied && "bg-emerald-50 text-emerald-700")}>{copied || shared ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}</button>
     </div>
   );
 }

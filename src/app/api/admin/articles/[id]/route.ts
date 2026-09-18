@@ -8,10 +8,17 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 import { z } from "zod";
 export const dynamic = "force-dynamic";
+const articleTranslationSchema = z.object({
+  title: z.string().max(255).optional(), excerpt: z.string().max(1000).optional(), content: z.string().max(100000).optional(),
+  category: z.string().max(100).optional(), tags: z.array(z.string()).max(20).optional(),
+  seo: z.object({ title: z.string().max(255).optional(), description: z.string().max(320).optional(), keywords: z.array(z.string()).max(20).optional(), canonicalUrl: z.string().max(500).optional(), ogTitle: z.string().max(255).optional(), ogDescription: z.string().max(320).optional(), twitterTitle: z.string().max(255).optional(), twitterDescription: z.string().max(320).optional() }).optional(),
+});
+const translationsSchema = z.object({ id: articleTranslationSchema.optional(), en: articleTranslationSchema.optional() }).optional();
+
 const updateArticleSchema = z.object({
   title: z.string().min(2).optional(), slug: z.string().regex(/^[a-z0-9-]+$/).optional(), excerpt: z.string().max(1000).optional(),
   content: z.string().max(100000).optional(), category: z.string().optional(), thumbnail: z.string().url().optional().or(z.literal("")),
-  tags: z.array(z.string()).optional(), metadata: z.record(z.string(), z.unknown()).optional(), isPublished: z.boolean().optional()
+  tags: z.array(z.string()).optional(), translations: translationsSchema, metadata: z.record(z.string(), z.unknown()).optional(), isPublished: z.boolean().optional()
 });
 type Ctx = { params: Promise<{ id: string }> };
 export async function PATCH(request: NextRequest, context: Ctx) {

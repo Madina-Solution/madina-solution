@@ -17,6 +17,7 @@ const navigationItemUpdateSchema = z.object({
   href: z.string().trim().min(1).max(255).optional(),
   icon: z.enum(QUICK_NAV_ICON_KEYS as [string, ...string[]]).optional(),
   description: z.string().trim().max(160).optional().nullable(),
+  translations: z.object({ id: z.object({ name: z.string().max(120).optional(), description: z.string().max(160).optional().nullable() }).optional(), en: z.object({ name: z.string().max(120).optional(), description: z.string().max(160).optional().nullable() }).optional() }).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.boolean().optional(),
 });

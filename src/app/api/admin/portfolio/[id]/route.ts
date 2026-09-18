@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 import { z } from "zod";
 export const dynamic = "force-dynamic";
-const updatePortfolioSchema = z.object({ title: z.string().min(2).optional(), slug: z.string().regex(/^[a-z0-9-]+$/).optional(), description: z.string().optional(), category: z.string().optional(), client: z.string().optional(), tags: z.array(z.string()).optional(), thumbnail: z.string().url().optional().or(z.literal("")), images: z.array(z.string().url()).max(20).optional(), isFeatured: z.boolean().optional(), isActive: z.boolean().optional() });
+const updatePortfolioSchema = z.object({ translations: z.object({ id: z.object({ title: z.string().optional(), description: z.string().optional(), category: z.string().optional(), client: z.string().optional(), tags: z.array(z.string()).optional() }).optional(), en: z.object({ title: z.string().optional(), description: z.string().optional(), category: z.string().optional(), client: z.string().optional(), tags: z.array(z.string()).optional() }).optional() }).optional(), title: z.string().min(2).optional(), slug: z.string().regex(/^[a-z0-9-]+$/).optional(), description: z.string().optional(), category: z.string().optional(), client: z.string().optional(), tags: z.array(z.string()).optional(), thumbnail: z.string().url().optional().or(z.literal("")), images: z.array(z.string().url()).max(20).optional(), isFeatured: z.boolean().optional(), isActive: z.boolean().optional() });
 type Ctx = { params: Promise<{ id: string }> };
 export async function PATCH(request: NextRequest, context: Ctx) {
   try {

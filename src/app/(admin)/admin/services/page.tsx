@@ -14,7 +14,7 @@ import { OptionsEditor } from "@/components/admin/options-editor";
 import { RichTextEditor } from "@/components/admin/wysiwyg-editor";
 import type { ProductOption } from "@/db/schema";
 
-type Service = { id: string; name: string; slug: string; shortDescription: string | null; description: string | null; thumbnail: string | null; gallery: string[] | null; startingPrice: string | null; estimatedDays: number | null; isFeatured: boolean | null; isActive: boolean; options?: ProductOption[] | null; fulfillmentType: string };
+type Service = { id: string; translations?: { id?: { name?: string; shortDescription?: string; description?: string }; en?: { name?: string; shortDescription?: string; description?: string } }; name: string; slug: string; shortDescription: string | null; description: string | null; thumbnail: string | null; gallery: string[] | null; startingPrice: string | null; estimatedDays: number | null; isFeatured: boolean | null; isActive: boolean; options?: ProductOption[] | null; fulfillmentType: string };
 
 export default function AdminServicesPage() {
   const { toast } = useToast();
@@ -25,7 +25,8 @@ export default function AdminServicesPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [form, setForm] = React.useState({ thumbnail: "", gallery: [] as string[], name: "", slug: "", shortDescription: "", description: "", startingPrice: "", estimatedDays: 7, isFeatured: false, isActive: true, options: [] as ProductOption[], fulfillmentType: "physical" });
+  const [form, setForm] = React.useState({ thumbnail: "", gallery: [] as string[], name: "", slug: "", shortDescription: "", description: "", startingPrice: "", estimatedDays: 7, isFeatured: false, isActive: true, options: [] as ProductOption[], fulfillmentType: "physical", translations: { id: { name: "", shortDescription: "", description: "" }, en: { name: "", shortDescription: "", description: "" } } });
+  const [languageTab, setLanguageTab] = React.useState<"id" | "en">("id");
 
   const fetchData = React.useCallback(async () => {
     try { const r = await fetch("/api/admin/services"); const d = await r.json(); if (d.success) setItems(d.services); } catch {} finally { setIsLoading(false); }
@@ -34,7 +35,7 @@ export default function AdminServicesPage() {
     void (async () => { await fetchData(); })();
   }, [fetchData]);
 
-  const resetForm = () => { setShowForm(false); setEditId(null); setForm({ thumbnail: "", gallery: [], name: "", slug: "", shortDescription: "", description: "", startingPrice: "", estimatedDays: 7, isFeatured: false, isActive: true, options: [], fulfillmentType: "physical" }); };
+  const resetForm = () => { setShowForm(false); setEditId(null); setForm({ thumbnail: "", gallery: [], name: "", slug: "", shortDescription: "", description: "", startingPrice: "", estimatedDays: 7, isFeatured: false, isActive: true, options: [], fulfillmentType: "physical", translations: { id: { name: "", shortDescription: "", description: "" }, en: { name: "", shortDescription: "", description: "" } } }); };
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.slug.trim()) { toast({ type: "error", title: "Nama dan slug wajib diisi" }); return; }
@@ -62,7 +63,7 @@ export default function AdminServicesPage() {
   };
 
   const startEdit = (s: Service) => {
-    setForm({ thumbnail: s.thumbnail || "", gallery: Array.isArray(s.gallery) ? s.gallery : [], name: s.name, slug: s.slug, shortDescription: s.shortDescription || "", description: s.description || "", startingPrice: s.startingPrice || "", estimatedDays: s.estimatedDays || 7, isFeatured: !!s.isFeatured, isActive: s.isActive, options: Array.isArray(s.options) ? s.options : [], fulfillmentType: s.fulfillmentType || "physical" });
+    setForm({ thumbnail: s.thumbnail || "", gallery: Array.isArray(s.gallery) ? s.gallery : [], name: s.name, slug: s.slug, shortDescription: s.shortDescription || "", description: s.description || "", startingPrice: s.startingPrice || "", estimatedDays: s.estimatedDays || 7, isFeatured: !!s.isFeatured, isActive: s.isActive, options: Array.isArray(s.options) ? s.options : [], fulfillmentType: s.fulfillmentType || "physical", translations: { id: { name: s.translations?.id?.name || s.name, shortDescription: s.translations?.id?.shortDescription || s.shortDescription || "", description: s.translations?.id?.description || s.description || "" }, en: { name: s.translations?.en?.name || "", shortDescription: s.translations?.en?.shortDescription || "", description: s.translations?.en?.description || "" } } });
     setEditId(s.id); setShowForm(true);
   };
 
@@ -77,6 +78,7 @@ export default function AdminServicesPage() {
         <Card><CardContent className="p-6">
           <h2 className="mb-4 font-semibold text-dark">{editId ? "Edit Layanan" : "Tambah Layanan"}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2 rounded-2xl border border-dark-100 bg-dark-50/40 p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-primary">Content languages</p><p className="mt-1 text-xs text-dark-500">Konten layanan disimpan per bahasa di database.</p></div><div className="flex rounded-xl border border-dark-200 bg-white p-1"><button type="button" onClick={()=>setLanguageTab("id")} className={`rounded-lg px-3 py-1.5 text-xs font-bold ${languageTab==="id"?"bg-dark-900 text-white":"text-dark-500"}`}>ID</button><button type="button" onClick={()=>setLanguageTab("en")} className={`rounded-lg px-3 py-1.5 text-xs font-bold ${languageTab==="en"?"bg-dark-900 text-white":"text-dark-500"}`}>EN</button></div></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-dark">{languageTab==="en"?"English name":"Nama Indonesia"}</label><Input value={form.translations[languageTab].name} onChange={e=>setForm(p=>({...p,translations:{...p.translations,[languageTab]:{...p.translations[languageTab],name:e.target.value}}}))}/></div><div><label className="mb-1.5 block text-sm font-medium text-dark">{languageTab==="en"?"English short description":"Deskripsi singkat Indonesia"}</label><Input value={form.translations[languageTab].shortDescription} onChange={e=>setForm(p=>({...p,translations:{...p.translations,[languageTab]:{...p.translations[languageTab],shortDescription:e.target.value}}}))}/></div></div></div>
             <div className="sm:col-span-2"><MediaUploader value={form.thumbnail} onChange={(value) => setForm(p => ({ ...p, thumbnail: Array.isArray(value) ? value[0] || "" : value }))} purpose="service_image" label="Thumbnail Layanan" allowVideo persist={editId ? { endpoint: `/api/admin/services/${editId}`, key: "thumbnail", mode: "replace", method: "PATCH" } : undefined} /><MediaUploader value={form.gallery} onChange={(value) => setForm(p => ({ ...p, gallery: Array.isArray(value) ? value : value ? [value] : [] }))} purpose="service_image" label="Gallery Layanan" multiple maxFiles={12} allowVideo persist={editId ? { endpoint: `/api/admin/services/${editId}`, key: "gallery", mode: "replace", method: "PATCH" } : undefined} /></div>
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Nama *</label><Input value={form.name} onChange={(e) => { const n = e.target.value; setForm(p => ({ ...p, name: n, slug: editId ? p.slug : n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") })); }} placeholder="Nama layanan" /></div>
             <div><label className="mb-1.5 block text-sm font-medium text-dark">Slug *</label><Input value={form.slug} onChange={(e) => setForm(p => ({ ...p, slug: e.target.value }))} /></div>
@@ -85,6 +87,7 @@ export default function AdminServicesPage() {
             <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-dark">Deskripsi Singkat</label><Input value={form.shortDescription} onChange={(e) => setForm(p => ({ ...p, shortDescription: e.target.value }))} placeholder="Deskripsi singkat layanan" /></div>
             <div className="sm:col-span-2">
               <RichTextEditor label="Deskripsi lengkap layanan" helpText="Konten rich text untuk halaman detail layanan." value={form.description} onChange={(description) => setForm(p => ({ ...p, description }))} minHeight={320} />
+              <div className="mt-5 rounded-2xl border border-dark-100 bg-dark-50/40 p-4"><p className="mb-3 text-sm font-bold text-dark">English service content</p><RichTextEditor label="English service description" value={form.translations.en.description} onChange={(description)=>setForm(p=>({...p,translations:{...p.translations,en:{...p.translations.en,description}}}))} minHeight={280} placeholder="Write the English service description…"/></div>
               <div className="mt-5"><OptionsEditor value={form.options} onChange={(options) => setForm(p => ({ ...p, options }))} title="Spesifikasi layanan" description="Atur format brief, ukuran, paket, file referensi, dan pilihan lain yang hanya muncul untuk layanan ini." />
                 <div className="mt-4 rounded-2xl border border-dark-100 bg-white p-4"><label className="mb-2 block text-sm font-semibold text-dark">Jenis pemenuhan</label><select value={form.fulfillmentType} onChange={(e) => setForm(p => ({ ...p, fulfillmentType: e.target.value }))} className="h-11 w-full rounded-xl border border-dark-200 bg-white px-4 text-sm"><option value="physical">Fisik</option><option value="digital">Digital</option><option value="hybrid">Hybrid</option></select></div>
               </div>

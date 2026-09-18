@@ -8,8 +8,11 @@ import { ProductGrid } from "./product-grid";
 import { ProductFilters } from "./product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buildPageMetadata } from "@/lib/seo";
+import { getLocale, getTranslations } from "next-intl/server";
+import type { AppLocale } from "@/i18n/routing";
+import { resolveLocalizedProduct, resolveLocalizedCategory } from "@/lib/localized-content";
 
-export const metadata: Metadata = buildPageMetadata({ title: "Produk", description: "Katalog produk Madina Solution untuk kebutuhan desain, printing, branding, dan media promosi bisnis.", path: "/products" });
+export async function generateMetadata(): Promise<Metadata> { const t = await getTranslations("ProductsPage"); return buildPageMetadata({ title: t("title"), description: t("description"), path: "/products" }); }
 
 // ISR: page is cached and regenerated in the background at most every 60s,
 // instead of re-running the full render + DB queries on every single visit.
@@ -114,6 +117,8 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
       categoryId: products.categoryId,
       categoryName: categories.name,
       categorySlug: categories.slug,
+      translations: products.translations,
+      categoryTranslations: categories.translations,
     })
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
@@ -144,7 +149,13 @@ async function getProducts(searchParams: Record<string, string | string[] | unde
     }
   }
 
-  return { products: productsWithLiveRatings, params };
+  const locale = (await getLocale()) as AppLocale;
+  const localizedProducts = productsWithLiveRatings.map((item) => {
+    const localized = resolveLocalizedProduct(item, locale);
+    const category = item.categoryName ? resolveLocalizedCategory({ name: item.categoryName, description: null, translations: item.categoryTranslations }, locale) : null;
+    return { ...localized, categoryName: category?.name || item.categoryName };
+  });
+  return { products: localizedProducts, params };
 }
 
 async function getCategories() {
@@ -154,13 +165,15 @@ async function getCategories() {
       name: categories.name,
       slug: categories.slug,
       productCount: count(products.id),
+      translations: categories.translations,
     })
     .from(categories)
     .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.isActive, true)))
     .where(eq(categories.isActive, true))
     .groupBy(categories.id)
     .orderBy(asc(categories.name));
-  return rows;
+  const locale = (await getLocale()) as AppLocale;
+  return rows.map((row) => ({ ...row, name: resolveLocalizedCategory(row, locale).name }));
 }
 
 export default async function ProductsPage({ searchParams }: Props) {

@@ -14,8 +14,8 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatDate(date: Date | string): string {
-  return new Intl.DateTimeFormat("id-ID", {
+export function formatDate(date: Date | string, locale: "id" | "en" = "id"): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",

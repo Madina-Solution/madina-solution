@@ -30,6 +30,10 @@ const updateProductSchema = z.object({
   options: z.array(z.unknown()).max(30).optional(),
   fulfillmentType: z.enum(["physical", "digital", "hybrid"]).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  translations: z.object({
+    id: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional() }).optional(),
+    en: z.object({ name: z.string().max(255).optional(), shortDescription: z.string().max(500).optional(), description: z.string().max(100000).optional() }).optional(),
+  }).optional(),
 });
 
 export async function GET(request: NextRequest, context: Ctx) {
@@ -51,7 +55,8 @@ export async function PATCH(request: NextRequest, context: Ctx) {
     const body = await request.json();
     const parsed = updateProductSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Data tidak valid" } }, { status: 400 });
-    const updateData = { ...parsed.data, ...(parsed.data.description !== undefined ? { description: sanitizeRichHtml(parsed.data.description || "") } : {}), options: parsed.data.options as ProductOption[] | undefined, updatedAt: new Date() };
+    const updateData = { ...parsed.data, ...(parsed.data.description !== undefined ? { description: sanitizeRichHtml(parsed.data.description || "") } : {}),
+      ...(parsed.data.translations !== undefined ? { translations: { id: { ...(parsed.data.translations.id || {}), description: sanitizeRichHtml(parsed.data.translations.id?.description || "") }, en: { ...(parsed.data.translations.en || {}), description: sanitizeRichHtml(parsed.data.translations.en?.description || "") } } } : {}), options: parsed.data.options as ProductOption[] | undefined, updatedAt: new Date() };
     const [updated] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
     if (!updated) return NextResponse.json({ success: false, error: { code: "NOT_FOUND", message: "Produk tidak ditemukan" } }, { status: 404 });
     if (parsed.data.metadata !== undefined) {

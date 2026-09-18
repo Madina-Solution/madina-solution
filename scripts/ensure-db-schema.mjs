@@ -15,6 +15,16 @@ const requiredColumns = [
   { table: "products", column: "options", sql: 'ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "options" jsonb DEFAULT \'[]\'::jsonb' },
   { table: "products", column: "fulfillment_type", sql: 'ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "fulfillment_type" varchar(12) DEFAULT \'physical\' NOT NULL' },
   { table: "order_items", column: "fulfillment_type", sql: 'ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "fulfillment_type" varchar(12) DEFAULT \'physical\' NOT NULL' },
+  // i18n content layer (migrations 0008_i18n_content / 0009_catalog_i18n).
+  // categories.translations is included here because no migration file ever
+  // adds it, even though schema.ts and validate-db-schema.mjs both expect it.
+  { table: "categories", column: "translations", sql: `ALTER TABLE "categories" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
+  { table: "products", column: "translations", sql: `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
+  { table: "services", column: "translations", sql: `ALTER TABLE "services" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
+  { table: "portfolio", column: "translations", sql: `ALTER TABLE "portfolio" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
+  { table: "articles", column: "translations", sql: `ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
+  { table: "faqs", column: "translations", sql: `ALTER TABLE "faqs" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
+  { table: "navigation_items", column: "translations", sql: `ALTER TABLE "navigation_items" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
 ];
 
 // DDL that isn't a plain "ADD COLUMN IF NOT EXISTS" (enum type + new table for
@@ -139,10 +149,11 @@ async function main() {
       `SELECT table_name, column_name, data_type
        FROM information_schema.columns
        WHERE table_schema = 'public'
-         AND ((table_name = 'services' AND column_name IN ('options','process_steps','fulfillment_type'))
-           OR (table_name = 'products' AND column_name IN ('options','fulfillment_type'))
+         AND ((table_name = 'services' AND column_name IN ('options','process_steps','fulfillment_type','translations'))
+           OR (table_name = 'products' AND column_name IN ('options','fulfillment_type','translations'))
            OR (table_name = 'order_items' AND column_name = 'fulfillment_type')
-           OR (table_name = 'product_pricing_tiers' AND column_name IN ('product_id','min_quantity','max_quantity','unit_price','is_active')))
+           OR (table_name = 'product_pricing_tiers' AND column_name IN ('product_id','min_quantity','max_quantity','unit_price','is_active'))
+           OR (table_name IN ('categories','portfolio','articles','faqs','navigation_items') AND column_name = 'translations'))
        ORDER BY table_name, ordinal_position`
     );
 
