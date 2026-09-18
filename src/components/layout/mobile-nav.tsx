@@ -20,6 +20,7 @@ import { NAV_ICON_MAP } from "@/lib/nav-icons";
 import { BRAND } from "@/lib/constants";
 import { useSearch } from "@/components/search/search-provider";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 
 type Props = {
   isOpen: boolean; onClose: () => void; siteName?: string; siteLogo?: string; siteTagline?: string;
@@ -60,7 +61,9 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
                 {siteLogo ? <span className="relative flex h-10 max-w-[150px] shrink-0 items-center"><SiteImage src={siteLogo} alt={siteName} width={150} height={44} sizes="150px" className="h-auto max-h-10 w-auto max-w-[150px] object-contain" /></span> : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-900 text-sm font-black text-white shadow-sm ring-1 ring-primary/20">{siteName.charAt(0).toUpperCase()}</span>}
                 <span className="font-display font-extrabold tracking-tight text-dark-900"><span className="text-lg leading-none">{siteName}</span><span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.14em] text-dark-500">{siteTagline}</span></span>
               </Link>
-              <button type="button" onClick={handleClose} className="rounded-xl p-2 text-dark-500 hover:bg-dark-100 hover:text-dark-900" aria-label="Close menu"><X className="h-5 w-5" /></button>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={handleClose} className="rounded-xl p-2 text-dark-500 hover:bg-dark-100 hover:text-dark-900" aria-label="Close menu"><X className="h-5 w-5" /></button>
+              </div>
             </div>
 
             <div className="border-b border-dark-100 bg-dark-50/60 p-4">

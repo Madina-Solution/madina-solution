@@ -21,7 +21,10 @@
     "validate:ui": "node scripts/validate-ui-contract.mjs",
     "validate:seo": "node scripts/validate-seo.mjs",
     "db:migrate": "(drizzle-kit migrate || true) && node scripts/ensure-db-schema.mjs",
-    "validate:commerce": "node scripts/validate-commerce.mjs"
+    "validate:commerce": "node scripts/validate-commerce.mjs",
+    "validate:i18n": "node scripts/validate-i18n.mjs",
+    "validate:structured-data": "node scripts/validate-structured-data.mjs",
+    "validate:security-scale": "node scripts/validate-security-scale.mjs"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
@@ -49,6 +52,7 @@
     "jose": "^6.2.9",
     "lucide-react": "^1.31.0",
     "next": "16.2.6",
+    "next-intl": "^4.14.5",
     "pg": "8.20.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",

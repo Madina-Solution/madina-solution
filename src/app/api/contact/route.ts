@@ -17,7 +17,7 @@ const contactSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const rl = checkRateLimit(`contact:${ip}`, { windowMs: 60000, maxRequests: 3 });
+    const rl = await checkRateLimit(`contact:${ip}`, { windowMs: 60000, maxRequests: 3 });
     if (!rl.allowed) {
       return NextResponse.json({ success: false, error: { code: "RATE_LIMITED", message: "Terlalu banyak pesan. Coba lagi nanti." } }, { status: 429 });
     }

@@ -1,53 +1,134 @@
 /**
- * Simple in-memory rate limiter.
- * For production, use Redis or edge middleware.
+ * Serverless-safe rate limiting.
+ *
+ * Production with UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN uses
+ * Upstash REST + one atomic Redis EVAL call, so the counter is shared across
+ * Vercel/serverless instances. Without credentials we keep a local fallback
+ * for development and recovery; production logs a warning so the deployment
+ * owner can finish the distributed configuration.
  */
-const store = new Map<string, { count: number; resetAt: number }>();
 
-// Cleanup old entries periodically
-if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, val] of store) {
-      if (val.resetAt < now) store.delete(key);
-    }
-  }, 60_000);
-}
+type RateState = { count: number; resetAt: number };
+const localStore = new Map<string, RateState>();
+let missingEnvWarned = false;
 
 export type RateLimitConfig = {
-  windowMs: number;  // time window in ms
-  maxRequests: number; // max requests per window
+  windowMs: number;
+  maxRequests: number;
 };
 
-export function checkRateLimit(
-  identifier: string,
-  config: RateLimitConfig
-): { allowed: boolean; remaining: number; resetAt: number } {
-  const now = Date.now();
-  const key = identifier;
-  const entry = store.get(key);
+export type RateLimitResult = {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+  distributed: boolean;
+};
 
-  if (!entry || entry.resetAt < now) {
-    const resetAt = now + config.windowMs;
-    store.set(key, { count: 1, resetAt });
-    return { allowed: true, remaining: config.maxRequests - 1, resetAt };
-  }
+const LUA_INCREMENT = `
+local current = redis.call('INCR', KEYS[1])
+if current == 1 then
+  redis.call('PEXPIRE', KEYS[1], ARGV[1])
+end
+local ttl = redis.call('PTTL', KEYS[1])
+return {current, ttl}
+`;
 
-  if (entry.count >= config.maxRequests) {
-    return { allowed: false, remaining: 0, resetAt: entry.resetAt };
-  }
-
-  entry.count++;
-  return { allowed: true, remaining: config.maxRequests - entry.count, resetAt: entry.resetAt };
+function getUpstashConfig(): { url: string; token: string } | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  if (!url || !token) return null;
+  return { url: url.replace(/\/$/, ''), token };
 }
 
-/**
- * Standard rate limit configs
- */
+function cleanupLocalStore(now: number): void {
+  for (const [key, value] of localStore) {
+    if (value.resetAt <= now) localStore.delete(key);
+  }
+}
+
+function localRateLimit(identifier: string, config: RateLimitConfig): RateLimitResult {
+  const now = Date.now();
+  cleanupLocalStore(now);
+  const current = localStore.get(identifier);
+  if (!current || current.resetAt <= now) {
+    const resetAt = now + config.windowMs;
+    localStore.set(identifier, { count: 1, resetAt });
+    return { allowed: true, remaining: Math.max(config.maxRequests - 1, 0), resetAt, distributed: false };
+  }
+  current.count += 1;
+  return {
+    allowed: current.count <= config.maxRequests,
+    remaining: Math.max(config.maxRequests - current.count, 0),
+    resetAt: current.resetAt,
+    distributed: false,
+  };
+}
+
+async function distributedRateLimit(identifier: string, config: RateLimitConfig): Promise<RateLimitResult> {
+  const upstash = getUpstashConfig();
+  if (!upstash) return localRateLimit(identifier, config);
+
+  const key = `madina:rl:v2:${identifier}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1800);
+
+  try {
+    const response = await fetch(upstash.url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${upstash.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(['EVAL', LUA_INCREMENT, 1, key, String(Math.max(config.windowMs, 1000))]),
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+
+    if (!response.ok) throw new Error(`Upstash rate limit HTTP ${response.status}`);
+    const payload = (await response.json()) as { result?: unknown; error?: string };
+    if (payload.error) throw new Error(payload.error);
+
+    const result = Array.isArray(payload.result) ? payload.result : [];
+    const count = Number(result[0] ?? 1);
+    const ttlMs = Math.max(Number(result[1] ?? config.windowMs), 1000);
+    const resetAt = Date.now() + ttlMs;
+    return {
+      allowed: count <= config.maxRequests,
+      remaining: Math.max(config.maxRequests - count, 0),
+      resetAt,
+      distributed: true,
+    };
+  } catch (error) {
+    // Availability wins over hard-failing login/contact/newsletter when the
+    // external limiter is temporarily unreachable. The local guard still
+    // provides a best-effort safety net for a single warm instance.
+    console.error('[rate-limit] distributed limiter unavailable; using local fallback', error);
+    return localRateLimit(identifier, config);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function checkRateLimit(identifier: string, config: RateLimitConfig): Promise<RateLimitResult> {
+  const result = await distributedRateLimit(identifier, config);
+  if (!result.distributed && process.env.NODE_ENV === 'production' && !getUpstashConfig() && !missingEnvWarned) {
+    missingEnvWarned = true;
+    console.warn('[rate-limit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN are not configured; production rate limiting is instance-local until configured.');
+  }
+  return result;
+}
+
+export function rateLimitHeaders(result: RateLimitResult): Headers {
+  const headers = new Headers();
+  headers.set('X-RateLimit-Remaining', String(result.remaining));
+  headers.set('X-RateLimit-Reset', String(Math.ceil(result.resetAt / 1000)));
+  return headers;
+}
+
 export const RATE_LIMITS = {
-  auth: { windowMs: 15 * 60 * 1000, maxRequests: 10 },      // 10 per 15 min
-  upload: { windowMs: 60 * 1000, maxRequests: 5 },           // 5 per minute
-  search: { windowMs: 60 * 1000, maxRequests: 30 },          // 30 per minute
-  webhook: { windowMs: 60 * 1000, maxRequests: 100 },        // 100 per minute
-  general: { windowMs: 60 * 1000, maxRequests: 60 },         // 60 per minute
+  auth: { windowMs: 15 * 60 * 1000, maxRequests: 10 },
+  upload: { windowMs: 60 * 1000, maxRequests: 5 },
+  search: { windowMs: 60 * 1000, maxRequests: 30 },
+  webhook: { windowMs: 60 * 1000, maxRequests: 100 },
+  general: { windowMs: 60 * 1000, maxRequests: 60 },
 } as const;

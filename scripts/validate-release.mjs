@@ -9,6 +9,9 @@ const checks = [
   ["validate:persistence", "Media persistence contract"],
   ["validate:ui", "UI, branding and admin architecture contract"],
   ["validate:commerce", "Commerce, service configuration and media delivery contract"],
+  ["validate:i18n", "Internationalization contract"],
+  ["validate:structured-data", "Structured data contract"],
+  ["validate:security-scale", "Security, observability and scale contract"],
   ["validate:db-schema", "Database schema contract"],
   ["typecheck", "TypeScript"],
   ["lint", "ESLint"],
@@ -24,4 +27,4 @@ for (const [script, label] of checks) {
   }
 }
 
-console.log("\nRELEASE CHECK PASSED: navigation, integrity, media, social auth, access control, persistence, UI/branding architecture, commerce/media delivery, database schema, TypeScript, lint and build.");
+console.log("\nRELEASE CHECK PASSED: navigation, integrity, media, social auth, access control, persistence, UI/branding architecture, commerce/media delivery, i18n, structured data, security/scale, database schema, TypeScript, lint and build.");

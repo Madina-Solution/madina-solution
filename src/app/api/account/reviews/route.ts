@@ -6,6 +6,26 @@ import { getSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ success: true, review: null });
+
+    const { searchParams } = new URL(request.url);
+    const productId = searchParams.get("productId");
+    const serviceId = searchParams.get("serviceId");
+    if (!productId && !serviceId) return NextResponse.json({ success: true, review: null });
+
+    const where = productId
+      ? and(eq(reviews.productId, productId), eq(reviews.userId, session.userId))
+      : and(eq(reviews.serviceId, serviceId!), eq(reviews.userId, session.userId));
+    const [review] = await db.select({ rating: reviews.rating, comment: reviews.comment }).from(reviews).where(where).limit(1);
+    return NextResponse.json({ success: true, review: review ?? null });
+  } catch {
+    return NextResponse.json({ success: true, review: null });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();

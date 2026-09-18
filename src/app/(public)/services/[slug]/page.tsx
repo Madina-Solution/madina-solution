@@ -17,6 +17,9 @@ import { buildPageMetadata, getSiteUrl } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
+/** Revalidate public detail content frequently without rebuilding the whole site. */
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const result = await db.select({ name: services.name, shortDescription: services.shortDescription }).from(services).where(eq(services.slug, slug)).limit(1);

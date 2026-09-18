@@ -14,7 +14,7 @@ const newsletterSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const rl = checkRateLimit(`newsletter:${ip}`, { windowMs: 60000, maxRequests: 3 });
+    const rl = await checkRateLimit(`newsletter:${ip}`, { windowMs: 60000, maxRequests: 3 });
     if (!rl.allowed) {
       return NextResponse.json({ success: false, error: { code: "RATE_LIMITED", message: "Coba lagi nanti" } }, { status: 429 });
     }

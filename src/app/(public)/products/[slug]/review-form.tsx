@@ -9,17 +9,51 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   productId: string;
-  isLoggedIn: boolean;
-  existingReview: { rating: number; comment: string | null } | null;
 };
 
-export function ReviewForm({ productId, isLoggedIn, existingReview }: Props) {
+export function ReviewForm({ productId }: Props) {
   const { toast } = useToast();
-  const [rating, setRating] = React.useState(existingReview?.rating ?? 0);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const [existingReview, setExistingReview] = React.useState<{ rating: number; comment: string | null } | null>(null);
+  const [checkingSession, setCheckingSession] = React.useState(true);
+  const [rating, setRating] = React.useState(0);
   const [hoverRating, setHoverRating] = React.useState(0);
-  const [comment, setComment] = React.useState(existingReview?.comment ?? "");
+  const [comment, setComment] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function loadReview() {
+      try {
+        const meRes = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+        const me = await meRes.json();
+        if (cancelled) return;
+        const loggedIn = Boolean(me?.user);
+        setIsLoggedIn(loggedIn);
+        if (!loggedIn) return;
+        const reviewRes = await fetch(`/api/account/reviews?productId=${encodeURIComponent(productId)}`, { credentials: "include", cache: "no-store" });
+        const reviewData = await reviewRes.json();
+        const review = reviewData?.review ?? null;
+        if (!cancelled) {
+          setExistingReview(review);
+          setRating(review?.rating ?? 0);
+          setComment(review?.comment ?? "");
+        }
+      } catch {
+        if (!cancelled) setIsLoggedIn(false);
+      } finally {
+        if (!cancelled) setCheckingSession(false);
+      }
+    }
+    void loadReview();
+    return () => { cancelled = true; };
+  }, [productId]);
+
+
+  if (checkingSession) {
+    return <div className="mt-6 rounded-xl border border-dark-100 bg-dark-50 p-5 text-center text-sm text-dark-500">Memeriksa status akun…</div>;
+  }
 
   if (!isLoggedIn) {
     return (

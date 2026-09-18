@@ -4,11 +4,12 @@ import { CookieConsent } from "@/components/consent/cookie-consent";
 import { AdSenseScript, AdSenseUnit } from "@/components/ads/adsense";
 import { getPublicSiteConfig } from "@/lib/site-config";
 import { getPublicNavigation } from "@/lib/get-navigation";
+import { NextIntlClientProvider } from "next-intl";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const [config, navigation] = await Promise.all([getPublicSiteConfig(), getPublicNavigation()]);
   return (
-    <>
+    <NextIntlClientProvider>
       <Header siteName={config.siteName} siteLogo={config.siteLogo} topBarEnabled={config.topBarEnabled} topBarText={config.topBarText} sitePhone={config.sitePhone} siteEmail={config.siteEmail} siteWhatsapp={config.siteWhatsapp} siteTagline={config.siteTagline} navigation={navigation} />
       {config.adsEnabled && config.adsClient && config.adsSlots.top ? <div className="mx-auto max-w-7xl px-4 pt-4 lg:px-6"><AdSenseUnit client={config.adsClient} slot={config.adsSlots.top} className="mx-auto max-w-4xl" label="Iklan" /></div> : null}
       <main className="min-h-screen">{children}</main>
@@ -16,6 +17,6 @@ export default async function PublicLayout({ children }: { children: React.React
       <Footer siteName={config.siteName} siteLogo={config.siteLogo} siteEmail={config.siteEmail} sitePhone={config.sitePhone} siteWhatsapp={config.siteWhatsapp} siteAddress={config.siteAddress} siteTagline={config.siteTagline} />
       <CookieConsent />
       {config.adsEnabled && config.adsClient ? <AdSenseScript client={config.adsClient} enabled={config.adsEnabled} /> : null}
-    </>
+    </NextIntlClientProvider>
   );
 }

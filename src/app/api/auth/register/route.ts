@@ -19,7 +19,7 @@ const registerSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const rl = checkRateLimit(`register:${ip}`, RATE_LIMITS.auth);
+    const rl = await checkRateLimit(`register:${ip}`, RATE_LIMITS.auth);
     if (!rl.allowed) {
       return NextResponse.json(
         { success: false, error: { code: "RATE_LIMITED", message: "Terlalu banyak percobaan. Silakan coba lagi nanti." } },

@@ -14,7 +14,7 @@ const requestSchema = z.object({ email: z.string().trim().email().max(255) });
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = checkRateLimit(`forgot:${ip}`, { windowMs: 15 * 60 * 1000, maxRequests: 5 });
+    const rl = await checkRateLimit(`forgot:${ip}`, { windowMs: 15 * 60 * 1000, maxRequests: 5 });
     if (!rl.allowed) {
       return NextResponse.json({ success: false, error: { code: "RATE_LIMITED", message: "Terlalu banyak percobaan. Coba lagi nanti." } }, { status: 429 });
     }

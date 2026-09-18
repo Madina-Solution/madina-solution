@@ -20,34 +20,38 @@ export function ProductGallery({ thumbnail, gallery, productName }: Props) {
   const touchStart = React.useRef<number | null>(null);
   const safeIndex = Math.min(index, Math.max(media.length - 1, 0));
   const active = media[safeIndex];
-
-  const next = React.useCallback(() => setIndex((current) => (current + 1) % Math.max(media.length, 1)), [media.length]);
-  const prev = React.useCallback(() => setIndex((current) => (current - 1 + Math.max(media.length, 1)) % Math.max(media.length, 1)), [media.length]);
+  const mediaKey = media.join("\u0000");
 
   React.useEffect(() => {
     if (!playing || hovered || media.length <= 1) return;
-    const timer = window.setInterval(next, 5000);
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % Math.max(media.length, 1));
+    }, 5000);
     return () => window.clearInterval(timer);
-  }, [media.length, next, playing, hovered]);
+  }, [mediaKey, playing, hovered]);
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (lightbox && event.key === "Escape") setLightbox(false);
-      if (event.key === "ArrowRight") next();
-      if (event.key === "ArrowLeft") prev();
+      if (event.key === "ArrowRight") {
+        setIndex((current) => (current + 1) % Math.max(media.length, 1));
+      }
+      if (event.key === "ArrowLeft") {
+        setIndex((current) => (current - 1 + Math.max(media.length, 1)) % Math.max(media.length, 1));
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightbox, next, prev]);
+  }, [lightbox, mediaKey]);
 
   if (!media.length) return <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-dark-100 bg-dark-50"><MediaPlaceholder label="Belum ada media produk" /></div>;
 
   return (
     <>
       <div className="space-y-3">
-        <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-dark-100 bg-dark-50 shadow-sm" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onTouchStart={(event) => { touchStart.current = event.changedTouches[0]?.clientX ?? null; }} onTouchEnd={(event) => { const start = touchStart.current; const end = event.changedTouches[0]?.clientX ?? start ?? 0; touchStart.current = null; if (start !== null && Math.abs(end - start) > 48) end < start ? next() : prev(); }}>
+        <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-dark-100 bg-dark-50 shadow-sm" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onTouchStart={(event) => { touchStart.current = event.changedTouches[0]?.clientX ?? null; }} onTouchEnd={(event) => { const start = touchStart.current; const end = event.changedTouches[0]?.clientX ?? start ?? 0; touchStart.current = null; if (start !== null && Math.abs(end - start) > 48) end < start ? setIndex((current) => (current + 1) % Math.max(media.length, 1)) : setIndex((current) => (current - 1 + Math.max(media.length, 1)) % Math.max(media.length, 1)); }}>
           {isVideo(active) ? <video src={active} controls muted playsInline preload="metadata" className="h-full w-full object-contain bg-black" aria-label={`${productName} video ${safeIndex + 1}`} /> : <SiteImage src={active} alt={`${productName} ${safeIndex + 1}`} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" priority={safeIndex === 0} />}
-          {media.length > 1 && <><Button type="button" variant="secondary" size="icon" aria-label="Media sebelumnya" onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-dark-950/85 text-white shadow-lg hover:bg-dark-950 focus-visible:ring-2 focus-visible:ring-white"><ChevronLeft /></Button><Button type="button" variant="secondary" size="icon" aria-label="Media berikutnya" onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-dark-950/85 text-white shadow-lg hover:bg-dark-950 focus-visible:ring-2 focus-visible:ring-white"><ChevronRight /></Button><div className="absolute bottom-3 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 gap-1.5 overflow-x-auto rounded-full border border-white/20 bg-dark-950/80 px-3 py-2 backdrop-blur">{media.map((_, i) => <button type="button" key={i} aria-label={`Tampilkan media ${i + 1}`} aria-pressed={i === safeIndex} onClick={() => setIndex(i)} className={cn("h-1.5 shrink-0 rounded-full", i === safeIndex ? "w-6 bg-white" : "w-1.5 bg-white/55")} />)}</div></>}
+          {media.length > 1 && <><Button type="button" variant="secondary" size="icon" aria-label="Media sebelumnya" onClick={() => setIndex((current) => (current - 1 + Math.max(media.length, 1)) % Math.max(media.length, 1))} className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-dark-950/85 text-white shadow-lg hover:bg-dark-950 focus-visible:ring-2 focus-visible:ring-white"><ChevronLeft /></Button><Button type="button" variant="secondary" size="icon" aria-label="Media berikutnya" onClick={() => setIndex((current) => (current + 1) % Math.max(media.length, 1))} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-dark-950/85 text-white shadow-lg hover:bg-dark-950 focus-visible:ring-2 focus-visible:ring-white"><ChevronRight /></Button><div className="absolute bottom-3 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 gap-1.5 overflow-x-auto rounded-full border border-white/20 bg-dark-950/80 px-3 py-2 backdrop-blur">{media.map((_, i) => <button type="button" key={i} aria-label={`Tampilkan media ${i + 1}`} aria-pressed={i === safeIndex} onClick={() => setIndex(i)} className={cn("h-1.5 shrink-0 rounded-full", i === safeIndex ? "w-6 bg-white" : "w-1.5 bg-white/55")} />)}</div></>}
           <div className="absolute right-3 top-3 flex gap-2">{media.length > 1 && <Button type="button" variant="secondary" size="icon" aria-label={playing ? "Jeda slideshow" : "Putar slideshow"} onClick={() => setPlaying((value) => !value)} className="rounded-full border border-white/30 bg-dark-950/85 text-white shadow-lg hover:bg-dark-950 focus-visible:ring-2 focus-visible:ring-white">{playing ? <Pause /> : <Play />}</Button>}<Button type="button" variant="secondary" size="icon" aria-label="Perbesar media" onClick={() => setLightbox(true)} className="rounded-full border border-white/30 bg-dark-950/85 text-white shadow-lg hover:bg-dark-950 focus-visible:ring-2 focus-visible:ring-white"><Expand /></Button></div>
         </div>
         {media.length > 1 && <div className="flex gap-2 overflow-x-auto pb-1">{media.map((src, i) => <button type="button" key={`${src}-${i}`} onClick={() => setIndex(i)} aria-label={`Pilih media ${i + 1}`} aria-pressed={i === safeIndex} className={cn("relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border", i === safeIndex ? "border-primary ring-2 ring-primary/20" : "border-dark-100 hover:border-dark-300")}>{isVideo(src) ? <><video src={src} muted playsInline preload="metadata" className="h-full w-full object-cover" /><span className="absolute inset-0 grid place-items-center bg-black/20"><span className="rounded-full bg-white/90 p-1"><Play className="h-3 w-3 fill-current" aria-hidden="true" /></span></span></> : <SiteImage src={src} alt={`${productName} thumbnail ${i + 1}`} fill sizes="80px" className="object-cover" />}</button>)}</div>}

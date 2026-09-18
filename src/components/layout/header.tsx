@@ -22,6 +22,7 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { MegaMenu } from "./mega-menu";
 import { MobileNav } from "./mobile-nav";
 import { QUICK_NAV_SERVICES, QUICK_NAV_PRODUCTS, QUICK_NAV_EXPLORE, type QuickNavItem } from "@/lib/navigation";
+import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 
 type HeaderProps = {
   siteName?: string; siteLogo?: string; topBarEnabled?: boolean; topBarText?: string;
@@ -169,6 +170,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
 
           {/* Right Actions */}
           <div className="flex shrink-0 items-center gap-1.5">
+            <LocaleSwitcher />
             <Button
               variant="ghost"
               size="icon"

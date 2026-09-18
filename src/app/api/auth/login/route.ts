@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limit by IP
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const rl = checkRateLimit(`login:${ip}`, RATE_LIMITS.auth);
+    const rl = await checkRateLimit(`login:${ip}`, RATE_LIMITS.auth);
     if (!rl.allowed) {
       return NextResponse.json(
         { success: false, error: { code: "RATE_LIMITED", message: "Terlalu banyak percobaan. Silakan coba lagi nanti." } },

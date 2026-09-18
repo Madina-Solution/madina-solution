@@ -13,7 +13,7 @@ const schema = z.object({ token: z.string().length(64), password: z.string().min
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = checkRateLimit(`reset:${ip}`, { windowMs: 15 * 60 * 1000, maxRequests: 10 });
+    const rl = await checkRateLimit(`reset:${ip}`, { windowMs: 15 * 60 * 1000, maxRequests: 10 });
     if (!rl.allowed) return NextResponse.json({ success: false, error: { code: "RATE_LIMITED", message: "Terlalu banyak percobaan" } }, { status: 429 });
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ success: false, error: { code: "INVALID_TOKEN", message: "Token reset tidak valid" } }, { status: 400 });
