@@ -1,8 +1,22 @@
 import type { Instrumentation } from "next";
 
-function safeHeaders(headers: Record<string, string | string[] | undefined>) {
-  const allowed = ["host", "user-agent", "x-forwarded-for", "x-vercel-id"];
-  return Object.fromEntries(Object.entries(headers).filter(([key]) => allowed.includes(key.toLowerCase())));
+function safeHeaders(headers: unknown) {
+  const allowed = new Set(["host", "user-agent", "x-forwarded-for", "x-vercel-id"]);
+  if (!headers || typeof headers !== "object") return {};
+
+  const entries = Object.entries(headers as Record<string, unknown>);
+  return Object.fromEntries(
+    entries
+      .filter(([key]) => allowed.has(key.toLowerCase()))
+      .map(([key, value]) => [
+        key,
+        typeof value === "string"
+          ? value
+          : Array.isArray(value)
+            ? value.filter((item): item is string => typeof item === "string")
+            : String(value ?? ""),
+      ])
+  );
 }
 
 export const onRequestError: Instrumentation.onRequestError = async (error, request, context) => {

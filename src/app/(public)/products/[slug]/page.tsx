@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -351,7 +352,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 [Truck, t("origin"), metadata.shipping?.origin || "Kedu, Temanggung"],
                 [Package, t("packaging"), trade.packaging || "Packaging disesuaikan produk"],
                 [ShieldCheck, t("quality"), trade.inspection || "QC sebelum dikirim"],
-              ] as Array<[typeof Clock3, string, string]>).map(([Icon,title,text]) => <div key={title} className="flex gap-3 rounded-2xl border border-dark-100 bg-dark-50/60 p-4"><span className="text-primary"><Icon className="h-5 w-5" aria-hidden="true" /></span><div><p className="text-sm font-bold text-dark">{title}</p><p className="mt-1 text-xs leading-5 text-dark-500">{text}</p></div></div>)}</div></CardContent></Card>
+              ] satisfies Array<[LucideIcon, string, string]>).map(([Icon,title,text]) => <div key={title} className="flex gap-3 rounded-2xl border border-dark-100 bg-dark-50/60 p-4"><span className="text-primary"><Icon className="h-5 w-5" aria-hidden="true" /></span><div><p className="text-sm font-bold text-dark">{title}</p><p className="mt-1 text-xs leading-5 text-dark-500">{text}</p></div></div>)}</div></CardContent></Card>
 
               {faq.length > 0 && <Card id="faq" className="mt-6 scroll-mt-28 border-dark-200 shadow-sm"><CardContent className="p-5 sm:p-7"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">{t("buyerQuestions")}</p><h2 className="mt-2 text-2xl font-black text-dark">{t("commonQuestions")}</h2><div className="mt-6 space-y-3">{faq.map((item) => <details key={item.question} className="group rounded-2xl border border-dark-100 bg-white p-4"><summary className="cursor-pointer list-none pr-8 text-sm font-bold text-dark marker:hidden">{item.question}</summary><p className="mt-3 text-sm leading-7 text-dark-600">{item.answer}</p></details>)}</div></CardContent></Card>}
 

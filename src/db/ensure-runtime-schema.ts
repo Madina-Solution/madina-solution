@@ -25,7 +25,17 @@ export function ensureRuntimeSchema() {
       await db.execute(sql`ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb`);
       await db.execute(sql`ALTER TABLE "navigation_items" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb`);
       await db.execute(sql`UPDATE "articles" SET "translations" = jsonb_build_object('id', jsonb_build_object('title', "title", 'excerpt', COALESCE("excerpt", ''), 'content', COALESCE("content", ''), 'category', COALESCE("category", ''), 'tags', COALESCE("tags", '[]'::jsonb))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
-      await db.execute(sql`UPDATE "navigation_items" SET "translations" = jsonb_build_object('id', jsonb_build_object('name', "name", 'description', COALESCE("description", ''))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
+      // Repair legacy publication metadata and empty card excerpts without exposing drafts.
+      await db.execute(sql`UPDATE "articles" SET "is_published" = true WHERE "published_at" IS NOT NULL AND "is_published" = false`);
+      await db.execute(sql`UPDATE "articles" SET "published_at" = COALESCE("published_at", "created_at") WHERE "is_published" = true AND "published_at" IS NULL`);
+      await db.execute(sql`
+        UPDATE "articles"
+        SET "excerpt" = LEFT(
+          regexp_replace(regexp_replace(COALESCE("content", ''), '<[^>]+>', ' ', 'g'), '\\s+', ' ', 'g'),
+          220
+        )
+        WHERE COALESCE(trim("excerpt"), '') = '' AND COALESCE(trim("content"), '') <> ''
+      `);      await db.execute(sql`UPDATE "navigation_items" SET "translations" = jsonb_build_object('id', jsonb_build_object('name', "name", 'description', COALESCE("description", ''))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
       await db.execute(sql`UPDATE "products" SET "translations" = jsonb_build_object('id', jsonb_build_object('name', "name", 'shortDescription', COALESCE("short_description", ''), 'description', COALESCE("description", ''), 'specifications', COALESCE("specifications", '{}'::jsonb))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
       await db.execute(sql`UPDATE "services" SET "translations" = jsonb_build_object('id', jsonb_build_object('name', "name", 'shortDescription', COALESCE("short_description", ''), 'description', COALESCE("description", ''), 'features', COALESCE("features", '[]'::jsonb), 'deliverables', COALESCE("deliverables", '[]'::jsonb))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);
       await db.execute(sql`UPDATE "portfolio" SET "translations" = jsonb_build_object('id', jsonb_build_object('title', "title", 'description', COALESCE("description", ''), 'category', COALESCE("category", ''), 'client', COALESCE("client", ''), 'tags', COALESCE("tags", '[]'::jsonb))) WHERE "translations" IS NULL OR "translations" = '{}'::jsonb`);

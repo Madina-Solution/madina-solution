@@ -21,28 +21,29 @@ export function ProductGallery({ thumbnail, gallery, productName }: Props) {
   const safeIndex = Math.min(index, Math.max(media.length - 1, 0));
   const active = media[safeIndex];
   const mediaKey = media.join("\u0000");
+  const mediaCount = media.length;
 
   React.useEffect(() => {
-    if (!playing || hovered || media.length <= 1) return;
+    if (!playing || hovered || mediaCount <= 1) return;
     const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % Math.max(media.length, 1));
+      setIndex((current) => (current + 1) % Math.max(mediaCount, 1));
     }, 5000);
     return () => window.clearInterval(timer);
-  }, [mediaKey, playing, hovered]);
+  }, [mediaKey, mediaCount, playing, hovered]);
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (lightbox && event.key === "Escape") setLightbox(false);
       if (event.key === "ArrowRight") {
-        setIndex((current) => (current + 1) % Math.max(media.length, 1));
+        setIndex((current) => (current + 1) % Math.max(mediaCount, 1));
       }
       if (event.key === "ArrowLeft") {
-        setIndex((current) => (current - 1 + Math.max(media.length, 1)) % Math.max(media.length, 1));
+        setIndex((current) => (current - 1 + Math.max(mediaCount, 1)) % Math.max(mediaCount, 1));
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightbox, mediaKey]);
+  }, [lightbox, mediaKey, mediaCount]);
 
   if (!media.length) return <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-dark-100 bg-dark-50"><MediaPlaceholder label="Belum ada media produk" /></div>;
 

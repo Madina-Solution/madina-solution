@@ -113,7 +113,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             : "bg-white border-b border-transparent"
         )}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 lg:px-6">
+        <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 lg:px-6">
           {/* Logo */}
           <Link
             href="/"
@@ -155,16 +155,18 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
               ))}
             </ul>
 
-            {activeMenu && (
-              <div
-                id="main-mega-menu"
-                onMouseEnter={() => { if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; } }}
-                onMouseLeave={handleMenuLeave}
-              >
-                <MegaMenu navigation={navigation} activeMenu={activeMenu as "services" | "products" | "explore"} />
-              </div>
-            )}
           </nav>
+
+          {activeMenu && (
+            <div
+              id="main-mega-menu"
+              className="absolute inset-x-0 top-full z-50"
+              onMouseEnter={() => { if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; } }}
+              onMouseLeave={handleMenuLeave}
+            >
+              <MegaMenu navigation={navigation} activeMenu={activeMenu as "services" | "products" | "explore"} />
+            </div>
+          )}
 
           {/* Right Actions */}
           <div className="flex shrink-0 items-center gap-1.5">

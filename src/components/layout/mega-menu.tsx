@@ -25,8 +25,8 @@ export function MegaMenu({ activeMenu, navigation = { services: QUICK_NAV_SERVIC
   const t = useTranslations("Navigation");
 
   return (
-    <div className="absolute left-1/2 top-full z-50 w-[min(1120px,calc(100vw-2rem))] -translate-x-1/2 pt-3">
-      <div className="overflow-hidden rounded-[28px] border border-dark-200 bg-white shadow-[0_24px_70px_-24px_rgba(15,23,42,.28)] ring-1 ring-black/5">
+    <div className="w-full pt-3">
+      <div className="w-full overflow-hidden rounded-[28px] border border-dark-200 bg-white shadow-[0_24px_70px_-24px_rgba(15,23,42,.28)] ring-1 ring-black/5">
         {activeMenu === "services" && (
           <div className="grid min-h-[360px] grid-cols-[300px_minmax(0,1fr)]">
             <section className="border-r border-dark-100 bg-gradient-to-br from-white via-white to-primary-50/70 p-7">

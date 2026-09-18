@@ -113,15 +113,19 @@ export default async function BlogDetailPage({ params }: Props) {
     <>
       <BreadcrumbSchema items={[{ name: t("home"), url: siteConfig.siteUrl }, { name: t("blog"), url: `${siteConfig.siteUrl}/blog` }, { name: localized.title, url: pageUrl }]} />
       <ArticleSchema name={localized.title} description={localized.excerpt || `${t("blog")}: ${localized.title}`} url={pageUrl} image={article.thumbnail || undefined} publishedAt={article.publishedAt?.toISOString()} updatedAt={updatedDate?.toISOString()} authorName={editorialName} inLanguage={locale === "en" ? "en-US" : "id-ID"} />
-      <ArticleReadingTools url={pageUrl} title={localized.title} />
 
       <div className="bg-[#fcfbf9] py-10 lg:py-16">
         <div className="mx-auto max-w-[1320px] px-4 lg:px-6">
           <nav aria-label={`${t("home")} / ${t("blog")}`} className="mb-8 flex items-center gap-2 overflow-x-auto whitespace-nowrap text-sm text-dark-500"><Link href="/" className="hover:text-primary">{t("home")}</Link><span aria-hidden="true">/</span><Link href="/blog" className="hover:text-primary">{t("blog")}</Link><span aria-hidden="true">/</span><span className="truncate text-dark">{localized.title}</span></nav>
 
-          <header className="mx-auto max-w-4xl text-center">
+          <header className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-dark-200 bg-white px-6 py-9 text-center shadow-[0_24px_80px_rgba(15,23,42,.08)] sm:px-10 sm:py-12 lg:px-16 lg:py-14">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
+            <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/[.07] blur-3xl" />
+            <div className="pointer-events-none absolute -left-20 -bottom-28 h-64 w-64 rounded-full bg-dark-900/[.04] blur-3xl" />
+            <div className="relative">
             {localized.category && <Badge variant="secondary">{localized.category}</Badge>}
-            <h1 className="mt-4 text-3xl font-black tracking-[-0.03em] text-dark sm:text-4xl lg:text-5xl lg:leading-[1.08]">{localized.title}</h1>
+            <p className="mt-4 text-[10px] font-black uppercase tracking-[.28em] text-primary">{t("editorial")}</p>
+            <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] text-dark sm:text-4xl lg:text-6xl lg:leading-[1.04]">{localized.title}</h1>
             {localized.excerpt && <p className="mx-auto mt-5 max-w-3xl text-base leading-8 text-dark-600 lg:text-lg">{localized.excerpt}</p>}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-dark-500">
               <span className="inline-flex items-center gap-1.5"><Calendar className="h-4 w-4" aria-hidden="true" />{t("published")} {formatDate(article.publishedAt || article.createdAt, locale)}</span>
@@ -129,11 +133,12 @@ export default async function BlogDetailPage({ params }: Props) {
               <span className="inline-flex items-center gap-1.5"><Eye className="h-4 w-4" aria-hidden="true" />{t("views", { count: (article.viewCount ?? 0) + 1 })}</span>
             </div>
             {updatedDate && <p className="mt-3 text-xs font-medium text-dark-400">{t("lastUpdated")} {formatDate(updatedDate, locale)}</p>}
+            </div>
           </header>
 
           {article.thumbnail && <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] border border-dark-100 bg-white p-2 shadow-[0_25px_70px_rgba(15,23,42,.1)]"><div className="relative aspect-[16/9] w-full overflow-hidden rounded-[1.5rem]"><SiteImage src={article.thumbnail} alt={localized.title} fill priority sizes="(max-width: 1024px) 100vw, 1024px" className="object-cover" /></div></div>}
 
-          <div className="mx-auto mt-10 grid max-w-[1240px] gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start xl:gap-10">
+          <div className="mx-auto mt-10 grid max-w-[1240px] gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start xl:gap-12">
             <main className="min-w-0">
               <div className="mb-6 lg:hidden"><ArticleToc headings={headings} /></div>
               {siteConfig.adsEnabled && siteConfig.adsClient && siteConfig.adsSlots.article ? <div className="mb-8"><AdSenseUnit client={siteConfig.adsClient} slot={siteConfig.adsSlots.article} className="mx-auto" label="Iklan" /></div> : null}
@@ -155,7 +160,8 @@ export default async function BlogDetailPage({ params }: Props) {
               <div className="mt-8 flex flex-wrap gap-3"><Button variant="outline" asChild><Link href="/blog"><ArrowLeft className="mr-2 h-4 w-4" />{t("back")}</Link></Button><Button variant="secondary" asChild><Link href="/contact">{t("consult")} <ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div>
             </main>
 
-            <aside className="min-w-0 lg:sticky lg:top-24">
+            <aside className="min-w-0 space-y-5 lg:self-start">
+              <ArticleReadingTools url={pageUrl} title={localized.title} />
               <ArticleToc headings={headings} />
               <div className="mt-5 rounded-3xl border border-dark-100 bg-white p-5 shadow-sm">
                 <p className="text-xs font-bold uppercase tracking-[.16em] text-dark-400">{t("articleAbout")}</p>
