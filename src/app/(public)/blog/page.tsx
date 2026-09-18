@@ -2,6 +2,7 @@ import { SiteImage } from "@/components/ui/site-image";
 import { MediaPlaceholder } from "@/components/ui/media-placeholder";
 import { Metadata } from "next";
 import { db } from "@/db";
+import { ensureRuntimeSchema } from "@/db/ensure-runtime-schema";
 import { articles } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
@@ -27,6 +28,7 @@ function readTime(html: string | null) {
 }
 
 export default async function BlogPage({ searchParams }: Props) {
+  await ensureRuntimeSchema();
   const params = await searchParams;
   const [rawLocale, t] = await Promise.all([getLocale(), getTranslations("Blog")]);
   const locale = rawLocale as AppLocale;

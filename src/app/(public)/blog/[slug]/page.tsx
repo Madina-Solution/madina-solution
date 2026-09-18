@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Calendar, Clock, Eye, Tag as TagIcon, User, ShieldCheck, Sparkles } from "lucide-react";
 import { db } from "@/db";
+import { ensureRuntimeSchema } from "@/db/ensure-runtime-schema";
 import { articles, users } from "@/db/schema";
 import { eq, and, ne, sql, desc } from "drizzle-orm";
 import { formatDate } from "@/lib/utils";
@@ -10,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdSenseUnit } from "@/components/ads/adsense";
+import { SiteImage } from "@/components/ui/site-image";
 import { getPublicSiteConfig } from "@/lib/site-config";
 import { buildPageMetadata } from "@/lib/seo";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/seo/json-ld";
@@ -49,6 +51,7 @@ function buildHeadings(content: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  await ensureRuntimeSchema();
   const locale = (await getLocale()) as AppLocale;
   const result = await db.select({ title: articles.title, excerpt: articles.excerpt, thumbnail: articles.thumbnail, metadata: articles.metadata, translations: articles.translations }).from(articles).where(eq(articles.slug, slug)).limit(1);
   if (!result[0]) return { title: locale === "en" ? "Article not found" : "Artikel tidak ditemukan" };
@@ -72,6 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogDetailPage({ params }: Props) {
   const { slug } = await params;
+  await ensureRuntimeSchema();
   const [article] = await db.select({
     id: articles.id, title: articles.title, slug: articles.slug, excerpt: articles.excerpt, content: articles.content,
     thumbnail: articles.thumbnail, category: articles.category, tags: articles.tags, viewCount: articles.viewCount,
@@ -127,7 +131,7 @@ export default async function BlogDetailPage({ params }: Props) {
             {updatedDate && <p className="mt-3 text-xs font-medium text-dark-400">{t("lastUpdated")} {formatDate(updatedDate, locale)}</p>}
           </header>
 
-          {article.thumbnail && <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] border border-dark-100 bg-white p-2 shadow-[0_25px_70px_rgba(15,23,42,.1)]"><img src={article.thumbnail} alt={article.title} width="1600" height="900" className="aspect-[16/9] w-full rounded-[1.5rem] object-cover" /></div>}
+          {article.thumbnail && <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] border border-dark-100 bg-white p-2 shadow-[0_25px_70px_rgba(15,23,42,.1)]"><div className="relative aspect-[16/9] w-full overflow-hidden rounded-[1.5rem]"><SiteImage src={article.thumbnail} alt={localized.title} fill priority sizes="(max-width: 1024px) 100vw, 1024px" className="object-cover" /></div></div>}
 
           <div className="mx-auto mt-10 grid max-w-[1240px] gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start xl:gap-10">
             <main className="min-w-0">
@@ -146,7 +150,7 @@ export default async function BlogDetailPage({ params }: Props) {
                 {tags.length > 0 && <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-dark-100 pt-6"><TagIcon className="h-4 w-4 text-dark-400" aria-hidden="true" />{tags.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>}
               </article>
 
-              <section className="mt-8 rounded-3xl border border-dark-100 bg-white p-6 shadow-sm"><div className="flex gap-4"><span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 text-primary">{article.authorAvatar ? <img src={article.authorAvatar} alt="" className="h-full w-full object-cover" /> : <User className="h-6 w-6" aria-hidden="true" />}</span><div><p className="text-xs font-bold uppercase tracking-[.18em] text-primary">{t("aboutAuthor")}</p><h2 className="mt-1 text-lg font-bold text-dark">{editorialName}</h2><p className="text-sm font-medium text-dark-500">{authorRole}</p><p className="mt-2 text-sm leading-6 text-dark-600">{authorBio}</p>{metadata.editorial?.authorCredentials && <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />{metadata.editorial.authorCredentials}</div>}</div></div></section>
+              <section className="mt-8 rounded-3xl border border-dark-100 bg-white p-6 shadow-sm"><div className="flex gap-4"><span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 text-primary">{article.authorAvatar ? <SiteImage src={article.authorAvatar} alt={editorialName} fill sizes="56px" className="object-cover" /> : <User className="h-6 w-6" aria-hidden="true" />}</span><div><p className="text-xs font-bold uppercase tracking-[.18em] text-primary">{t("aboutAuthor")}</p><h2 className="mt-1 text-lg font-bold text-dark">{editorialName}</h2><p className="text-sm font-medium text-dark-500">{authorRole}</p><p className="mt-2 text-sm leading-6 text-dark-600">{authorBio}</p>{metadata.editorial?.authorCredentials && <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />{metadata.editorial.authorCredentials}</div>}</div></div></section>
 
               <div className="mt-8 flex flex-wrap gap-3"><Button variant="outline" asChild><Link href="/blog"><ArrowLeft className="mr-2 h-4 w-4" />{t("back")}</Link></Button><Button variant="secondary" asChild><Link href="/contact">{t("consult")} <ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div>
             </main>
