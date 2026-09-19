@@ -20,6 +20,10 @@ import {
   CheckCircle2,
   Loader2,
   ImageOff,
+  Landmark,
+  CreditCard,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,23 +31,45 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { useCart } from "@/lib/cart/cart-provider";
+import { useAuth } from "@/lib/auth/auth-provider";
 import { useToast } from "@/components/ui/toast";
 import { formatCurrency } from "@/lib/utils";
 import { checkoutSchema, type CheckoutData } from "@/lib/validations/checkout";
+import { MediaUploader } from "@/components/ui/media-uploader";
 
 type CheckoutStep = "details" | "review" | "success";
 
-export function CheckoutContent() {
+type CheckoutPaymentMethod = { id: string; type: "bank_transfer" | "gateway"; name: string; bankName: string | null; accountNumber: string | null; accountHolder: string | null; instructions: string | null };
+type CheckoutShippingMethod = { id: string; name: string; courier: string | null; cost: number; estimatedDaysMin: number | null; estimatedDaysMax: number | null };
+
+type CheckoutContentProps = {
+  paymentMethods: CheckoutPaymentMethod[];
+  shippingMethods: CheckoutShippingMethod[];
+};
+
+export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutContentProps) {
   const router = useRouter();
   const { state: cart, clearCart } = useCart();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = React.useState<CheckoutStep>("details");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [orderResult, setOrderResult] = React.useState<{
+    orderId: string;
     orderNumber: string;
     total: number;
+    paymentMethod: CheckoutPaymentMethod | null;
   } | null>(null);
   const [deliveryMethod, setDeliveryMethod] = React.useState<"delivery" | "pickup">("delivery");
+  const [paymentMethodId, setPaymentMethodId] = React.useState<string>(paymentMethods[0]?.id || "");
+  const [shippingMethodId, setShippingMethodId] = React.useState<string>(shippingMethods[0]?.id || "");
+  const [proofUrl, setProofUrl] = React.useState("");
+  const [isSavingProof, setIsSavingProof] = React.useState(false);
+  const [proofSaved, setProofSaved] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+
+  const selectedShipping = shippingMethods.find((m) => m.id === shippingMethodId) || null;
+  const shippingCost = deliveryMethod === "pickup" ? 0 : selectedShipping?.cost || 0;
 
   const {
     register,
@@ -69,12 +95,24 @@ export function CheckoutContent() {
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     const fd = formData as unknown as CheckoutData;
+
+    if (!paymentMethodId) {
+      toast({ type: "error", title: "Pilih metode pembayaran terlebih dahulu" });
+      return;
+    }
+    if (deliveryMethod === "delivery" && !shippingMethodId) {
+      toast({ type: "error", title: "Pilih metode pengiriman terlebih dahulu" });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
         customer: fd.customer,
         address: fd.address,
         deliveryMethod,
+        paymentMethodId,
+        shippingMethodId: deliveryMethod === "delivery" ? shippingMethodId : undefined,
         items: cart.items.map((item) => ({
           ...(item.itemType === "service" ? { serviceId: item.serviceId } : { productId: item.productId }),
           quantity: item.quantity,
@@ -102,8 +140,10 @@ export function CheckoutContent() {
       }
 
       setOrderResult({
+        orderId: result.order.id,
         orderNumber: result.order.orderNumber,
         total: result.order.total,
+        paymentMethod: result.paymentMethod || null,
       });
       setStep("success");
       clearCart();
@@ -118,8 +158,42 @@ export function CheckoutContent() {
     }
   };
 
+  const handleCopyAccountNumber = async (accountNumber: string) => {
+    try {
+      await navigator.clipboard.writeText(accountNumber);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ type: "error", title: "Gagal menyalin nomor rekening" });
+    }
+  };
+
+  const handleSaveProof = async () => {
+    if (!orderResult || !proofUrl) return;
+    setIsSavingProof(true);
+    try {
+      const res = await fetch(`/api/orders/${orderResult.orderId}/payment-proof`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proofUrl }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProofSaved(true);
+        toast({ type: "success", title: "Bukti transfer tersimpan", description: "Tim kami akan segera memverifikasi pembayaran Anda." });
+      } else {
+        toast({ type: "error", title: data.error?.message || "Gagal menyimpan bukti transfer" });
+      }
+    } catch {
+      toast({ type: "error", title: "Terjadi kesalahan" });
+    } finally {
+      setIsSavingProof(false);
+    }
+  };
+
   // Step: Success
   if (step === "success" && orderResult) {
+    const pm = orderResult.paymentMethod;
     return (
       <div className="py-16 lg:py-24">
         <div className="mx-auto max-w-lg px-4 text-center">
@@ -136,6 +210,55 @@ export function CheckoutContent() {
             <p className="mt-4 text-sm text-dark-500">Total</p>
             <p className="mt-1 text-xl font-semibold text-dark">{formatCurrency(orderResult.total)}</p>
           </div>
+
+          {pm && pm.type === "bank_transfer" && (
+            <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-6 text-left">
+              <h2 className="flex items-center gap-2 font-semibold text-dark">
+                <Landmark className="h-4 w-4 text-primary" /> Transfer ke {pm.name}
+              </h2>
+              <div className="mt-3 space-y-1 text-sm">
+                <p className="text-dark-500">Bank</p>
+                <p className="font-medium text-dark">{pm.bankName}</p>
+                <p className="mt-2 text-dark-500">Nomor Rekening</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono text-lg font-bold text-dark">{pm.accountNumber}</p>
+                  <button type="button" onClick={() => pm.accountNumber && handleCopyAccountNumber(pm.accountNumber)} className="rounded-lg p-1.5 text-dark-400 transition-colors hover:bg-dark-100 hover:text-primary" aria-label="Salin nomor rekening">
+                    {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="mt-2 text-dark-500">Atas Nama</p>
+                <p className="font-medium text-dark">{pm.accountHolder}</p>
+                {pm.instructions && <p className="mt-3 text-xs text-dark-500">{pm.instructions}</p>}
+              </div>
+
+              {user ? (
+                <div className="mt-5 border-t border-dark-100 pt-4">
+                  {proofSaved ? (
+                    <p className="flex items-center gap-2 text-sm font-medium text-green-600"><CheckCircle2 className="h-4 w-4" /> Bukti transfer sudah diunggah — menunggu verifikasi admin.</p>
+                  ) : (
+                    <>
+                      <p className="mb-2 text-sm font-medium text-dark">Sudah transfer? Unggah bukti pembayaran</p>
+                      <MediaUploader value={proofUrl} onChange={(v) => setProofUrl(Array.isArray(v) ? v[0] || "" : v)} purpose="customer_upload" label="" helpText="JPG/PNG screenshot bukti transfer" />
+                      {proofUrl && (
+                        <Button className="mt-3 w-full" onClick={handleSaveProof} isLoading={isSavingProof}>Simpan Bukti Transfer</Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              ) : (
+                <p className="mt-5 border-t border-dark-100 pt-4 text-sm text-dark-500">
+                  Setelah transfer, kirimkan screenshot bukti pembayaran beserta nomor pesanan <strong>{orderResult.orderNumber}</strong> ke WhatsApp admin kami agar segera diverifikasi. Login ke akun Anda juga memungkinkan upload bukti langsung di sini.
+                </p>
+              )}
+            </div>
+          )}
+
+          {pm && pm.type === "gateway" && (
+            <p className="mt-6 text-sm text-dark-600">
+              Tim kami akan menghubungi Anda melalui WhatsApp untuk menyelesaikan pembayaran otomatis.
+            </p>
+          )}
+
           <p className="mt-6 text-sm text-dark-500">
             Simpan nomor pesanan Anda. Tim kami akan segera menghubungi untuk konfirmasi.
           </p>
@@ -275,6 +398,64 @@ export function CheckoutContent() {
                 </Card>
               )}
 
+              {/* Shipping Courier */}
+              {deliveryMethod === "delivery" && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold text-dark">
+                      <Truck className="h-5 w-5 text-primary" />
+                      Pilih Kurir
+                    </h2>
+                    {shippingMethods.length > 0 ? (
+                      <div className="mt-4 space-y-2">
+                        {shippingMethods.map((m) => (
+                          <label key={m.id} className={`flex cursor-pointer items-center justify-between rounded-xl border-2 p-4 transition-all ${shippingMethodId === m.id ? "border-primary bg-primary/5" : "border-dark-200 hover:border-dark-300"}`}>
+                            <div className="flex items-center gap-3">
+                              <input type="radio" name="shippingMethod" checked={shippingMethodId === m.id} onChange={() => setShippingMethodId(m.id)} className="h-4 w-4 text-primary" />
+                              <div>
+                                <p className="font-medium text-dark">{m.name}</p>
+                                <p className="text-xs text-dark-500">{m.courier ? `${m.courier} · ` : ""}est. {m.estimatedDaysMin}-{m.estimatedDaysMax} hari</p>
+                              </div>
+                            </div>
+                            <span className="font-semibold text-dark">{formatCurrency(m.cost)}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-3 flex items-center gap-2 text-sm text-amber-600"><AlertCircle className="h-4 w-4" /> Belum ada kurir aktif. Hubungi admin sebelum melanjutkan.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Payment Method */}
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-dark">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    Metode Pembayaran
+                  </h2>
+                  {paymentMethods.length > 0 ? (
+                    <div className="mt-4 space-y-2">
+                      {paymentMethods.map((m) => (
+                        <label key={m.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 transition-all ${paymentMethodId === m.id ? "border-primary bg-primary/5" : "border-dark-200 hover:border-dark-300"}`}>
+                          <input type="radio" name="paymentMethod" checked={paymentMethodId === m.id} onChange={() => setPaymentMethodId(m.id)} className="mt-0.5 h-4 w-4 text-primary" />
+                          <div className="flex items-center gap-2">
+                            {m.type === "bank_transfer" ? <Landmark className="h-4 w-4 text-dark-400" /> : <CreditCard className="h-4 w-4 text-dark-400" />}
+                            <div>
+                              <p className="font-medium text-dark">{m.name}</p>
+                              {m.type === "bank_transfer" && <p className="text-xs text-dark-500">{m.bankName} a.n. {m.accountHolder || "-"}</p>}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-3 flex items-center gap-2 text-sm text-amber-600"><AlertCircle className="h-4 w-4" /> Belum ada metode pembayaran aktif. Hubungi admin sebelum melanjutkan.</p>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Coupon */}
               <Card>
                 <CardContent className="p-6">
@@ -361,16 +542,16 @@ export function CheckoutContent() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-dark-600">Pengiriman</span>
-                      <span className="text-dark-500">{deliveryMethod === "pickup" ? "Gratis" : "Dihitung terpisah"}</span>
+                      <span className="text-dark-500">{deliveryMethod === "pickup" ? "Gratis" : selectedShipping ? formatCurrency(shippingCost) : "Pilih kurir"}</span>
                     </div>
                   </div>
                   <div className="mt-4 flex justify-between">
                     <span className="font-semibold text-dark">Estimasi Total</span>
-                    <span className="text-xl font-bold text-primary">{formatCurrency(cart.estimatedTotal)}</span>
+                    <span className="text-xl font-bold text-primary">{formatCurrency(cart.estimatedTotal + shippingCost)}</span>
                   </div>
 
                   <p className="mt-2 text-xs text-dark-400">
-                    Harga final dihitung ulang oleh server. Ongkos kirim akan diinformasikan melalui WhatsApp.
+                    Harga final dihitung ulang oleh server.
                   </p>
 
                   {/* Submit */}
@@ -378,7 +559,7 @@ export function CheckoutContent() {
                     type="submit"
                     size="lg"
                     className="mt-6 w-full"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !paymentMethodId || (deliveryMethod === "delivery" && !shippingMethodId)}
                   >
                     {isSubmitting ? (
                       <>

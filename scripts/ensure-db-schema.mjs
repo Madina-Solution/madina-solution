@@ -25,6 +25,9 @@ const requiredColumns = [
   { table: "articles", column: "translations", sql: `ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
   { table: "faqs", column: "translations", sql: `ALTER TABLE "faqs" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
   { table: "navigation_items", column: "translations", sql: `ALTER TABLE "navigation_items" ADD COLUMN IF NOT EXISTS "translations" jsonb DEFAULT '{}'::jsonb` },
+  // orders.payment_method_id / shipping_method_id / payment_proof are added
+  // in requiredStatements below (after payment_methods/shipping_methods are
+  // created), since the FK columns can't be added before their target tables exist.
 ];
 
 // DDL that isn't a plain "ADD COLUMN IF NOT EXISTS" (enum type + new table for
@@ -69,7 +72,38 @@ const requiredStatements = [
    CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(p.metadata #> '{pricing,wholesaleTiers}') = 'array' THEN p.metadata #> '{pricing,wholesaleTiers}' ELSE '[]'::jsonb END) AS tier
    WHERE COALESCE(tier->>'minQuantity','') ~ '^[0-9]+$'
      AND COALESCE(tier->>'unitPrice','') ~ '^[0-9]+([.][0-9]+)?$'
-   ON CONFLICT ("product_id", "min_quantity") DO NOTHING;`,];
+   ON CONFLICT ("product_id", "min_quantity") DO NOTHING;`,
+  `CREATE TABLE IF NOT EXISTS "payment_methods" (
+     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+     "type" varchar(20) NOT NULL,
+     "name" varchar(120) NOT NULL,
+     "bank_name" varchar(120),
+     "account_number" varchar(60),
+     "account_holder" varchar(120),
+     "logo" text,
+     "instructions" text,
+     "is_active" boolean NOT NULL DEFAULT true,
+     "sort_order" integer NOT NULL DEFAULT 0,
+     "created_at" timestamp NOT NULL DEFAULT now(),
+     "updated_at" timestamp NOT NULL DEFAULT now()
+   );`,
+  `CREATE TABLE IF NOT EXISTS "shipping_methods" (
+     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+     "name" varchar(120) NOT NULL,
+     "courier" varchar(60),
+     "cost" numeric(12,2) NOT NULL DEFAULT 0,
+     "estimated_days_min" integer DEFAULT 1,
+     "estimated_days_max" integer DEFAULT 3,
+     "is_active" boolean NOT NULL DEFAULT true,
+     "sort_order" integer NOT NULL DEFAULT 0,
+     "created_at" timestamp NOT NULL DEFAULT now(),
+     "updated_at" timestamp NOT NULL DEFAULT now()
+   );`,
+  // orders FK/columns — must run after the two tables above exist.
+  `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_method_id" uuid REFERENCES "payment_methods"("id");`,
+  `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "shipping_method_id" uuid REFERENCES "shipping_methods"("id");`,
+  `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_proof" text;`,
+];
 
 // One-time seed matching the static QUICK_NAV_* baseline in src/lib/navigation.ts,
 // so the new admin-managed table starts populated instead of empty and the
@@ -92,6 +126,17 @@ const NAV_SEED = [
   { group: "explore", name: "FAQ", href: "/faq", icon: "faq", description: "Pertanyaan yang sering diajukan", sortOrder: 2 },
   { group: "explore", name: "Tentang Kami", href: "/about", icon: "about", description: "Kenali Madina Solution", sortOrder: 3 },
   { group: "explore", name: "Kontak", href: "/contact", icon: "contact", description: "Hubungi tim kami", sortOrder: 4 },
+];
+
+// One-time seed so checkout never shows an empty payment/shipping list right
+// after this migration. Values are clearly-labeled placeholders — admin
+// should edit the bank account details via /admin/payment-methods before going live.
+const PAYMENT_METHOD_SEED = [
+  { type: "bank_transfer", name: "Transfer Bank", bankName: "BCA", accountNumber: "0000000000", accountHolder: "Madina Solution (ganti di Admin)", sortOrder: 0 },
+  { type: "gateway", name: "Pembayaran Otomatis (VA/QRIS)", bankName: null, accountNumber: null, accountHolder: null, sortOrder: 1 },
+];
+const SHIPPING_METHOD_SEED = [
+  { name: "Reguler", courier: "JNE/J&T (ganti di Admin)", cost: "15000", estimatedDaysMin: 2, estimatedDaysMax: 4, sortOrder: 0 },
 ];
 
 // Derived from DATABASE_URL instead of `inet_server_host()`: on pooled/proxied
@@ -143,6 +188,28 @@ async function main() {
       console.log(`Seeded ${NAV_SEED.length} navigation_items rows (table was empty).`);
     }
 
+    const { rows: paymentCountRows } = await client.query(`SELECT count(*)::int AS count FROM "payment_methods"`);
+    if (paymentCountRows[0].count === 0) {
+      for (const item of PAYMENT_METHOD_SEED) {
+        await client.query(
+          `INSERT INTO "payment_methods" ("type", "name", "bank_name", "account_number", "account_holder", "sort_order") VALUES ($1, $2, $3, $4, $5, $6)`,
+          [item.type, item.name, item.bankName, item.accountNumber, item.accountHolder, item.sortOrder]
+        );
+      }
+      console.log(`Seeded ${PAYMENT_METHOD_SEED.length} payment_methods rows (table was empty). Edit account details in /admin/payment-methods.`);
+    }
+
+    const { rows: shippingCountRows } = await client.query(`SELECT count(*)::int AS count FROM "shipping_methods"`);
+    if (shippingCountRows[0].count === 0) {
+      for (const item of SHIPPING_METHOD_SEED) {
+        await client.query(
+          `INSERT INTO "shipping_methods" ("name", "courier", "cost", "estimated_days_min", "estimated_days_max", "sort_order") VALUES ($1, $2, $3, $4, $5, $6)`,
+          [item.name, item.courier, item.cost, item.estimatedDaysMin, item.estimatedDaysMax, item.sortOrder]
+        );
+      }
+      console.log(`Seeded ${SHIPPING_METHOD_SEED.length} shipping_methods rows (table was empty). Edit rates in /admin/shipping-methods.`);
+    }
+
     await client.query("COMMIT");
 
     const result = await client.query(
@@ -153,7 +220,10 @@ async function main() {
            OR (table_name = 'products' AND column_name IN ('options','fulfillment_type','translations'))
            OR (table_name = 'order_items' AND column_name = 'fulfillment_type')
            OR (table_name = 'product_pricing_tiers' AND column_name IN ('product_id','min_quantity','max_quantity','unit_price','is_active'))
-           OR (table_name IN ('categories','portfolio','articles','faqs','navigation_items') AND column_name = 'translations'))
+           OR (table_name IN ('categories','portfolio','articles','faqs','navigation_items') AND column_name = 'translations')
+           OR (table_name = 'payment_methods' AND column_name IN ('type','name','is_active'))
+           OR (table_name = 'shipping_methods' AND column_name IN ('name','cost','is_active'))
+           OR (table_name = 'orders' AND column_name IN ('payment_method_id','shipping_method_id','payment_proof')))
        ORDER BY table_name, ordinal_position`
     );
 

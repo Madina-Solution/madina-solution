@@ -167,6 +167,43 @@ export const productPricingTiers = pgTable("product_pricing_tiers", {
   productMinQuantityUnique: uniqueIndex("product_pricing_tiers_product_min_quantity_unique").on(table.productId, table.minQuantity),
 }));
 
+// Payment Methods Table
+// Admin-managed list of payment channels shown at checkout: manual bank
+// transfer accounts (type "bank_transfer") plus the existing automatic
+// gateway from src/lib/payment/service.ts, surfaced as one selectable
+// "gateway" row so the customer sees every option in one place.
+export const paymentMethods = pgTable("payment_methods", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: varchar("type", { length: 20 }).notNull(), // "bank_transfer" | "gateway"
+  name: varchar("name", { length: 120 }).notNull(),
+  bankName: varchar("bank_name", { length: 120 }),
+  accountNumber: varchar("account_number", { length: 60 }),
+  accountHolder: varchar("account_holder", { length: 120 }),
+  logo: text("logo"),
+  instructions: text("instructions"),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Shipping Methods Table
+// Admin-managed courier list with a flat rate + estimated delivery window.
+// Selected at checkout only when deliveryMethod === "delivery"; cost is
+// always re-read from this table server-side, never trusted from the client.
+export const shippingMethods = pgTable("shipping_methods", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 120 }).notNull(),
+  courier: varchar("courier", { length: 60 }),
+  cost: decimal("cost", { precision: 12, scale: 2 }).default("0").notNull(),
+  estimatedDaysMin: integer("estimated_days_min").default(1),
+  estimatedDaysMax: integer("estimated_days_max").default(3),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Services Table
 export const services = pgTable("services", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -232,6 +269,9 @@ export const orders = pgTable("orders", {
   deliveryMethod: varchar("delivery_method", { length: 20 }).default("delivery"),
   status: orderStatusEnum("status").default("pending").notNull(),
   paymentStatus: paymentStatusEnum("payment_status").default("unpaid").notNull(),
+  paymentMethodId: uuid("payment_method_id").references(() => paymentMethods.id),
+  shippingMethodId: uuid("shipping_method_id").references(() => shippingMethods.id),
+  paymentProof: text("payment_proof"),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
   discount: decimal("discount", { precision: 12, scale: 2 }).default("0"),
   shippingCost: decimal("shipping_cost", { precision: 12, scale: 2 }).default("0"),

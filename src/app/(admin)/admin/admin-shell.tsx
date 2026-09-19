@@ -27,6 +27,9 @@ import {
   HelpCircle,
   Briefcase,
   LayoutGrid,
+  Landmark,
+  Truck,
+  Quote,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useToast } from "@/components/ui/toast";
@@ -50,6 +53,8 @@ const NAV_GROUPS = [
       { href: "/admin/products", label: "Produk", icon: Package, exact: false },
       { href: "/admin/categories", label: "Kategori", icon: FolderTree, exact: false },
       { href: "/admin/coupons", label: "Kupon", icon: Ticket, exact: false },
+      { href: "/admin/payment-methods", label: "Metode Pembayaran", icon: Landmark, exact: false },
+      { href: "/admin/shipping-methods", label: "Metode Pengiriman", icon: Truck, exact: false },
     ],
   },
   {
@@ -73,6 +78,7 @@ const NAV_GROUPS = [
       { href: "/admin/services", label: "Layanan", icon: Briefcase, exact: false },
       { href: "/admin/portfolio", label: "Portfolio", icon: Image, exact: false },
       { href: "/admin/articles", label: "Artikel", icon: FileText, exact: false },
+      { href: "/admin/testimonials", label: "Testimoni", icon: Quote, exact: false },
       { href: "/admin/faqs", label: "FAQ", icon: HelpCircle, exact: false },
       { href: "/admin/navigation", label: "Mega Menu", icon: LayoutGrid, exact: false },
     ],

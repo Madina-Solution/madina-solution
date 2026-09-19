@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { orders, orderItems, orderStatusHistory, payments, designRevisions, products } from "@/db/schema";
+import { orders, orderItems, orderStatusHistory, payments, designRevisions, products, paymentMethods, shippingMethods } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -59,6 +59,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const history = await db.select().from(orderStatusHistory).where(eq(orderStatusHistory.orderId, id)).orderBy(desc(orderStatusHistory.createdAt));
   const paymentList = await db.select().from(payments).where(eq(payments.orderId, id)).orderBy(desc(payments.createdAt));
   const revisions = await db.select().from(designRevisions).where(eq(designRevisions.orderId, id)).orderBy(desc(designRevisions.revisionNumber));
+  const selectedPaymentMethod = order.paymentMethodId ? (await db.select().from(paymentMethods).where(eq(paymentMethods.id, order.paymentMethodId)).limit(1))[0] : null;
+  const selectedShippingMethod = order.shippingMethodId ? (await db.select().from(shippingMethods).where(eq(shippingMethods.id, order.shippingMethodId)).limit(1))[0] : null;
 
   const statusInfo = STATUS_LABELS[order.status] || { label: order.status, color: "bg-dark-100 text-dark-600" };
   const address = order.shippingAddress as { recipientName?: string; phone?: string; address?: string; city?: string; province?: string; district?: string; postalCode?: string } | null;
@@ -193,6 +195,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             <p className="mt-2 text-sm capitalize text-dark-600">
               Metode: {order.deliveryMethod || "delivery"}
             </p>
+            {selectedShippingMethod && (
+              <p className="mt-1 text-sm text-dark-600">
+                Kurir: <span className="font-medium text-dark">{selectedShippingMethod.name}</span> — {formatCurrency(Number(order.shippingCost || 0))}
+              </p>
+            )}
             {address && (
               <div className="mt-3 flex gap-2 text-sm text-dark-600">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-dark-400" />
@@ -225,6 +232,23 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                   {order.paymentStatus === "paid" ? "Lunas" : order.paymentStatus === "refunded" ? "Refund" : "Belum Bayar"}
                 </span>
               </div>
+              {selectedPaymentMethod && (
+                <div className="flex justify-between">
+                  <span className="text-dark-500">Metode Dipilih</span>
+                  <span className="font-medium text-dark">
+                    {selectedPaymentMethod.name}
+                    {selectedPaymentMethod.type === "bank_transfer" && ` (${selectedPaymentMethod.bankName} · ${selectedPaymentMethod.accountNumber})`}
+                  </span>
+                </div>
+              )}
+              {order.paymentProof && (
+                <div>
+                  <span className="text-dark-500">Bukti Transfer</span>
+                  <a href={order.paymentProof} target="_blank" rel="noopener noreferrer" className="mt-1 block overflow-hidden rounded-lg border border-dark-100">
+                    <SiteImage src={order.paymentProof} alt="Bukti transfer" width={320} height={200} className="h-40 w-full object-cover" />
+                  </a>
+                </div>
+              )}
               {paymentList.length > 0 && paymentList.map((p) => (
                 <div key={p.id} className="rounded-lg bg-dark-50 p-3">
                   <div className="flex justify-between text-xs">

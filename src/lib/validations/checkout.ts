@@ -29,9 +29,14 @@ export const checkoutSchema = z.object({
   customer: checkoutCustomerSchema,
   address: checkoutAddressSchema,
   deliveryMethod: z.enum(["pickup", "delivery"]),
+  paymentMethodId: z.string().uuid("Metode pembayaran wajib dipilih"),
+  shippingMethodId: z.string().uuid().optional(),
   items: z.array(checkoutItemSchema).min(1, "Keranjang tidak boleh kosong"),
   notes: z.string().max(2000).optional(),
   couponCode: z.string().max(50).optional(),
+}).refine((data) => data.deliveryMethod !== "delivery" || Boolean(data.shippingMethodId), {
+  message: "Metode pengiriman wajib dipilih",
+  path: ["shippingMethodId"],
 });
 
 export type CheckoutData = z.infer<typeof checkoutSchema>;

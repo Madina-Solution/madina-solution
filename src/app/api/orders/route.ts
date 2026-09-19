@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { getSession } from "@/lib/auth/session";
-import { orders, orderItems, orderStatusHistory, products, services, media, auditLogs } from "@/db/schema";
+import { orders, orderItems, orderStatusHistory, products, services, media, auditLogs, paymentMethods, shippingMethods } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { checkoutSchema } from "@/lib/validations/checkout";
 import { generateOrderNumber } from "@/lib/order-number";
@@ -105,6 +105,25 @@ export async function POST(request: NextRequest) {
 
     const orderSubtotal = validatedItems.reduce((sum, i) => sum + i.subtotal, 0);
 
+    // 2b. Validate payment method (always required) and shipping method
+    // (required only for delivery). Cost/existence is always re-read from
+    // the database here — the client's selection is only ever an id.
+    const [paymentMethod] = await db.select().from(paymentMethods).where(and(eq(paymentMethods.id, data.paymentMethodId), eq(paymentMethods.isActive, true))).limit(1);
+    if (!paymentMethod) {
+      return NextResponse.json({ success: false, error: { code: "PAYMENT_METHOD_INVALID", message: "Metode pembayaran tidak ditemukan atau tidak aktif" } }, { status: 400 });
+    }
+
+    let shippingCost = 0;
+    let resolvedShippingMethodId: string | null = null;
+    if (data.deliveryMethod === "delivery") {
+      const [shippingMethod] = await db.select().from(shippingMethods).where(and(eq(shippingMethods.id, data.shippingMethodId!), eq(shippingMethods.isActive, true))).limit(1);
+      if (!shippingMethod) {
+        return NextResponse.json({ success: false, error: { code: "SHIPPING_METHOD_INVALID", message: "Metode pengiriman tidak ditemukan atau tidak aktif" } }, { status: 400 });
+      }
+      shippingCost = Number(shippingMethod.cost);
+      resolvedShippingMethodId = shippingMethod.id;
+    }
+
     // Apply coupon if provided
     let orderDiscount = 0;
     let couponId: string | null = null;
@@ -126,7 +145,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const orderTotal = orderSubtotal - orderDiscount;
+    const orderTotal = orderSubtotal - orderDiscount + shippingCost;
 
     // 3. Create order transactionally
     const orderNumber = await generateOrderNumber();
@@ -154,8 +173,11 @@ export async function POST(request: NextRequest) {
           deliveryMethod: data.deliveryMethod,
           status: "pending",
           paymentStatus: "unpaid",
+          paymentMethodId: paymentMethod.id,
+          shippingMethodId: resolvedShippingMethodId,
           subtotal: String(orderSubtotal),
           discount: String(orderDiscount),
+          shippingCost: String(shippingCost),
           total: String(orderTotal),
           couponId,
           notes: data.notes,
@@ -210,7 +232,17 @@ export async function POST(request: NextRequest) {
         orderNumber: result.orderNumber,
         status: result.status,
         total: Number(result.total),
+        shippingCost: Number(result.shippingCost),
         createdAt: result.createdAt,
+      },
+      paymentMethod: {
+        id: paymentMethod.id,
+        type: paymentMethod.type,
+        name: paymentMethod.name,
+        bankName: paymentMethod.bankName,
+        accountNumber: paymentMethod.accountNumber,
+        accountHolder: paymentMethod.accountHolder,
+        instructions: paymentMethod.instructions,
       },
     });
   } catch (error) {
