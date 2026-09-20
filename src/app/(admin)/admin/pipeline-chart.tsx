@@ -14,12 +14,12 @@ export function PipelineChart({ data }: { data: Stage[] }) {
   return (
     <ResponsiveContainer width="100%" height={230}>
       <BarChart data={data} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F1" horizontal={false} />
-        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "#A1A1AA" }} tickLine={false} axisLine={false} />
-        <YAxis type="category" dataKey="stage" tick={{ fontSize: 12, fill: "#3F3F46" }} tickLine={false} axisLine={false} width={90} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-chart-grid)" horizontal={false} />
+        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "var(--admin-chart-text)" }} tickLine={false} axisLine={false} />
+        <YAxis type="category" dataKey="stage" tick={{ fontSize: 12, fill: "var(--admin-chart-text)" }} tickLine={false} axisLine={false} width={90} />
         <Tooltip
           formatter={(value) => [`${value} pesanan`, ""]}
-          contentStyle={{ borderRadius: 12, border: "1px solid #E4E4E7", fontSize: 12 }}
+          contentStyle={{ borderRadius: 12, border: "1px solid var(--admin-chart-border)", backgroundColor: "var(--admin-chart-surface)", fontSize: 12 }}
         />
         <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={22}>
           {data.map((_, i) => (

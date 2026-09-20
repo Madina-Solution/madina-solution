@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================
    MADINA SOLUTION DESIGN SYSTEM
    Premium Creative Business Platform
@@ -217,6 +219,42 @@
     border-radius: 3px;
   }
 }
+
+/* ============================================
+   ADMIN DARK MODE COMPATIBILITY
+   ============================================ */
+
+.admin-ui.admin-dark .bg-white { background-color: #0f172a !important; }
+.admin-ui.admin-dark .bg-dark-50 { background-color: #111827 !important; }
+.admin-ui.admin-dark .bg-dark-100 { background-color: #1e293b !important; }
+.admin-ui.admin-dark .bg-dark-200 { background-color: #334155 !important; }
+.admin-ui.admin-dark .border-dark-50 { border-color: #172033 !important; }
+.admin-ui.admin-dark .border-dark-100 { border-color: #1e293b !important; }
+.admin-ui.admin-dark .border-dark-200 { border-color: #334155 !important; }
+.admin-ui.admin-dark .text-dark { color: #f8fafc !important; }
+.admin-ui.admin-dark .text-dark-900,
+.admin-ui.admin-dark .text-dark-800 { color: #f8fafc !important; }
+.admin-ui.admin-dark .text-dark-700 { color: #e2e8f0 !important; }
+.admin-ui.admin-dark .text-dark-600 { color: #cbd5e1 !important; }
+.admin-ui.admin-dark .text-dark-500 { color: #94a3b8 !important; }
+.admin-ui.admin-dark .text-dark-400 { color: #94a3b8 !important; }
+.admin-ui.admin-dark input,
+.admin-ui.admin-dark textarea,
+.admin-ui.admin-dark select {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+.admin-ui.admin-dark input::placeholder,
+.admin-ui.admin-dark textarea::placeholder { color: #64748b !important; }
+.admin-ui.admin-dark table thead { background-color: #111827 !important; }
+.admin-ui.admin-dark .divide-dark-50 > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b !important; }
+.admin-ui { --admin-chart-grid: #e5e7eb; --admin-chart-text: #71717a; --admin-chart-surface: #ffffff; --admin-chart-border: #e4e4e7; }
+.admin-ui.admin-dark { --admin-chart-grid: #334155; --admin-chart-text: #94a3b8; --admin-chart-surface: #0f172a; --admin-chart-border: #334155; }
+
+.admin-ui.admin-dark .shadow-sm,
+.admin-ui.admin-dark .shadow-premium,
+.admin-ui.admin-dark .shadow-premium-lg { box-shadow: 0 14px 35px rgba(2, 6, 23, 0.32) !important; }
 
 /* ============================================
    KEYFRAMES

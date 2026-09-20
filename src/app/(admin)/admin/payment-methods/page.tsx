@@ -23,8 +23,19 @@ type PaymentMethod = {
   sortOrder: number;
 };
 
-type PaymentMethodForm = { type: PaymentMethod["type"]; name: string; bankName: string; accountNumber: string; accountHolder: string; logo: string; instructions: string; isActive: boolean; sortOrder: number };
-const EMPTY_FORM: PaymentMethodForm = { type: "bank_transfer", name: "", bankName: "", accountNumber: "", accountHolder: "", logo: "", instructions: "", isActive: true, sortOrder: 0 };
+type PaymentForm = {
+  type: PaymentMethod["type"];
+  name: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  logo: string;
+  instructions: string;
+  isActive: boolean;
+  sortOrder: number;
+};
+
+const EMPTY_FORM: PaymentForm = { type: "bank_transfer", name: "", bankName: "", accountNumber: "", accountHolder: "", logo: "", instructions: "", isActive: true, sortOrder: 0 };
 
 export default function AdminPaymentMethodsPage() {
   const { toast } = useToast();
@@ -35,7 +46,7 @@ export default function AdminPaymentMethodsPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [form, setForm] = React.useState(EMPTY_FORM);
+  const [form, setForm] = React.useState<PaymentForm>(EMPTY_FORM);
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -44,9 +55,8 @@ export default function AdminPaymentMethodsPage() {
       if (d.success) setItems(d.paymentMethods);
     } catch {} finally { setIsLoading(false); }
   }, []);
-React.useEffect(() => {
-  void (async () => { await fetchData(); })();
-}, [fetchData]);
+  React.useEffect(() => { void fetchData(); }, [fetchData]);
+
   const resetForm = () => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); };
 
   const handleSave = async () => {

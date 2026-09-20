@@ -30,21 +30,24 @@ import {
   Landmark,
   Truck,
   Quote,
+  Sun,
+  Moon,
+  ExternalLink,
+  Command,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SiteImage } from "@/components/ui/site-image";
-import { hasPermission, Permission } from "@/lib/auth/permissions";
+import { hasPermission } from "@/lib/auth/permissions";
 import { getAdminRoutePermission } from "@/lib/auth/admin-routes";
 
 const NAV_GROUPS = [
   {
     label: "Overview",
-    items: [
-      { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-    ],
+    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true }],
   },
   {
     label: "Commerce",
@@ -96,6 +99,8 @@ const NAV_GROUPS = [
 
 const ADMIN_ROLES = ["super_admin", "admin", "manager", "staff", "designer", "production"];
 
+type ThemeMode = "light" | "dark";
+
 type AdminShellProps = { children: React.ReactNode; siteName: string; siteLogo?: string };
 
 export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProps) {
@@ -105,26 +110,55 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [collapsed, setCollapsed] = React.useState(false);
+  const [theme, setTheme] = React.useState<ThemeMode>("light");
+  const [searchOpen, setSearchOpen] = React.useState(false);
+  const searchRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
-    if (!isLoading && (!user || !ADMIN_ROLES.includes(user.role))) {
-      router.push("/login");
-    }
+    if (!isLoading && (!user || !ADMIN_ROLES.includes(user.role))) router.push("/login");
   }, [isLoading, user, router]);
 
+  React.useEffect(() => {
+    const stored = window.localStorage.getItem("madina-admin-theme");
+    setTheme(stored === "dark" ? "dark" : "light");
+    setCollapsed(window.localStorage.getItem("madina-admin-sidebar") === "collapsed");
+  }, []);
+
+  React.useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.style.colorScheme = theme;
+    window.localStorage.setItem("madina-admin-theme", theme);
+  }, [theme]);
+
+  React.useEffect(() => () => {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.style.colorScheme = "";
+  }, []);
+
+  React.useEffect(() => {
+    window.localStorage.setItem("madina-admin-sidebar", collapsed ? "collapsed" : "expanded");
+  }, [collapsed]);
+
+  React.useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+        requestAnimationFrame(() => searchRef.current?.focus());
+      }
+    };
+    document.addEventListener("keydown", handleShortcut);
+    return () => document.removeEventListener("keydown", handleShortcut);
+  }, []);
+
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Skeleton className="h-12 w-48" />
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center bg-dark-50"><Skeleton className="h-12 w-48" /></div>;
   }
 
   if (!user || !ADMIN_ROLES.includes(user.role)) return null;
 
   const canSee = (href: string) => hasPermission(user.role, getAdminRoutePermission(href));
-
-  const canAccessCurrentRoute = () => hasPermission(user.role, getAdminRoutePermission(pathname));
+  const canAccessCurrentRoute = hasPermission(user.role, getAdminRoutePermission(pathname));
 
   const handleLogout = async () => {
     await logout();
@@ -132,142 +166,142 @@ export function AdminShell({ children, siteName, siteLogo = "" }: AdminShellProp
     router.push("/login");
   };
 
-  return (
-    <div className="flex min-h-screen bg-dark-50">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-dark/60 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+  const toggleTheme = () => setTheme((current) => current === "light" ? "dark" : "light");
 
-      {/* Sidebar */}
+  return (
+    <div className={cn("admin-ui flex min-h-screen bg-[#f5f7fb] text-dark-900 transition-colors dark:bg-[#0b1020] dark:text-white", theme === "dark" && "admin-dark")}>
+      {sidebarOpen && <div className="fixed inset-0 z-40 bg-dark/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />}
+
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-dark-200 bg-white transition-all duration-200 lg:z-40",
-          collapsed ? "lg:w-[68px]" : "lg:w-64",
-          sidebarOpen ? "w-64 translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-dark-100/80 bg-white/95 shadow-[12px_0_40px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-[width,transform] duration-200 dark:border-slate-800 dark:bg-slate-950/95 lg:z-40",
+          collapsed ? "lg:w-[82px]" : "lg:w-[268px]",
+          sidebarOpen ? "w-[286px] translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Full branding (logo + name) shows whenever the sidebar isn't in
-           its narrow desktop rail state — that covers both the mobile
-           drawer (always full width, never "collapsed") and the expanded
-           desktop sidebar. Icon-only applies only to the collapsed rail. */}
-        <div className="flex h-16 items-center justify-between border-b border-dark-100 px-4">
-          {collapsed ? (
-            <Link href="/admin" className="relative mx-auto flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dark-100 bg-white" aria-label={siteName}>
-              {siteLogo ? <SiteImage src={siteLogo} alt={siteName} fill sizes="32px" className="object-contain p-1" /> : <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-white">M</div>}
-            </Link>
-          ) : (
-            <Link href="/admin" className="flex min-w-0 items-center gap-2.5">
-              <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg border border-dark-100 bg-white">
-                {siteLogo ? <SiteImage src={siteLogo} alt={siteName} fill sizes="32px" className="object-contain p-1" /> : <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-white">M</div>}
-              </div>
+        <div className="flex h-[76px] items-center justify-between border-b border-dark-100/80 px-4 dark:border-slate-800">
+          <Link href="/admin" className={cn("flex min-w-0 items-center gap-3", collapsed && "lg:mx-auto")}> 
+            <div className={cn("relative flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-dark-100/80", collapsed ? "h-11 w-11" : "h-11 w-11")}> 
+              {siteLogo ? <SiteImage src={siteLogo} alt={siteName} fill sizes="44px" className="object-contain p-1.5" /> : <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary to-primary-light text-lg font-extrabold text-white">M</div>}
+            </div>
+            {!collapsed && (
               <div className="min-w-0">
-                <span className="block truncate text-sm font-bold text-dark-900">{siteName}</span>
-                <span className="block text-[10px] font-medium uppercase tracking-wider text-primary">Administrator</span>
+                <span className="block truncate text-[15px] font-extrabold tracking-tight text-dark-900 dark:text-white">{siteName}</span>
+                <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Business OS</span>
               </div>
-            </Link>
-          )}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="rounded-md p-1 text-dark-400 hover:bg-dark-100 lg:hidden"
-          >
-            <X className="h-5 w-5" />
-          </button>
+            )}
+          </Link>
+          <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-xl p-2 text-dark-400 hover:bg-dark-100 lg:hidden" aria-label="Tutup menu admin"><X className="h-5 w-5" /></button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2.5 py-4 scrollbar-hide" aria-label="Admin navigation">
-          {NAV_GROUPS.map((group) => ({ ...group, items: group.items.filter((item) => canSee(item.href)) })).filter((group) => group.items.length > 0).map((group) => (
-            <div key={group.label} className="mb-4">
-              {!collapsed && (
-                <p className="mb-2 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-dark-400">
-                  {group.label}
-                </p>
-              )}
-              <ul className="space-y-0.5">
-                {group.items.map((item) => {
-                  const isActive = item.exact
-                    ? pathname === item.href
-                    : pathname.startsWith(item.href);
-                  const Icon = item.icon;
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setSidebarOpen(false)}
-                        title={collapsed ? item.label : undefined}
-                        className={cn(
-                          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                          isActive
-                            ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/10"
-                            : "text-dark-600 hover:bg-dark-50 hover:text-dark hover:translate-x-0.5",
-                          collapsed && "justify-center px-2"
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span>{item.label}</span>}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+        <div className="px-3 pt-4">
+          {!collapsed && (
+            <div className="mb-3 flex items-center justify-between rounded-2xl border border-primary/10 bg-gradient-to-r from-primary/[0.08] to-transparent px-3.5 py-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">Workspace</p>
+                <p className="mt-1 truncate text-xs font-semibold text-dark-700 dark:text-slate-200">Madina Solution</p>
+              </div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-primary shadow-sm ring-1 ring-primary/10 dark:bg-slate-900"><LayoutGrid className="h-4 w-4" /></div>
             </div>
-          ))}
+          )}
+        </div>
+
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 pt-1 scrollbar-hide" aria-label="Admin navigation">
+          {NAV_GROUPS.map((group) => {
+            const visibleItems = group.items.filter((item) => canSee(item.href));
+            if (!visibleItems.length) return null;
+            return (
+              <div key={group.label} className="mb-5">
+                {!collapsed && <p className="mb-2 px-2.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-dark-400">{group.label}</p>}
+                <ul className="space-y-1">
+                  {visibleItems.map((item) => {
+                    const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          onClick={() => setSidebarOpen(false)}
+                          title={collapsed ? item.label : undefined}
+                          className={cn(
+                            "group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[13px] font-semibold transition-colors",
+                            isActive
+                              ? "bg-primary/[0.10] text-primary ring-1 ring-primary/10 dark:bg-primary/15"
+                              : "text-dark-600 hover:bg-dark-50 hover:text-dark-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
+                            collapsed && "justify-center px-2"
+                          )}
+                        >
+                          <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-xl", isActive ? "bg-white text-primary shadow-sm ring-1 ring-primary/10 dark:bg-slate-900" : "bg-transparent group-hover:bg-white dark:group-hover:bg-slate-800")}>
+                            <Icon className="h-[17px] w-[17px]" />
+                          </span>
+                          {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+                          {!collapsed && isActive && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
         </nav>
 
-        {/* Collapse toggle (desktop only) */}
-        <div className="hidden border-t border-dark-100 p-3 lg:block">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="flex w-full items-center justify-center rounded-lg p-2 text-dark-400 transition-colors hover:bg-dark-50 hover:text-dark"
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        <div className="border-t border-dark-100/80 p-3 dark:border-slate-800">
+          {!collapsed && (
+            <Link href="/admin/settings" className="mb-2 flex items-center gap-3 rounded-2xl border border-dark-100 bg-dark-50/60 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><Settings className="h-4 w-4" /></div>
+              <div className="min-w-0 flex-1"><p className="text-xs font-bold text-dark-800 dark:text-slate-100">Control Center</p><p className="truncate text-[10px] text-dark-400">Pengaturan & akses</p></div>
+              <ChevronRight className="h-4 w-4 text-dark-300" />
+            </Link>
+          )}
+          <button type="button" onClick={() => setCollapsed((v) => !v)} className="hidden w-full items-center justify-center gap-2 rounded-xl border border-dark-100 px-3 py-2 text-xs font-semibold text-dark-500 hover:bg-dark-50 hover:text-dark lg:flex dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white">
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <><ChevronLeft className="h-4 w-4" /> Ciutkan Sidebar</>}
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <div className={cn("min-h-screen min-w-0 flex-1 overflow-x-hidden", collapsed ? "lg:pl-[68px]" : "lg:pl-64")}>
-        {/* Topbar */}
-        <header className={cn("fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-dark-200/80 bg-white/90 px-4 shadow-sm backdrop-blur-xl lg:px-6", collapsed ? "lg:pl-[84px]" : "lg:pl-[280px]")}>
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="rounded-xl p-2 text-dark-500 hover:bg-dark-100 lg:hidden"
-              aria-label="Buka menu admin"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            {/* Branding lives in the header at every breakpoint, including
-               phone widths — this is the only branding visible on mobile
-               until the sidebar drawer is opened. */}
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dark-100 bg-white shadow-sm">
-              {siteLogo ? <SiteImage src={siteLogo} alt={siteName} fill sizes="36px" className="object-contain p-1" /> : <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-bold text-white">{siteName.charAt(0).toUpperCase()}</div>}
-            </div>
-            <div className="min-w-0">
-              <h2 className="truncate text-sm font-semibold text-dark">{siteName}</h2>
-              <p className="hidden truncate text-[11px] font-medium text-dark-400 sm:block">Administrator • {user.role.replaceAll("_", " ")}</p>
+      <div className={cn("min-h-screen min-w-0 flex-1 overflow-x-hidden", collapsed ? "lg:pl-[82px]" : "lg:pl-[268px]")}>
+        <header className={cn("fixed inset-x-0 top-0 z-30 flex h-[76px] items-center gap-3 border-b border-dark-100/80 bg-white/90 px-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 sm:px-6", collapsed ? "lg:pl-[106px]" : "lg:pl-[292px]")}> 
+          <button type="button" onClick={() => setSidebarOpen(true)} className="rounded-xl p-2 text-dark-500 hover:bg-dark-100 lg:hidden" aria-label="Buka menu admin"><Menu className="h-5 w-5" /></button>
+          <div className={cn("hidden min-w-0 md:flex md:flex-1", searchOpen ? "max-w-none" : "max-w-[560px]")}> 
+            <div className="relative w-full">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-dark-400" />
+              <input
+                ref={searchRef}
+                onFocus={() => setSearchOpen(true)}
+                onBlur={() => window.setTimeout(() => setSearchOpen(false), 120)}
+                className="h-11 w-full rounded-2xl border border-dark-100 bg-dark-50/70 pl-11 pr-14 text-sm font-medium text-dark-800 outline-none transition focus:border-primary/30 focus:bg-white focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:bg-slate-950"
+                placeholder="Cari produk, pesanan, pelanggan…"
+                aria-label="Cari produk, pesanan, pelanggan"
+              />
+              <span className="pointer-events-none absolute right-3 top-1/2 flex h-7 -translate-y-1/2 items-center gap-1 rounded-lg border border-dark-100 bg-white px-2 text-[10px] font-bold text-dark-400 dark:border-slate-700 dark:bg-slate-900"><Command className="h-3 w-3" /> K</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link href="/" className="rounded-lg px-3 py-1.5 text-xs font-medium text-dark-500 transition-colors hover:bg-dark-100 hover:text-dark">
-              Lihat Website
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            <Link href="/" target="_blank" className="hidden items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-dark-600 hover:bg-dark-50 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-900 sm:inline-flex"><ExternalLink className="h-4 w-4" /> Lihat Website</Link>
+            <Link href="/admin/messages" className="relative flex h-10 w-10 items-center justify-center rounded-xl text-dark-500 hover:bg-dark-50 dark:text-slate-300 dark:hover:bg-slate-900" aria-label="Pesan masuk"><Bell className="h-[18px] w-[18px]" /></Link>
+            <button type="button" onClick={toggleTheme} className="flex h-10 w-10 items-center justify-center rounded-xl text-dark-500 hover:bg-dark-50 dark:text-slate-300 dark:hover:bg-slate-900" aria-label={theme === "light" ? "Aktifkan dark mode" : "Aktifkan light mode"}>{theme === "light" ? <Moon className="h-[18px] w-[18px]" /> : <Sun className="h-[18px] w-[18px]" />}</button>
+            <Link href="/admin/settings" className="hidden items-center gap-2.5 rounded-2xl border border-dark-100 bg-white px-2.5 py-1.5 shadow-sm sm:flex dark:border-slate-800 dark:bg-slate-900">
+              {user.avatar ? <SiteImage src={user.avatar} alt={user.name} width={34} height={34} className="h-[34px] w-[34px] rounded-xl object-cover" /> : <div className="flex h-[34px] w-[34px] items-center justify-center rounded-xl bg-primary/10 font-extrabold text-primary">{user.name.charAt(0).toUpperCase()}</div>}
+              <div className="min-w-0 text-left"><p className="max-w-28 truncate text-xs font-bold text-dark-900 dark:text-white">{user.name}</p><p className="max-w-28 truncate text-[10px] font-semibold capitalize text-dark-400">{user.role.replaceAll("_", " ")}</p></div>
+              <ChevronDown className="hidden h-4 w-4 text-dark-300 lg:block" />
             </Link>
-            <div className="flex items-center gap-2 rounded-full border border-dark-100 bg-white py-1 pl-1 pr-2 shadow-sm">
-              {user.avatar ? <SiteImage src={user.avatar} alt={user.name} width={32} height={32} className="h-8 w-8 rounded-full object-cover" /> : <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</div>}
-              <span className="hidden max-w-28 truncate text-xs font-semibold text-dark-700 sm:block">{user.name}</span>
-              <span className="hidden rounded-full bg-dark-50 px-2 py-1 text-[10px] font-semibold capitalize text-dark-500 sm:inline-flex">{user.role.replace("_", " ")}</span>
-            </div>
+            <button type="button" onClick={() => void handleLogout()} className="flex h-10 w-10 items-center justify-center rounded-xl text-dark-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30" aria-label="Keluar"><LogOut className="h-[18px] w-[18px]" /></button>
           </div>
         </header>
 
-        {/* Content */}
-        <main className="min-h-screen overflow-x-hidden px-4 pb-10 pt-20 lg:px-8">
-          {canAccessCurrentRoute() ? children : <div className="mx-auto flex min-h-[60vh] max-w-2xl items-center justify-center"><div className="rounded-3xl border border-dark-100 bg-white p-8 text-center shadow-sm"><Shield className="mx-auto h-10 w-10 text-primary" /><h1 className="mt-4 text-xl font-bold text-dark">Akses Terbatas</h1><p className="mt-2 text-sm leading-6 text-dark-500">Role <strong>{user.role}</strong> tidak memiliki izin untuk halaman ini.</p><Link href="/admin" className="mt-5 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white">Kembali ke Dashboard</Link></div></div>}
+        <main className="min-h-screen overflow-x-hidden px-3 pb-10 pt-[92px] sm:px-5 lg:px-7">
+          {canAccessCurrentRoute ? children : (
+            <div className="mx-auto flex min-h-[60vh] max-w-2xl items-center justify-center">
+              <div className="rounded-3xl border border-dark-100 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <Shield className="mx-auto h-10 w-10 text-primary" />
+                <h1 className="mt-4 text-xl font-bold text-dark dark:text-white">Akses Terbatas</h1>
+                <p className="mt-2 text-sm leading-6 text-dark-500 dark:text-slate-400">Role <strong>{user.role}</strong> tidak memiliki izin untuk halaman ini.</p>
+                <Link href="/admin" className="mt-5 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white">Kembali ke Dashboard</Link>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

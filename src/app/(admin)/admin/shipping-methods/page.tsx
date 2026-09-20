@@ -41,9 +41,7 @@ export default function AdminShippingMethodsPage() {
       if (d.success) setItems(d.shippingMethods);
     } catch {} finally { setIsLoading(false); }
   }, []);
-React.useEffect(() => {
-  void (async () => { await fetchData(); })();
-}, [fetchData]);
+  React.useEffect(() => { void fetchData(); }, [fetchData]);
 
   const resetForm = () => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); };
 
@@ -81,7 +79,8 @@ React.useEffect(() => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-dark">Metode Pengiriman</h1>
-<p className="mt-1 text-dark-500">{items.length} kurir — ongkir dihitung otomatis di checkout saat &ldquo;Kirim ke Alamat&rdquo; dipilih</p>        </div>
+          <p className="mt-1 text-dark-500">{items.length} kurir — ongkir dihitung otomatis di checkout saat "Kirim ke Alamat" dipilih</p>
+        </div>
         <Button onClick={() => { resetForm(); setShowForm(true); }}><Plus className="mr-2 h-4 w-4" />Tambah Kurir</Button>
       </div>
 
