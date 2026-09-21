@@ -43,6 +43,7 @@ import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BrandMark } from "@/components/layout/brand-mark";
+import { SiteImage } from "@/components/ui/site-image";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getAdminRoutePermission } from "@/lib/auth/admin-routes";
 
@@ -154,10 +155,6 @@ export function AdminShell({ children, siteName, siteLogo = "", siteTagline = "C
   }, [collapsed]);
 
   React.useEffect(() => {
-    setProfileMenuOpen(false);
-  }, [pathname]);
-
-  React.useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -197,22 +194,27 @@ export function AdminShell({ children, siteName, siteLogo = "", siteTagline = "C
           sidebarOpen ? "w-[286px] translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="flex h-[76px] items-center justify-between border-b border-dark-100/80 px-4 dark:border-slate-800">
-          <Link href="/admin" className={cn("min-w-0", collapsed && "lg:mx-auto")} aria-label={siteName}>
-            <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} showText={!collapsed} priority />
-          </Link>
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setCollapsed((v) => !v)}
-              className="hidden h-9 w-9 items-center justify-center rounded-xl text-dark-400 hover:bg-dark-100 hover:text-dark-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200 lg:flex"
-              aria-label={collapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
-              title={collapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
-            >
-              {collapsed ? <PanelLeftOpen className="h-[18px] w-[18px]" /> : <PanelLeftClose className="h-[18px] w-[18px]" />}
+        <div className="flex h-[76px] items-center border-b border-dark-100/80 px-3 dark:border-slate-800">
+          {collapsed ? (
+            <button type="button" onClick={() => setCollapsed(false)} className="group relative mx-auto flex h-11 w-11 items-center justify-center rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950" aria-label="Buka sidebar" title="Buka sidebar">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl transition-opacity duration-150 group-hover:opacity-0 group-focus:opacity-0">
+                <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} showText={false} compact priority logoClassName="h-10 w-10" />
+              </span>
+              <span aria-hidden="true" className="absolute inset-0 flex h-11 w-11 items-center justify-center rounded-2xl text-dark-500 opacity-0 transition-all duration-150 group-hover:opacity-100 group-focus:opacity-100 group-hover:bg-dark-100 group-hover:text-dark-900 dark:text-slate-400 dark:group-hover:bg-slate-900 dark:group-hover:text-white">
+                <PanelLeftOpen className="h-[18px] w-[18px]" />
+              </span>
             </button>
-            <button type="button" onClick={() => setSidebarOpen(false)} className="rounded-xl p-2 text-dark-400 hover:bg-dark-100 lg:hidden" aria-label="Tutup menu admin"><X className="h-5 w-5" /></button>
-          </div>
+          ) : (
+            <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+              <Link href="/admin" className="min-w-0" aria-label={siteName}>
+                <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} priority />
+              </Link>
+              <button type="button" onClick={() => setCollapsed(true)} className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl text-dark-400 hover:bg-dark-100 hover:text-dark-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200 lg:flex" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
+                <PanelLeftClose className="h-[18px] w-[18px]" />
+              </button>
+            </div>
+          )}
+          <button type="button" onClick={() => setSidebarOpen(false)} className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-dark-400 hover:bg-dark-100 dark:text-slate-500 dark:hover:bg-slate-900 lg:hidden" aria-label="Tutup menu admin"><X className="h-5 w-5" /></button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 pb-4 pt-4 scrollbar-hide" aria-label="Admin navigation">
@@ -352,7 +354,7 @@ export function AdminShell({ children, siteName, siteLogo = "", siteTagline = "C
                 aria-haspopup="menu"
                 className="flex items-center gap-2.5 rounded-2xl border border-dark-100 bg-white px-2.5 py-1.5 shadow-sm transition hover:border-primary/20 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
               >
-                {user.avatar ? <img src={user.avatar} alt={user.name} width={34} height={34} className="h-[34px] w-[34px] rounded-xl object-cover" /> : <div className="flex h-[34px] w-[34px] items-center justify-center rounded-xl bg-primary/10 font-extrabold text-primary">{user.name.charAt(0).toUpperCase()}</div>}
+                {user.avatar ? <SiteImage src={user.avatar} alt={user.name} width={34} height={34} className="h-[34px] w-[34px] rounded-xl object-cover" /> : <div className="flex h-[34px] w-[34px] items-center justify-center rounded-xl bg-primary/10 font-extrabold text-primary">{user.name.charAt(0).toUpperCase()}</div>}
                 <div className="min-w-0 text-left"><p className="max-w-28 truncate text-xs font-bold text-dark-900 dark:text-white">{user.name}</p><p className="max-w-28 truncate text-[10px] font-semibold capitalize text-dark-400">{user.role.replaceAll("_", " ")}</p></div>
                 <ChevronDown className={cn("hidden h-4 w-4 text-dark-300 transition-transform lg:block", profileMenuOpen && "rotate-180")} />
               </button>
@@ -360,9 +362,9 @@ export function AdminShell({ children, siteName, siteLogo = "", siteTagline = "C
                 <div role="menu" className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-2xl border border-dark-100 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-950">
                   <div className="border-b border-dark-100 px-3 pb-3 dark:border-slate-800"><p className="truncate text-sm font-bold text-dark-900 dark:text-white">{user.name}</p><p className="mt-0.5 truncate text-xs text-dark-500">{user.email}</p></div>
                   <div className="pt-2">
-                    <Link href="/admin/control-center" role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-dark-700 hover:bg-dark-50 dark:text-slate-200 dark:hover:bg-slate-900"><CircleGauge className="h-4 w-4 text-primary" /> Control Center</Link>
-                    <Link href="/account/profile" role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-dark-700 hover:bg-dark-50 dark:text-slate-200 dark:hover:bg-slate-900"><Users className="h-4 w-4 text-dark-400" /> Profil Akun</Link>
-                    <Link href="/admin/settings" role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-dark-700 hover:bg-dark-50 dark:text-slate-200 dark:hover:bg-slate-900"><Settings className="h-4 w-4 text-dark-400" /> Pengaturan Platform</Link>
+                    <Link href="/admin/control-center" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-dark-700 hover:bg-dark-50 dark:text-slate-200 dark:hover:bg-slate-900"><CircleGauge className="h-4 w-4 text-primary" /> Control Center</Link>
+                    <Link href="/account/profile" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-dark-700 hover:bg-dark-50 dark:text-slate-200 dark:hover:bg-slate-900"><Users className="h-4 w-4 text-dark-400" /> Profil Akun</Link>
+                    <Link href="/admin/settings" onClick={() => setProfileMenuOpen(false)} role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-dark-700 hover:bg-dark-50 dark:text-slate-200 dark:hover:bg-slate-900"><Settings className="h-4 w-4 text-dark-400" /> Pengaturan Platform</Link>
                   </div>
                 </div>
               )}

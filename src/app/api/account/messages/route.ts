@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { messages, users, orders } from "@/db/schema";
-import { asc, eq, or } from "drizzle-orm";
+import { and, asc, eq, inArray, or } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ async function resolveSupportUserId(): Promise<string | null> {
   const [admin] = await db
     .select({ id: users.id })
     .from(users)
-    .where(or(eq(users.role, "super_admin"), eq(users.role, "admin")))
+    .where(and(eq(users.isActive, true), inArray(users.role, ["super_admin", "admin", "manager", "staff"])))
     .orderBy(asc(users.createdAt))
     .limit(1);
   return admin?.id ?? null;
@@ -78,6 +78,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Pesan tidak boleh kosong (maks 2000 karakter)" } }, { status: 400 });
     }
     const orderId = typeof body.orderId === "string" ? body.orderId : null;
+    if (orderId) {
+      const [ownedOrder] = await db.select({ id: orders.id }).from(orders).where(and(eq(orders.id, orderId), eq(orders.userId, session.userId))).limit(1);
+      if (!ownedOrder) return NextResponse.json({ success: false, error: { code: "ORDER_INVALID", message: "Pesanan tidak terkait dengan akun Anda" } }, { status: 400 });
+    }
 
     const supportUserId = await resolveSupportUserId();
     if (!supportUserId) {

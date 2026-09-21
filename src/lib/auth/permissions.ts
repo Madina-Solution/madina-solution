@@ -14,6 +14,7 @@ export type Permission =
   | "design.read" | "design.create" | "design.approve"
   | "production.read" | "production.update"
   | "payments.read" | "payments.confirm" | "payments.refund"
+  | "messages.read" | "messages.create" | "messages.manage"
   | "finance.read" | "finance.manage"
   | "coupons.read" | "coupons.create" | "coupons.update" | "coupons.delete"
   | "content.read" | "content.create" | "content.update" | "content.delete"
@@ -32,6 +33,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "design.read", "design.create", "design.approve",
     "production.read", "production.update",
     "payments.read", "payments.confirm", "payments.refund",
+    "messages.read", "messages.create", "messages.manage",
     "finance.read", "finance.manage",
     "coupons.read", "coupons.create", "coupons.update", "coupons.delete",
     "content.read", "content.create", "content.update", "content.delete",
@@ -49,6 +51,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "design.read", "design.create", "design.approve",
     "production.read", "production.update",
     "payments.read", "payments.confirm",
+    "messages.read", "messages.create", "messages.manage",
     "finance.read", "finance.manage",
     "coupons.read", "coupons.create", "coupons.update",
     "content.read", "content.create", "content.update", "content.delete",
@@ -66,6 +69,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "design.read", "design.create", "design.approve",
     "production.read", "production.update",
     "payments.read", "payments.confirm",
+    "messages.read", "messages.create", "messages.manage",
     "content.read", "content.create", "content.update",
     "media.read", "media.upload",
   ],
@@ -74,10 +78,11 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "dashboard.view", "products.read", "categories.read",
     "orders.read", "orders.update", "customers.read", "customers.update",
     "payments.read",
+    "messages.read", "messages.create",
     "content.read", "media.read", "media.upload",
   ],
-  designer: ["admin.access", "dashboard.view", "orders.read", "design.read", "design.create", "media.read", "media.upload"],
-  production: ["admin.access", "dashboard.view", "orders.read", "production.read", "production.update", "media.read", "media.upload"],
+  designer: ["admin.access", "dashboard.view", "orders.read", "design.read", "design.create", "media.read", "media.upload", "messages.read", "messages.create"],
+  production: ["admin.access", "dashboard.view", "orders.read", "production.read", "production.update", "media.read", "media.upload", "messages.read"],
   customer: ["dashboard.view"],
 };
 
@@ -136,11 +141,11 @@ export const ROLE_LABELS: Record<string, string> = {
 
 export const ROLE_CAPABILITY_GROUPS: Record<string, string[]> = {
   super_admin: ["Platform & settings", "Users & roles", "Commerce", "Content & media", "Payments", "Finance", "Audit"],
-  admin: ["Operasional penuh", "Users level bawah", "Commerce", "Content & media", "Payments", "Finance", "Settings", "Audit"],
-  manager: ["Commerce", "Customers", "Design & production", "Coupons", "Content & media"],
-  staff: ["Orders", "Customers", "Catalog read", "Content read", "Media upload"],
-  designer: ["Orders read", "Design revisions", "Design media"],
-  production: ["Orders read", "Production pipeline", "Production media"],
+  admin: ["Operasional penuh", "Users level bawah", "Commerce", "Messaging", "Content & media", "Payments", "Finance", "Settings", "Audit"],
+  manager: ["Commerce", "Customers", "Messaging", "Design & production", "Coupons", "Content & media"],
+  staff: ["Orders", "Customers", "Messaging", "Catalog read", "Content read", "Media upload"],
+  designer: ["Orders read", "Customer messaging", "Design revisions", "Design media"],
+  production: ["Orders read", "Customer messaging", "Production pipeline", "Production media"],
   customer: ["Account", "Cart & checkout", "Orders pribadi"],
 };
 

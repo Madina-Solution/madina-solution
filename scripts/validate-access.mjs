@@ -31,7 +31,7 @@ for (const file of files) {
 }
 
 const mustContain = [
-  ["src/app/api/admin/messages/[id]/route.ts", 'content.update', 'content.delete'],
+  ["src/app/api/admin/messages/[id]/route.ts", 'messages.manage'],
   ["src/app/api/admin/reviews/[id]/route.ts", 'content.update', 'content.delete'],
   ["src/app/api/admin/orders/[id]/design-revisions/route.ts", 'design.create', 'design.read'],
   ["src/app/api/admin/customers/[id]/route.ts", 'customers.update'],

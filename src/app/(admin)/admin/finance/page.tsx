@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { ROLE_LABELS } from "@/lib/auth/permissions";
 
  type FinanceCategory = { id: string; name: string; type: string; isActive: boolean; sortOrder: number };
- type FinanceTransaction = { id: string; type: string; status: string; categoryName: string | null; orderNumber: string | null; reference: string | null; description: string; amount: string; currency: string; paymentMethod: string | null; transactionDate: string; notes: string | null };
- type FinanceData = { period: { month: string }; summary: { income: number; expense: number; net: number; outstanding: number; pendingVerification: number }; categories: FinanceCategory[]; transactions: FinanceTransaction[] };
+ type FinanceTransaction = { id: string; type: string; status: string; categoryName: string | null; orderNumber: string | null; reference: string | null; description: string; amount: string; currency: string; paymentMethod: string | null; transactionDate: string; notes: string | null; customerId: string | null; customerName: string | null; customerEmail: string | null; customerRole: string | null };
+ type FinanceData = { period: { month: string }; summary: { income: number; expense: number; net: number; outstanding: number; pendingVerification: number; pendingVerificationAmount: number }; categories: FinanceCategory[]; transactions: FinanceTransaction[] };
 
 function currentMonth() { return new Date().toISOString().slice(0, 7); }
 
@@ -32,13 +33,25 @@ export default function AdminFinancePage() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error?.message || "Gagal memuat keuangan");
       setData(json);
-      if (!form.categoryId && json.categories?.length) setForm((current) => ({ ...current, categoryId: json.categories.find((c: FinanceCategory) => c.type === "expense" || c.type === "both")?.id || json.categories[0].id }));
+      if (json.categories?.length) {
+        setForm((current) => current.categoryId
+          ? current
+          : {
+              ...current,
+              categoryId: json.categories.find((c: FinanceCategory) => c.type === "expense" || c.type === "both")?.id || json.categories[0].id,
+            });
+      }
     } catch (error) {
       toast({ type: "error", title: "Keuangan tidak dapat dimuat", description: error instanceof Error ? error.message : undefined });
     } finally { setLoading(false); }
-  }, [month, form.categoryId, toast]);
+  }, [month, toast]);
 
-  React.useEffect(() => { void load(); }, [load]);
+  React.useEffect(() => {
+    const run = async () => {
+      await load();
+    };
+    void run();
+  }, [load]);
 
   const addExpense = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -111,7 +124,8 @@ export default function AdminFinancePage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-dark-500 dark:text-slate-400">{label}</p>
-                    <p className="mt-1 truncate text-lg font-bold text-dark dark:text-white">{label === "Menunggu Verifikasi" ? String(value) : formatCurrency(value)}</p>
+                    <p className="mt-1 truncate text-lg font-bold text-dark dark:text-white">{label === "Menunggu Verifikasi" ? `${String(value)} pembayaran` : formatCurrency(value)}</p>
+                    {label === "Menunggu Verifikasi" && data.summary.pendingVerificationAmount > 0 && <p className="mt-0.5 text-[10px] font-semibold text-violet-600">Nilai pending {formatCurrency(data.summary.pendingVerificationAmount)}</p>}
                   </div>
                 </div>
               </div>
@@ -120,7 +134,7 @@ export default function AdminFinancePage() {
 
           <div className="rounded-2xl border border-dark-100 bg-white dark:border-slate-800 dark:bg-slate-950">
             <div className="flex flex-col gap-3 border-b border-dark-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800"><div><h2 className="font-semibold text-dark dark:text-white">Buku Kas</h2><p className="text-xs text-dark-500 dark:text-slate-400">Periode {data.period.month} · maksimal 250 transaksi terakhir</p></div><div className="flex items-center gap-2"><Landmark className="h-4 w-4 text-dark-400" /><span className="text-xs text-dark-500">Pemasukan pembayaran tidak bisa dihapus manual.</span></div></div>
-            {data.transactions.length === 0 ? <div className="px-5 py-14 text-center text-sm text-dark-500">Belum ada transaksi pada periode ini.</div> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-dark-100 text-left dark:border-slate-800"><th className="px-5 py-3 text-xs font-semibold text-dark-500">Tanggal</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Kategori</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Deskripsi</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Referensi</th><th className="px-5 py-3 text-right text-xs font-semibold text-dark-500">Jumlah</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Status</th></tr></thead><tbody>{data.transactions.map((transaction) => <tr key={transaction.id} className="border-b border-dark-50 last:border-0 dark:border-slate-900"><td className="px-5 py-3.5 text-xs text-dark-500">{formatDate(new Date(transaction.transactionDate))}</td><td className="px-5 py-3.5"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${transaction.type === "income" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>{transaction.categoryName || transaction.type}</span></td><td className="max-w-[320px] px-5 py-3.5"><p className="font-medium text-dark dark:text-white">{transaction.description}</p>{transaction.paymentMethod && <p className="mt-0.5 text-xs text-dark-400">{transaction.paymentMethod}</p>}</td><td className="px-5 py-3.5 text-xs text-dark-500">{transaction.orderNumber || transaction.reference || "—"}</td><td className={`px-5 py-3.5 text-right font-bold ${transaction.type === "income" ? "text-green-600" : "text-red-600"}`}>{transaction.type === "income" ? "+" : "−"}{formatCurrency(Number(transaction.amount))}</td><td className="px-5 py-3.5 text-xs font-semibold capitalize text-dark-500">{transaction.status === "void" ? "Void" : "Posted"}</td></tr>)}</tbody></table></div>}
+            {data.transactions.length === 0 ? <div className="px-5 py-14 text-center text-sm text-dark-500">Belum ada transaksi pada periode ini.</div> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-dark-100 text-left dark:border-slate-800"><th className="px-5 py-3 text-xs font-semibold text-dark-500">Tanggal</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Kategori</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Deskripsi</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Pelanggan</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Referensi</th><th className="px-5 py-3 text-right text-xs font-semibold text-dark-500">Jumlah</th><th className="px-5 py-3 text-xs font-semibold text-dark-500">Status</th></tr></thead><tbody>{data.transactions.map((transaction) => <tr key={transaction.id} className="border-b border-dark-50 last:border-0 dark:border-slate-900"><td className="px-5 py-3.5 text-xs text-dark-500">{formatDate(new Date(transaction.transactionDate))}</td><td className="px-5 py-3.5"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${transaction.type === "income" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>{transaction.categoryName || transaction.type}</span></td><td className="max-w-[320px] px-5 py-3.5"><p className="font-medium text-dark dark:text-white">{transaction.description}</p>{transaction.paymentMethod && <p className="mt-0.5 text-xs text-dark-400">{transaction.paymentMethod}</p>}</td><td className="px-5 py-3.5"><div className="min-w-[190px]">{transaction.customerId ? <Link href={`/admin/customers/${transaction.customerId}`} className="text-xs font-bold text-dark hover:text-primary dark:text-white dark:hover:text-primary">{transaction.customerName || "Pelanggan"}</Link> : <p className="text-xs font-bold text-dark dark:text-white">Transaksi internal</p>}{transaction.customerId && <p className="mt-0.5 text-[10px] text-dark-400">{ROLE_LABELS[transaction.customerRole || "customer"] || transaction.customerRole || "customer"}{transaction.customerEmail ? ` · ${transaction.customerEmail}` : ""}</p>}{transaction.customerId && transaction.orderNumber && <p className="mt-0.5 text-[10px] text-dark-400">Order {transaction.orderNumber}</p>}</div></td><td className="px-5 py-3.5 text-xs text-dark-500">{transaction.reference || transaction.orderNumber || "—"}</td><td className={`px-5 py-3.5 text-right font-bold ${transaction.type === "income" ? "text-green-600" : "text-red-600"}`}>{transaction.type === "income" ? "+" : "−"}{formatCurrency(Number(transaction.amount))}</td><td className="px-5 py-3.5 text-xs font-semibold capitalize text-dark-500">{transaction.status === "void" ? "Void" : "Posted"}</td></tr>)}</tbody></table></div>}
           </div>
           <p className="text-xs leading-5 text-dark-400 dark:text-slate-500">Catatan akuntansi: modul ini adalah <strong>cash ledger / arus kas operasional</strong>, bukan laporan laba-rugi berbasis akrual. Data tetap ditautkan ke order dan pembayaran untuk rekonsiliasi.</p>
           {!user || !["super_admin", "admin"].includes(user.role) ? null : <p className="text-xs text-dark-400">Butuh verifikasi pembayaran? Buka <Link href="/admin/orders" className="font-semibold text-primary hover:underline">Pesanan</Link> dan konfirmasi transaksi manual yang memiliki bukti transfer.</p>}

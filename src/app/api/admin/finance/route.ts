@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, asc, desc, eq, gte, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { auditLogs, financeCategories, financeTransactions, orders, payments } from "@/db/schema";
+import { auditLogs, financeCategories, financeTransactions, orders, payments, users } from "@/db/schema";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 
@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
     const [income, expense, outstanding, pendingVerification, categories, transactionRows] = await Promise.all([
       db.select({ total: sql<string>`coalesce(sum(${financeTransactions.amount}), 0)` }).from(financeTransactions).where(and(baseWhere, eq(financeTransactions.type, "income"))),
       db.select({ total: sql<string>`coalesce(sum(${financeTransactions.amount}), 0)` }).from(financeTransactions).where(and(baseWhere, eq(financeTransactions.type, "expense"))),
-      db.select({ total: sql<string>`coalesce(sum(${orders.total}), 0)` }).from(orders).where(and(or(eq(orders.paymentStatus, "unpaid"), eq(orders.paymentStatus, "partial")), sql`${orders.status} <> 'cancelled'`)),
-      db.select({ count: sql<number>`count(*)` }).from(payments).where(eq(payments.status, "pending_verification")),
+      db.select({ total: sql<string>`coalesce(sum(greatest(${orders.total} - coalesce((select sum(${payments.amount}) from ${payments} where ${payments.orderId} = ${orders.id} and ${payments.status} = 'paid'), 0), 0)), 0)` }).from(orders).where(sql`${orders.status} <> 'cancelled'`),
+      db.select({ count: sql<number>`count(*)`, amount: sql<string>`coalesce(sum(${payments.amount}), 0)` }).from(payments).where(eq(payments.status, "pending_verification")),
       db.select().from(financeCategories).where(eq(financeCategories.isActive, true)).orderBy(asc(financeCategories.sortOrder), asc(financeCategories.name)),
       db.select({
         id: financeTransactions.id,
@@ -71,9 +71,14 @@ export async function GET(request: NextRequest) {
         transactionDate: financeTransactions.transactionDate,
         notes: financeTransactions.notes,
         createdAt: financeTransactions.createdAt,
+        customerId: orders.userId,
+        customerName: users.name,
+        customerEmail: users.email,
+        customerRole: users.role,
       }).from(financeTransactions)
         .leftJoin(financeCategories, eq(financeTransactions.categoryId, financeCategories.id))
         .leftJoin(orders, eq(financeTransactions.orderId, orders.id))
+        .leftJoin(users, eq(orders.userId, users.id))
         .where(and(gte(financeTransactions.transactionDate, start), lte(financeTransactions.transactionDate, end)))
         .orderBy(desc(financeTransactions.transactionDate), desc(financeTransactions.createdAt))
         .limit(250),
@@ -91,6 +96,7 @@ export async function GET(request: NextRequest) {
         net: incomeTotal - expenseTotal,
         outstanding: Number(outstanding[0]?.total || 0),
         pendingVerification: Number(pendingVerification[0]?.count || 0),
+        pendingVerificationAmount: Number(pendingVerification[0]?.amount || 0),
       },
       categories,
       transactions: transactionRows,

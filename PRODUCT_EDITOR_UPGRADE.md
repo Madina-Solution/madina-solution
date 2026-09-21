@@ -1,6 +1,7 @@
 # Product Editor / WYSIWYG Upgrade
 
 ## Admin product editor
+
 - WYSIWYG HTML editor: headings, emphasis, lists, quote, code, links, images, table, alignment, divider, undo/redo, clean formatting, HTML source, fullscreen.
 - Product information tabs: General, Content, Pricing, Inventory, Shipping, SEO, Variants.
 - Commerce metadata is stored in `products.metadata` as JSONB to remain backward-compatible.
@@ -10,6 +11,7 @@
 - Content fields include highlights, FAQ, tags, warranty, return policy, video URL and related product IDs.
 
 ## Storefront product detail
+
 - Rich HTML product description is sanitized before rendering.
 - Variant attributes are converted to customer-facing option selectors and participate in existing price calculation.
 - Wholesale tiers, stock state, SKU and compare-at price are surfaced.
@@ -17,6 +19,7 @@
 - Product metadata can control page title, description, canonical, image, keywords and noindex.
 
 ## Security / accessibility
+
 - Rich text is sanitized server-side and client-side.
 - Dangerous HTML tags, event attributes and javascript/data HTML URLs are removed.
 - Toolbar uses accessible labels/roles; editor uses textbox semantics.
@@ -24,7 +27,9 @@
 - Form labels, status controls and action buttons expose accessible names.
 
 ## Database sync
+
 `npm run db:sync` now ensures:
+
 - `products.metadata` JSONB
 - `articles.metadata` JSONB
 

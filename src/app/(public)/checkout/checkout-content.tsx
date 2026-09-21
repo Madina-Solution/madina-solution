@@ -5,7 +5,7 @@ import { SiteImage } from "@/components/ui/site-image";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
@@ -75,7 +75,7 @@ export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutCon
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -119,7 +119,7 @@ export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutCon
       setValue("addressId", "");
     }
   }, [selectedAddressId, setValue]);
-  const customerSnapshot = watch("customer");
+  const customerSnapshot = useWatch({ control, name: "customer" });
 
   React.useEffect(() => {
     if (!user || autofillApplied.current) return;

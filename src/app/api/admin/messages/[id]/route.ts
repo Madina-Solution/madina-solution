@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function PATCH(request: NextRequest, context: Ctx) {
   try {
     const session = await getSession();
-    if (!session || !hasPermission(session.role, "content.update")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
+    if (!session || !hasPermission(session.role, "messages.manage")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     const { id } = await context.params;
     const body = await request.json();
     const updates: { isRead?: boolean; content?: string } = {};
@@ -34,7 +34,7 @@ export async function PATCH(request: NextRequest, context: Ctx) {
 export async function DELETE(request: NextRequest, context: Ctx) {
   try {
     const session = await getSession();
-    if (!session || !hasPermission(session.role, "content.delete")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
+    if (!session || !hasPermission(session.role, "messages.manage")) return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     const { id } = await context.params;
     await db.delete(messages).where(eq(messages.id, id));
     await db.insert(auditLogs).values({ userId: session.userId, action: "MESSAGE_DELETED", resource: "messages", resourceId: id });

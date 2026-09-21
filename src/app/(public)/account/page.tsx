@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Package, Clock, CheckCircle2, CreditCard, ArrowRight, ShoppingBag, Bell, Loader2 } from "lucide-react";
+import { Package, Clock, CheckCircle2, CreditCard, ArrowRight, ShoppingBag, Bell, Loader2, WalletCards } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-provider";
@@ -60,12 +60,15 @@ export default function AccountPage() {
           {/* Quick Actions */}
           <Card><CardContent className="p-6">
             <h2 className="text-lg font-semibold text-dark">Aksi Cepat</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Link href="/products" className="flex items-center gap-3 rounded-xl border border-dark-100 p-4 transition-colors hover:border-primary/20 hover:bg-primary/5">
                 <ShoppingBag className="h-5 w-5 text-primary" /><span className="font-medium text-dark">Buat Pesanan</span>
               </Link>
               <Link href="/account/orders" className="flex items-center gap-3 rounded-xl border border-dark-100 p-4 transition-colors hover:border-primary/20 hover:bg-primary/5">
                 <Package className="h-5 w-5 text-primary" /><span className="font-medium text-dark">Lihat Pesanan</span>
+              </Link>
+              <Link href="/account/finance" className="flex items-center gap-3 rounded-xl border border-dark-100 p-4 transition-colors hover:border-primary/20 hover:bg-primary/5">
+                <WalletCards className="h-5 w-5 text-primary" /><span className="font-medium text-dark">Keuangan</span>
               </Link>
               <Link href="/account/profile" className="flex items-center gap-3 rounded-xl border border-dark-100 p-4 transition-colors hover:border-primary/20 hover:bg-primary/5">
                 <CheckCircle2 className="h-5 w-5 text-primary" /><span className="font-medium text-dark">Lengkapi Profil</span>

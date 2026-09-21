@@ -118,10 +118,10 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
           {/* Logo */}
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-3"
+            className="flex min-w-0 shrink-0 items-center gap-2"
             aria-label="Madina Solution Home"
           >
-            <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} priority logoClassName="h-10 w-10" className="max-w-[220px]" />
+            <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} priority logoClassName="h-9 w-9 sm:h-10 sm:w-10" className="max-w-[180px] sm:max-w-[220px]" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -158,7 +158,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
           )}
 
           {/* Right Actions */}
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
             <LocaleSwitcher />
             <Button
               variant="ghost"
@@ -230,11 +230,12 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="Buka menu navigasi"
+              className="relative lg:hidden"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              aria-label={isMobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className={cn("absolute h-5 w-5 transition-all duration-200", isMobileMenuOpen ? "scale-75 opacity-0" : "scale-100 opacity-100")} />
+              <X className={cn("h-5 w-5 transition-all duration-200", isMobileMenuOpen ? "scale-100 opacity-100" : "scale-75 opacity-0")} />
             </Button>
           </div>
         </div>

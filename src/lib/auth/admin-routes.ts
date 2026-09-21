@@ -14,7 +14,7 @@ export const ADMIN_ROUTE_RULES: AdminRouteRule[] = [
   { prefix: "/admin/production", permission: "production.read" },
   { prefix: "/admin/customers", permission: "customers.read" },
   { prefix: "/admin/reviews", permission: "content.read" },
-  { prefix: "/admin/messages", permission: "content.read" },
+  { prefix: "/admin/messages", permission: "messages.read" },
   { prefix: "/admin/services", permission: "content.read" },
   { prefix: "/admin/portfolio", permission: "content.read" },
   { prefix: "/admin/articles", permission: "content.read" },

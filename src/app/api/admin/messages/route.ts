@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { messages, users, orders } from "@/db/schema";
-import { asc, desc, eq, or } from "drizzle-orm";
+import { messages, users, orders, payments } from "@/db/schema";
+import { and, asc, desc, eq, or } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || !hasPermission(session.role, "content.read")) {
+    if (!session || !hasPermission(session.role, "messages.read")) {
       return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     }
 
@@ -40,7 +40,13 @@ export async function GET(request: NextRequest) {
         await Promise.all(unreadIncoming.map((m) => db.update(messages).set({ isRead: true }).where(eq(messages.id, m.id))));
       }
 
-      return NextResponse.json({ success: true, messages: thread.map((m) => ({ ...m, isMine: m.senderId !== customerId })) });
+      const [customer] = await db.select({ id: users.id, name: users.name, email: users.email, phone: users.phone, avatar: users.avatar, role: users.role, createdAt: users.createdAt }).from(users).where(eq(users.id, customerId)).limit(1);
+      const customerOrders = await db.select({ id: orders.id, orderNumber: orders.orderNumber, total: orders.total, paymentStatus: orders.paymentStatus, status: orders.status, createdAt: orders.createdAt }).from(orders).where(eq(orders.userId, customerId)).orderBy(desc(orders.createdAt)).limit(8);
+      const allCustomerOrders = await db.select({ id: orders.id, total: orders.total }).from(orders).where(eq(orders.userId, customerId));
+      const paidByOrder = await db.select({ orderId: payments.orderId, amount: payments.amount }).from(payments).innerJoin(orders, eq(payments.orderId, orders.id)).where(and(eq(orders.userId, customerId), eq(payments.status, "paid")));
+      const paidTotal = paidByOrder.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      const outstanding = allCustomerOrders.reduce((sum, row) => sum + Math.max(0, Number(row.total || 0) - paidByOrder.filter((p) => p.orderId === row.id).reduce((s, p) => s + Number(p.amount || 0), 0)), 0);
+      return NextResponse.json({ success: true, customer: customer || null, customerOrders, financialSummary: { paidTotal, outstanding }, messages: thread.map((m) => ({ ...m, isMine: m.senderId !== customerId })) });
     }
 
     // Conversation list: every message joined to the sender's role, then grouped in
@@ -68,7 +74,7 @@ export async function GET(request: NextRequest) {
 
     const conversations = await Promise.all(
       Array.from(customerIds).map(async (custId) => {
-        const [customer] = await db.select({ id: users.id, name: users.name, email: users.email }).from(users).where(eq(users.id, custId)).limit(1);
+        const [customer] = await db.select({ id: users.id, name: users.name, email: users.email, avatar: users.avatar, role: users.role }).from(users).where(eq(users.id, custId)).limit(1);
         const threadMessages = all.filter((m) => m.senderId === custId || m.receiverId === custId);
         const last = threadMessages[0]; // already ordered desc
         const unreadCount = threadMessages.filter((m) => m.senderId === custId && !m.isRead).length;
@@ -76,6 +82,8 @@ export async function GET(request: NextRequest) {
           customerId: custId,
           customerName: customer?.name || "Pengguna",
           customerEmail: customer?.email || "",
+          customerRole: customer?.role || "customer",
+          customerAvatar: customer?.avatar || null,
           lastMessage: last?.content || "",
           lastMessageAt: last?.createdAt ?? null,
           unreadCount,
@@ -94,7 +102,7 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || !hasPermission(session.role, "content.delete")) {
+    if (!session || !hasPermission(session.role, "messages.manage")) {
       return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     }
     const customerId = request.nextUrl.searchParams.get("customerId");
@@ -111,7 +119,7 @@ export async function DELETE(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || !hasPermission(session.role, "content.create")) {
+    if (!session || !hasPermission(session.role, "messages.create")) {
       return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Akses ditolak" } }, { status: 403 });
     }
     const body = await request.json();
@@ -121,6 +129,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Data tidak valid" } }, { status: 400 });
     }
     const orderId = typeof body.orderId === "string" ? body.orderId : null;
+    if (orderId) {
+      const [linkedOrder] = await db.select({ id: orders.id }).from(orders).where(and(eq(orders.id, orderId), eq(orders.userId, customerId))).limit(1);
+      if (!linkedOrder) return NextResponse.json({ success: false, error: { code: "ORDER_INVALID", message: "Pesanan tidak terkait dengan pelanggan tersebut" } }, { status: 400 });
+    }
 
     const [created] = await db
       .insert(messages)
