@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 import { isValidTransition } from "@/lib/order-utils";
+import { notify } from "@/lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,17 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         },
       });
     });
+
+    if (order.userId) {
+      const statusLabel = newStatus.replaceAll("_", " ");
+      await notify({
+        userId: order.userId,
+        orderId: id,
+        event: "ORDER_STATUS_CHANGED",
+        title: `Status pesanan ${order.orderNumber} diperbarui`,
+        message: `Pesanan ${order.orderNumber} sekarang berstatus ${statusLabel}.${notes ? ` ${notes}` : ""}`,
+      });
+    }
 
     return NextResponse.json({ success: true, status: newStatus });
   } catch (error) {

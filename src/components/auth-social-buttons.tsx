@@ -31,7 +31,13 @@ function FacebookMark() {
 function socialErrorMessage(error: unknown) {
   const code = error instanceof Error ? error.message : "";
   if (code.includes("Firebase Authentication belum dikonfigurasi")) {
-    return "Login sosial belum dikonfigurasi di environment aplikasi. Email/password tetap tersedia.";
+    return "Login Google belum dikonfigurasi lengkap. Periksa environment Firebase di Vercel, lalu redeploy aplikasi.";
+  }
+  if (code.includes("auth/unauthorized-domain")) {
+    return "Domain website belum diizinkan oleh Firebase Authentication. Tambahkan madinasolution.vercel.app di Firebase Console → Authentication → Settings → Authorized domains.";
+  }
+  if (code.includes("auth/internal-error")) {
+    return "Firebase mengembalikan internal-error. Periksa Firebase environment, Authorized Domains, provider Google, dan konfigurasi OAuth Web di Google Cloud.";
   }
   if (code.includes("auth/popup-closed-by-user")) return "Jendela login ditutup. Silakan coba lagi.";
   if (code.includes("auth/popup-blocked")) return "Browser memblokir jendela login. Izinkan pop-up untuk melanjutkan.";

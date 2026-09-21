@@ -22,10 +22,10 @@ export function Footer({ siteName = BRAND.name, siteLogo = "", siteEmail = BRAND
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">
           <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
             <div>
-              <h3 className="text-2xl font-bold">
+              <h3 className="text-2xl font-bold text-white">
                 Dapatkan Update & Penawaran Terbaru
               </h3>
-              <p className="mt-2 text-dark-300">
+              <p className="mt-2 text-slate-300">
                 Berlangganan newsletter kami untuk tips bisnis dan promo eksklusif
               </p>
             </div>

@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { messages, users, orders } from "@/db/schema";
 import { and, asc, eq, inArray, or } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
+import { notify } from "@/lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +93,14 @@ export async function POST(request: NextRequest) {
       .insert(messages)
       .values({ senderId: session.userId, receiverId: supportUserId, orderId, content })
       .returning();
+
+    await notify({
+      userId: supportUserId,
+      orderId: orderId || undefined,
+      event: "MESSAGE_RECEIVED",
+      title: "Pesan baru dari pelanggan",
+      message: content.length > 140 ? `${content.slice(0, 137)}…` : content,
+    });
 
     return NextResponse.json({ success: true, item: { ...created, isMine: true } }, { status: 201 });
   } catch {

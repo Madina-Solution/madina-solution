@@ -19,7 +19,7 @@ const ENV_VARS: EnvConfig[] = [
   { key: "CLOUDINARY_CLOUD_NAME", required: false, production: false, description: "Cloudinary cloud name" },
   { key: "CLOUDINARY_API_KEY", required: false, production: false, description: "Cloudinary API key" },
   { key: "CLOUDINARY_API_SECRET", required: false, production: false, description: "Cloudinary secret" },
-  { key: "PAYMENT_PROVIDER", required: true, production: true, description: "Payment provider (midtrans/xendit in production)" },
+  { key: "PAYMENT_PROVIDER", required: true, production: true, description: "Payment provider (manual, midtrans, or xendit)" },
   { key: "MIDTRANS_SERVER_KEY", required: false, production: false, description: "Midtrans server key" },
   { key: "XENDIT_SECRET_KEY", required: false, production: false, description: "Xendit secret key" },
   { key: "EMAIL_PROVIDER", required: true, production: true, description: "Transactional email provider (resend in production)" },

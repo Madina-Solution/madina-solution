@@ -13,7 +13,9 @@ export type NotificationEvent =
   | "ORDER_READY"
   | "ORDER_SHIPPED"
   | "ORDER_COMPLETED"
-  | "PASSWORD_RESET";
+  | "PASSWORD_RESET"
+  | "MESSAGE_RECEIVED"
+  | "ORDER_STATUS_CHANGED";
 
 type NotifyInput = {
   userId?: string;

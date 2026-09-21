@@ -100,21 +100,37 @@ export default function AdminMessagesPage() {
   }, [toast]);
 
   React.useEffect(() => {
-    void fetchConversations();
+    const initialFetch = window.setTimeout(() => { void fetchConversations(); }, 0);
     const interval = window.setInterval(() => void fetchConversations(true), 10000);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearTimeout(initialFetch);
+      window.clearInterval(interval);
+    };
   }, [fetchConversations]);
 
   React.useEffect(() => {
-    if (!selected) { setContext(null); setSelectedOrderId(""); return; }
-    void fetchThread(selected.customerId);
+    if (!selected) return;
+    const initialFetch = window.setTimeout(() => { void fetchThread(selected.customerId); }, 0);
     const interval = window.setInterval(() => void fetchThread(selected.customerId, true), 6000);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearTimeout(initialFetch);
+      window.clearInterval(interval);
+    };
   }, [selected, fetchThread]);
 
   React.useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [context?.messages]);
 
-  const openConversation = (conversation: Conversation) => setSelected(conversation);
+  const openConversation = (conversation: Conversation) => {
+    setContext(null);
+    setSelectedOrderId("");
+    setSelected(conversation);
+  };
+
+  const closeConversation = () => {
+    setSelected(null);
+    setContext(null);
+    setSelectedOrderId("");
+  };
   const thread = context?.messages || [];
 
   const filteredConversations = React.useMemo(() => {
@@ -202,7 +218,7 @@ export default function AdminMessagesPage() {
         <section className={cn("min-w-0 flex-col", selected ? "flex" : "hidden lg:flex")}>
           {!selected ? <div className="flex h-full min-h-[560px] items-center justify-center px-8 text-center"><div><Headset className="mx-auto h-12 w-12 text-dark-300 dark:text-slate-700" /><h2 className="mt-4 text-lg font-black text-dark dark:text-white">Pilih percakapan</h2><p className="mt-1 max-w-sm text-sm leading-6 text-dark-500 dark:text-slate-400">Pilih pelanggan untuk melihat percakapan, order, role, dan ringkasan keuangannya dalam satu layar.</p></div></div> : <>
             <div className="flex items-center justify-between gap-3 border-b border-dark-100 px-4 py-3 dark:border-slate-800">
-              <div className="flex min-w-0 items-center gap-2"><button className="rounded-lg p-1.5 text-dark-500 hover:bg-dark-100 dark:hover:bg-slate-900 lg:hidden" onClick={() => setSelected(null)} aria-label="Kembali"><ArrowLeft className="h-5 w-5" /></button><div className="min-w-0"><p className="truncate font-black text-dark dark:text-white">{customer?.name || selected.customerName}</p><p className="truncate text-xs text-dark-500 dark:text-slate-400">{customer?.email || selected.customerEmail}</p></div></div>
+              <div className="flex min-w-0 items-center gap-2"><button className="rounded-lg p-1.5 text-dark-500 hover:bg-dark-100 dark:hover:bg-slate-900 lg:hidden" onClick={closeConversation} aria-label="Kembali"><ArrowLeft className="h-5 w-5" /></button><div className="min-w-0"><p className="truncate font-black text-dark dark:text-white">{customer?.name || selected.customerName}</p><p className="truncate text-xs text-dark-500 dark:text-slate-400">{customer?.email || selected.customerEmail}</p></div></div>
               <div className="flex items-center gap-1"><button type="button" onClick={() => setQuickReplyOpen((open) => !open)} className="hidden rounded-xl border border-dark-200 px-3 py-2 text-xs font-bold text-dark-600 hover:bg-dark-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900 sm:inline-flex">Balasan cepat</button><button type="button" onClick={() => setConfirmClearThread(true)} className="flex h-9 w-9 items-center justify-center rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30" aria-label="Hapus percakapan"><Trash className="h-4 w-4" /></button></div>
             </div>
             {quickReplyOpen && <div className="border-b border-dark-100 bg-dark-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/70"><div className="grid gap-2 sm:grid-cols-2">{QUICK_REPLIES.map((reply) => <button key={reply} type="button" onClick={() => { setDraft(reply); setQuickReplyOpen(false); }} className="rounded-xl border border-dark-100 bg-white px-3 py-2.5 text-left text-xs font-medium leading-5 text-dark-700 hover:border-primary/30 hover:bg-primary/[0.03] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">{reply}</button>)}</div></div>}

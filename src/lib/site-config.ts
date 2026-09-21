@@ -14,6 +14,7 @@ export async function getPublicSiteConfig() {
     siteName: stringOf(settings, "site_name", "Madina Solution"),
     siteTagline: stringOf(settings, "site_tagline", "Creative Business Platform"),
     siteLogo: stringOf(settings, "site_logo"),
+    siteIcon: stringOf(settings, "site_icon"),
     topBarEnabled: booleanOf(settings, "topbar_enabled", true),
     topBarText: stringOf(settings, "topbar_text", "Creative Business Platform untuk kebutuhan bisnis Anda"),
     sitePhone: stringOf(settings, "site_phone", "+62 813-9300-5035"),

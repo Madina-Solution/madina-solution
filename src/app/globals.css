@@ -256,6 +256,36 @@
 .admin-ui.admin-dark .shadow-premium,
 .admin-ui.admin-dark .shadow-premium-lg { box-shadow: 0 14px 35px rgba(2, 6, 23, 0.32) !important; }
 
+/* Neutral utility compatibility for legacy admin screens. */
+.admin-ui.admin-dark .bg-slate-50,
+.admin-ui.admin-dark .bg-gray-50,
+.admin-ui.admin-dark .bg-zinc-50,
+.admin-ui.admin-dark .bg-neutral-50 { background-color: #111827 !important; }
+.admin-ui.admin-dark .bg-slate-100,
+.admin-ui.admin-dark .bg-gray-100,
+.admin-ui.admin-dark .bg-zinc-100,
+.admin-ui.admin-dark .bg-neutral-100 { background-color: #1e293b !important; }
+.admin-ui.admin-dark .border-slate-200,
+.admin-ui.admin-dark .border-gray-200,
+.admin-ui.admin-dark .border-zinc-200,
+.admin-ui.admin-dark .border-neutral-200 { border-color: #334155 !important; }
+.admin-ui.admin-dark .text-slate-900,
+.admin-ui.admin-dark .text-gray-900,
+.admin-ui.admin-dark .text-zinc-900,
+.admin-ui.admin-dark .text-neutral-900 { color: #f8fafc !important; }
+.admin-ui.admin-dark .text-slate-700,
+.admin-ui.admin-dark .text-gray-700,
+.admin-ui.admin-dark .text-zinc-700,
+.admin-ui.admin-dark .text-neutral-700 { color: #e2e8f0 !important; }
+.admin-ui.admin-dark .text-slate-600,
+.admin-ui.admin-dark .text-gray-600,
+.admin-ui.admin-dark .text-zinc-600,
+.admin-ui.admin-dark .text-neutral-600 { color: #cbd5e1 !important; }
+.admin-ui.admin-dark .text-slate-500,
+.admin-ui.admin-dark .text-gray-500,
+.admin-ui.admin-dark .text-zinc-500,
+.admin-ui.admin-dark .text-neutral-500 { color: #94a3b8 !important; }
+
 /* ============================================
    KEYFRAMES
    ============================================ */

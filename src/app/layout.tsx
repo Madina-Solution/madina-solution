@@ -26,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     siteTagline: string;
     siteUrl: string;
     siteLogo: string;
+    siteIcon: string;
     seoTitle: string;
     seoDescription: string;
     seoKeywords: string;
@@ -37,6 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
     siteTagline: BRAND.tagline,
     siteUrl: getSiteUrl(),
     siteLogo: "",
+    siteIcon: "",
     seoTitle: "Madina Solution | Desain Grafis & Percetakan",
     seoDescription: "Madina Solution adalah spesialis desain grafis, digital printing, dan percetakan di Temanggung, Jawa Tengah.",
     seoKeywords: "Madina Solution, desain grafis, desain grafis Temanggung, digital printing, digital printing Temanggung, percetakan, percetakan Temanggung, percetakan Jawa Tengah, desain dan percetakan, branding, jasa branding UMKM, advertising, desain logo, brand identity, cetak banner, cetak spanduk, cetak sticker, cetak kartu nama, cetak brosur, cetak undangan, cetak poster, cetak kalender, neon box, signage, x-banner",
@@ -81,13 +83,15 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [image],
       ...(config.seoTwitterHandle ? { creator: config.seoTwitterHandle, site: config.seoTwitterHandle } : {}),
     },
-    // Favicon mirrors the branding logo configured in Admin → Pengaturan.
-    // Falls back to the static brand-mark SVGs only when no logo is set yet.
+    // App icon is intentionally separate from the header logo so landscape logos do not become blurry favicons.
     icons: {
-      icon: config.siteLogo ? [{ url: config.siteLogo }] : [{ url: "/icon.svg", type: "image/svg+xml" }],
-      apple: config.siteLogo ? [{ url: config.siteLogo }] : [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
+      icon: config.siteIcon ? [{ url: config.siteIcon }] : [
+        { url: "/icons/madina-192.png?v=20260922", type: "image/png", sizes: "192x192" },
+        { url: "/icons/madina-512.png?v=20260922", type: "image/png", sizes: "512x512" },
+      ],
+      apple: config.siteIcon ? [{ url: config.siteIcon }] : [{ url: "/icons/madina-180.png?v=20260922", type: "image/png", sizes: "180x180" }],
     },
-    manifest: "/manifest.webmanifest",
+    manifest: "/manifest.webmanifest?v=20260922",
     robots: { index: true, follow: true, nocache: false },
     // The root route intentionally has no hard-coded canonical; each indexable route declares its own canonical.
   };

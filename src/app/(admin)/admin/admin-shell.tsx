@@ -342,9 +342,10 @@ export function AdminShell({ children, siteName, siteLogo = "", siteTagline = "C
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <Link href="/" target="_blank" className="hidden items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-dark-600 hover:bg-dark-50 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-900 sm:inline-flex"><ExternalLink className="h-4 w-4" /> Lihat Website</Link>
             <Link href="/admin/messages" className="relative flex h-10 w-10 items-center justify-center rounded-xl text-dark-500 hover:bg-dark-50 dark:text-slate-300 dark:hover:bg-slate-900" aria-label={unreadMessages > 0 ? `Pesan masuk, ${unreadMessages} belum dibaca` : "Pesan masuk"}>
-              <Bell className="h-[18px] w-[18px]" />
+              <MessageSquare className="h-[18px] w-[18px]" />
               {unreadMessages > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-950" />}
             </Link>
+            <NotificationBell href="/admin/notifications" className="text-dark-500 hover:bg-dark-50 dark:text-slate-300 dark:hover:bg-slate-900" />
             <button type="button" onClick={toggleTheme} className="flex h-10 w-10 items-center justify-center rounded-xl text-dark-500 hover:bg-dark-50 dark:text-slate-300 dark:hover:bg-slate-900" aria-label={theme === "light" ? "Aktifkan dark mode" : "Aktifkan light mode"}>{theme === "light" ? <Moon className="h-[18px] w-[18px]" /> : <Sun className="h-[18px] w-[18px]" />}</button>
             <div className="relative hidden sm:block">
               <button

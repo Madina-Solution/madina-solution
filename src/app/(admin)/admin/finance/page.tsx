@@ -82,15 +82,14 @@ export default function AdminFinancePage() {
 
   const expenseCategories = data?.categories.filter((category) => category.type === "expense" || category.type === "both") || [];
   const canManageFinance = !!user && hasPermission(user.role, "finance.manage");
-  const filteredTransactions = React.useMemo(() => {
-    if (!data) return [];
-    const query = transactionSearch.trim().toLowerCase();
-    return data.transactions.filter((transaction) => {
-      if (transactionType !== "all" && transaction.type !== transactionType) return false;
-      if (!query) return true;
-      return [transaction.description, transaction.customerName || "", transaction.customerEmail || "", transaction.orderNumber || "", transaction.reference || "", transaction.categoryName || ""].some((value) => value.toLowerCase().includes(query));
-    });
-  }, [data, transactionSearch, transactionType]);
+  const filteredTransactions = data
+    ? data.transactions.filter((transaction) => {
+        if (transactionType !== "all" && transaction.type !== transactionType) return false;
+        const query = transactionSearch.trim().toLowerCase();
+        if (!query) return true;
+        return [transaction.description, transaction.customerName || "", transaction.customerEmail || "", transaction.orderNumber || "", transaction.reference || "", transaction.categoryName || ""].some((value) => value.toLowerCase().includes(query));
+      })
+    : [];
 
   return (
     <div className="space-y-6">

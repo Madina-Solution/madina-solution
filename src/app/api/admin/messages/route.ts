@@ -4,6 +4,7 @@ import { messages, users, orders, payments } from "@/db/schema";
 import { and, asc, desc, eq, ne, or } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
+import { notify } from "@/lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -159,6 +160,14 @@ export async function POST(request: NextRequest) {
       .insert(messages)
       .values({ senderId: session.userId, receiverId: customerId, orderId, content })
       .returning();
+
+    await notify({
+      userId: customerId,
+      orderId: orderId || undefined,
+      event: "MESSAGE_RECEIVED",
+      title: "Pesan baru dari Madina Solution",
+      message: content.length > 140 ? `${content.slice(0, 137)}…` : content,
+    });
 
     return NextResponse.json({ success: true, item: { ...created, isMine: true } }, { status: 201 });
   } catch {

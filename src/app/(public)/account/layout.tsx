@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ROLE_LABELS } from "@/lib/auth/permissions";
+import { NotificationBell } from "@/components/account/notification-bell";
 
 const NAV_ITEMS = [
   { href: "/account", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -76,16 +77,19 @@ export default function AccountLayout({
     <div className="py-8 text-dark lg:py-12 dark:text-slate-100">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
         {/* Welcome */}
-        <div className="mb-8">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold text-dark lg:text-3xl dark:text-white">
-              Halo, {user.name}
-            </h1>
-            <span className="inline-flex items-center rounded-full border border-primary/15 bg-primary/8 px-2.5 py-1 text-[11px] font-extrabold text-primary dark:border-primary/25 dark:bg-primary/10">
-              {ROLE_LABELS[user.role] || user.role}
-            </span>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold text-dark lg:text-3xl dark:text-white">
+                Halo, {user.name}
+              </h1>
+              <span className="inline-flex items-center rounded-full border border-primary/15 bg-primary/8 px-2.5 py-1 text-[11px] font-extrabold text-primary dark:border-primary/25 dark:bg-primary/10">
+                {ROLE_LABELS[user.role] || user.role}
+              </span>
+            </div>
+            <p className="mt-1 truncate text-dark-500 dark:text-slate-400">{user.email}</p>
           </div>
-          <p className="mt-1 text-dark-500 dark:text-slate-400">{user.email}</p>
+          <NotificationBell className="shrink-0" />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-4">

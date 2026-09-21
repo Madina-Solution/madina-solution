@@ -9,7 +9,7 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const ALLOWED_SETTING_KEYS = new Set([
-  "site_name", "site_tagline", "site_logo", "site_email", "site_phone", "site_address", "site_whatsapp", "site_url",
+  "site_name", "site_tagline", "site_logo", "site_icon", "site_email", "site_phone", "site_address", "site_whatsapp", "site_url",
   "seo_title", "seo_description", "seo_keywords", "seo_og_image", "seo_twitter_handle",
   "topbar_enabled", "topbar_text",
   "hero_badge", "hero_title", "hero_description", "hero_image", "hero_image_alt", "cta_title", "cta_description",
@@ -34,6 +34,7 @@ export async function GET() {
       payment: process.env.PAYMENT_PROVIDER || "mock",
       storage: process.env.CLOUDINARY_CLOUD_NAME ? "cloudinary" : "local",
       email: process.env.EMAIL_PROVIDER === "resend" && process.env.RESEND_API_KEY && process.env.EMAIL_FROM ? "configured" : "not_configured",
+      firebase: process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID && process.env.NEXT_PUBLIC_FIREBASE_APP_ID ? "configured" : "not_configured",
       database: "connected",
     };
 

@@ -22,7 +22,9 @@ export default function NotificationsPage() {
     try { const r = await fetch("/api/notifications"); const d = await r.json(); if (d.success) { setItems(d.notifications); setUnreadCount(d.unreadCount); } } catch {} finally { setIsLoading(false); }
   }, []);
   React.useEffect(() => {
-    void (async () => { await fetchData(); })();
+    const initial = window.setTimeout(() => { void fetchData(); }, 0);
+    const interval = window.setInterval(() => { void fetchData(); }, 5000);
+    return () => { window.clearTimeout(initial); window.clearInterval(interval); };
   }, [fetchData]);
 
   const markRead = async (id: string) => {
