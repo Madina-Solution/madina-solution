@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, auditLogs } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission, canAssignRole } from "@/lib/auth/permissions";
 
@@ -17,6 +18,15 @@ export async function PATCH(request: NextRequest, context: Ctx) {
 
     const { id } = await context.params;
     const body = await request.json();
+
+    const requestedRole = body.role ? z.enum(["super_admin", "admin", "manager", "staff", "designer", "production", "customer"]).safeParse(body.role) : null;
+    if (body.role && !requestedRole?.success) {
+      return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Role tidak valid" } }, { status: 400 });
+    }
+
+    if (body.role && !hasPermission(session.role, "users.manage")) {
+      return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Tidak memiliki izin mengelola role" } }, { status: 403 });
+    }
 
     // Prevent self-demotion for super_admin
     if (id === session.userId && body.role && body.role !== session.role) {

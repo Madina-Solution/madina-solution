@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { payments, paymentEvents, orders, auditLogs, notifications } from "@/db/schema";
+import { payments, paymentEvents, orders, auditLogs, notifications, financeCategories, financeTransactions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type { PaymentProvider, CreatePaymentInput, PaymentResult } from "./types";
 import { MockPaymentProvider } from "./mock-provider";
@@ -21,10 +21,11 @@ function getProvider(): PaymentProvider {
 }
 
 export class PaymentService {
-  private provider: PaymentProvider;
+  private provider?: PaymentProvider;
 
-  constructor() {
-    this.provider = getProvider();
+  private get providerInstance(): PaymentProvider {
+    if (!this.provider) this.provider = getProvider();
+    return this.provider;
   }
 
   /**
@@ -49,12 +50,13 @@ export class PaymentService {
       metadata: { orderNumber: order.orderNumber },
     };
 
-    const result = await this.provider.createPayment(input);
+    const provider = this.providerInstance;
+    const result = await provider.createPayment(input);
 
     // Create payment record
     const [payment] = await db.insert(payments).values({
       orderId,
-      provider: this.provider.name,
+      provider: provider.name,
       providerPaymentId: result.providerPaymentId,
       reference: result.reference,
       amount: String(amount),
@@ -72,22 +74,24 @@ export class PaymentService {
         action: "PAYMENT_CREATED",
         resource: "payments",
         resourceId: payment.id,
-        metadata: { orderId, amount, provider: this.provider.name },
+        metadata: { orderId, amount, provider: provider.name },
       });
     }
 
     return { paymentId: payment.id, result };
   }
 
+
   /**
    * Process a webhook event idempotently.
    */
   async processWebhook(request: Request): Promise<{ processed: boolean }> {
-    const event = await this.provider.verifyWebhook(request);
+    const provider = this.providerInstance;
+    const event = await provider.verifyWebhook(request);
 
     // Idempotency check
     const existing = await db.select({ id: paymentEvents.id }).from(paymentEvents)
-      .where(and(eq(paymentEvents.provider, this.provider.name), eq(paymentEvents.eventId, event.eventId)))
+      .where(and(eq(paymentEvents.provider, provider.name), eq(paymentEvents.eventId, event.eventId)))
       .limit(1);
 
     if (existing.length > 0) {
@@ -113,7 +117,7 @@ export class PaymentService {
       // Record event
       await tx.insert(paymentEvents).values({
         paymentId: payment.id,
-        provider: this.provider.name,
+        provider: provider.name,
         eventId: event.eventId,
         eventType: event.eventType,
         payload: event.metadata || {},
@@ -138,6 +142,20 @@ export class PaymentService {
           paymentStatus: orderPaymentStatus,
           updatedAt: new Date(),
         }).where(eq(orders.id, payment.orderId));
+      }
+
+      if (event.status === "paid") {
+        const [orderForLedger] = await tx.select({ orderNumber: orders.orderNumber }).from(orders).where(eq(orders.id, payment.orderId)).limit(1);
+        const [existingLedger] = await tx.select({ id: financeTransactions.id }).from(financeTransactions).where(and(eq(financeTransactions.paymentId, payment.id), eq(financeTransactions.type, "income"), eq(financeTransactions.status, "posted"))).limit(1);
+        if (orderForLedger && !existingLedger) {
+          const categoryName = payment.paymentMethod?.toLowerCase().includes("bank") ? "Transfer Bank" : "Penjualan / Order";
+          const [category] = await tx.select({ id: financeCategories.id }).from(financeCategories).where(and(eq(financeCategories.name, categoryName), eq(financeCategories.isActive, true))).limit(1);
+          await tx.insert(financeTransactions).values({
+            type: "income", status: "posted", categoryId: category?.id ?? null, orderId: payment.orderId, paymentId: payment.id,
+            reference: orderForLedger.orderNumber, description: `Pembayaran pesanan ${orderForLedger.orderNumber}`, amount: String(Number(payment.amount)), currency: "IDR",
+            paymentMethod: payment.paymentMethod || null, transactionDate: event.paidAt || new Date(),
+          });
+        }
       }
 
       // Audit
@@ -176,9 +194,25 @@ export class PaymentService {
     const payment = paymentResult[0];
     if (!payment) throw new Error("Payment not found");
 
+    if (payment.status === "paid") throw new Error("Payment already confirmed");
+
     await db.transaction(async (tx) => {
-      await tx.update(payments).set({ status: "paid", paidAt: new Date(), updatedAt: new Date() }).where(eq(payments.id, paymentId));
-      await tx.update(orders).set({ paymentStatus: "paid", updatedAt: new Date() }).where(eq(orders.id, payment.orderId));
+      const paidAt = new Date();
+      await tx.update(payments).set({ status: "paid", paidAt, updatedAt: paidAt }).where(eq(payments.id, paymentId));
+      const [order] = await tx.select({ orderNumber: orders.orderNumber }).from(orders).where(eq(orders.id, payment.orderId)).limit(1);
+      await tx.update(orders).set({ paymentStatus: "paid", updatedAt: paidAt }).where(eq(orders.id, payment.orderId));
+      if (order) {
+        const [existingLedger] = await tx.select({ id: financeTransactions.id }).from(financeTransactions).where(and(eq(financeTransactions.paymentId, paymentId), eq(financeTransactions.type, "income"), eq(financeTransactions.status, "posted"))).limit(1);
+        if (!existingLedger) {
+          const categoryName = payment.paymentMethod?.toLowerCase().includes("bank") ? "Transfer Bank" : "Penjualan / Order";
+          const [category] = await tx.select({ id: financeCategories.id }).from(financeCategories).where(and(eq(financeCategories.name, categoryName), eq(financeCategories.isActive, true))).limit(1);
+          await tx.insert(financeTransactions).values({
+            type: "income", status: "posted", categoryId: category?.id ?? null, orderId: payment.orderId, paymentId,
+            reference: order.orderNumber, description: `Pembayaran pesanan ${order.orderNumber}`, amount: String(Number(payment.amount)), currency: "IDR",
+            paymentMethod: payment.paymentMethod || null, transactionDate: paidAt, createdBy: actorId,
+          });
+        }
+      }
       await tx.insert(auditLogs).values({
         userId: actorId,
         action: "PAYMENT_MANUAL_CONFIRMED",

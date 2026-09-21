@@ -26,6 +26,7 @@ import {
   Sparkles,
   ChevronDown,
   CalendarDays,
+  MoreVertical,
 } from "lucide-react";
 import { RevenueChart } from "./revenue-chart";
 import { PipelineChart } from "./pipeline-chart";
@@ -154,14 +155,14 @@ export default async function AdminDashboardPage() {
   ].filter((item) => item.count > 0);
 
   const stats = [
-    { label: "Pendapatan Bulan Ini", value: formatCurrency(revenueThisMonthNum), trend: pctChange(revenueThisMonthNum, revenueLastMonthNum), icon: DollarSign, iconBox: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300" },
-    { label: "Pesanan Bulan Ini", value: String(ordersThisMonthNum), trend: pctChange(ordersThisMonthNum, ordersLastMonthNum), icon: ShoppingCart, iconBox: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300" },
-    { label: "Pelanggan Baru", value: String(customersThisMonthNum), trend: pctChange(customersThisMonthNum, customersLastMonthNum), icon: Users, iconBox: "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300" },
-    { label: "Menunggu Konfirmasi", value: String(pendingOrders), trend: null, icon: Clock3, iconBox: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-300" },
-    { label: "Produk Aktif", value: String(totalProducts), trend: null, icon: Boxes, iconBox: "bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300" },
-    { label: "Layanan Aktif", value: String(totalServices), trend: null, icon: BriefcaseBusiness, iconBox: "bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300" },
-    { label: "Pesan Belum Dibaca", value: String(unreadMessages), trend: null, icon: Mail, iconBox: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-300" },
-    { label: "Kupon Aktif", value: String(activeCoupons), trend: null, icon: Ticket, iconBox: "bg-pink-50 text-pink-600 dark:bg-pink-950/40 dark:text-pink-300" },
+    { label: "Pendapatan Bulan Ini", value: formatCurrency(revenueThisMonthNum), trend: pctChange(revenueThisMonthNum, revenueLastMonthNum), icon: DollarSign, iconBox: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300", href: "/admin/orders" },
+    { label: "Pesanan Bulan Ini", value: String(ordersThisMonthNum), trend: pctChange(ordersThisMonthNum, ordersLastMonthNum), icon: ShoppingCart, iconBox: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300", href: "/admin/orders" },
+    { label: "Pelanggan Baru", value: String(customersThisMonthNum), trend: pctChange(customersThisMonthNum, customersLastMonthNum), icon: Users, iconBox: "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300", href: "/admin/customers" },
+    { label: "Menunggu Konfirmasi", value: String(pendingOrders), trend: null, icon: Clock3, iconBox: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-300", href: "/admin/orders?status=pending" },
+    { label: "Produk Aktif", value: String(totalProducts), trend: null, icon: Boxes, iconBox: "bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300", href: "/admin/products" },
+    { label: "Layanan Aktif", value: String(totalServices), trend: null, icon: BriefcaseBusiness, iconBox: "bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300", href: "/admin/services" },
+    { label: "Pesan Belum Dibaca", value: String(unreadMessages), trend: null, icon: Mail, iconBox: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-300", href: "/admin/messages" },
+    { label: "Kupon Aktif", value: String(activeCoupons), trend: null, icon: Ticket, iconBox: "bg-pink-50 text-pink-600 dark:bg-pink-950/40 dark:text-pink-300", href: "/admin/coupons" },
   ];
 
   const quickActions = [
@@ -182,9 +183,10 @@ export default async function AdminDashboardPage() {
             <h1 className="mt-2 text-[34px] font-black tracking-[-0.04em] text-dark-900 dark:text-white sm:text-[42px]">Dashboard</h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-dark-500 dark:text-slate-400">Ringkasan operasional Madina Solution — {formatDate(now)}. Pantau pesanan, penjualan, produksi, dan aktivitas pelanggan dari satu tempat.</p>
           </div>
-          <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-dark-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary"><BarChart3 className="h-5 w-5" /></div>
-            <div><p className="text-xs font-semibold text-dark-500 dark:text-slate-400">Performa bisnis</p><p className="mt-0.5 text-sm font-extrabold text-dark-900 dark:text-white">Tumbuh lebih cepat.</p></div>
+          <div className="relative flex shrink-0 items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-light px-5 py-4 text-white shadow-[0_12px_28px_rgba(196,77,10,0.22)]">
+            <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15"><BarChart3 className="h-5 w-5" /></div>
+            <div className="relative"><p className="text-xs font-medium text-white/80">Kelola bisnis lebih mudah,</p><p className="mt-0.5 text-sm font-extrabold">tumbuh lebih cepat.</p></div>
           </div>
         </div>
       </section>
@@ -204,8 +206,14 @@ export default async function AdminDashboardPage() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <article key={stat.label} className="rounded-[22px] border border-dark-100 bg-white p-4 shadow-[0_8px_26px_rgba(15,23,42,0.035)] dark:border-slate-800 dark:bg-slate-950 sm:p-5">
-              <div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="truncate text-xs font-semibold text-dark-500 dark:text-slate-400">{stat.label}</p><p className="mt-2 text-[27px] font-black tracking-[-0.03em] text-dark-900 dark:text-white">{stat.value}</p><div className="mt-1.5 flex items-center gap-1.5"><TrendBadge value={stat.trend} />{stat.trend !== null && <span className="text-[11px] font-medium text-dark-400">vs bulan lalu</span>}</div></div><div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${stat.iconBox}`}><Icon className="h-[19px] w-[19px]" /></div></div>
+            <article key={stat.label} className="group relative rounded-[22px] border border-dark-100 bg-white p-4 shadow-[0_8px_26px_rgba(15,23,42,0.035)] dark:border-slate-800 dark:bg-slate-950 sm:p-5">
+              <details className="absolute right-3 top-3 [&::-webkit-details-marker]:hidden">
+                <summary className="flex h-7 w-7 list-none items-center justify-center rounded-lg text-dark-300 outline-none hover:bg-dark-50 hover:text-dark-600 dark:text-slate-600 dark:hover:bg-slate-900 dark:hover:text-slate-300"><MoreVertical className="h-4 w-4" /></summary>
+                <div className="absolute right-0 top-8 z-10 w-40 overflow-hidden rounded-xl border border-dark-100 bg-white py-1 shadow-[0_12px_28px_rgba(15,23,42,0.12)] dark:border-slate-800 dark:bg-slate-900">
+                  <Link href={stat.href} className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-dark-700 hover:bg-dark-50 dark:text-slate-200 dark:hover:bg-slate-800">Lihat Detail <ArrowRight className="h-3.5 w-3.5" /></Link>
+                </div>
+              </details>
+              <div className="flex items-start justify-between gap-4 pr-6"><div className="min-w-0"><p className="truncate text-xs font-semibold text-dark-500 dark:text-slate-400">{stat.label}</p><p className="mt-2 text-[27px] font-black tracking-[-0.03em] text-dark-900 dark:text-white">{stat.value}</p><div className="mt-1.5 flex items-center gap-1.5"><TrendBadge value={stat.trend} />{stat.trend !== null && <span className="text-[11px] font-medium text-dark-400">vs bulan lalu</span>}</div></div><div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${stat.iconBox}`}><Icon className="h-[19px] w-[19px]" /></div></div>
             </article>
           );
         })}

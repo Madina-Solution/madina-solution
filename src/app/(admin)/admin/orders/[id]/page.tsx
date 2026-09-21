@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, MapPin, Phone, Mail, Clock, CreditCard, Palette } from "lucide-react";
 import { OrderStatusActions } from "./order-status-actions";
 import { SiteImage } from "@/components/ui/site-image";
+import { PaymentConfirmationActions } from "./payment-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -261,8 +262,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                   </div>
                   <div className="mt-1 flex justify-between text-xs">
                     <span className="text-dark-500">Status</span>
-                    <span className="font-medium text-dark capitalize">{p.status}</span>
+                    <span className="font-medium text-dark capitalize">{p.status === "paid" ? "Lunas" : p.status === "pending_verification" ? "Menunggu Verifikasi" : p.status === "refunded" ? "Refund" : "Menunggu Pembayaran"}</span>
                   </div>
+                  {p.provider === "manual" && p.status !== "paid" && (
+                    <PaymentConfirmationActions paymentId={p.id} status={p.status} hasProof={Boolean(order.paymentProof)} />
+                  )}
                   {p.paidAt && (
                     <div className="mt-1 flex justify-between text-xs">
                       <span className="text-dark-500">Dibayar</span>

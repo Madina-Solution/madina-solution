@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders, media, auditLogs } from "@/db/schema";
+import { orders, media, auditLogs, payments } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -49,8 +49,33 @@ export async function PATCH(request: NextRequest, context: Ctx) {
       return NextResponse.json({ success: false, error: { code: "INVALID_UPLOAD_REFERENCE", message: "File tidak valid atau bukan milik akun Anda" } }, { status: 400 });
     }
 
-    const [updated] = await db.update(orders).set({ paymentProof: parsed.data.proofUrl, updatedAt: new Date() }).where(eq(orders.id, orderId)).returning();
-    await db.insert(auditLogs).values({ userId: session.userId, action: "ORDER_PAYMENT_PROOF_UPLOADED", resource: "orders", resourceId: orderId, metadata: { orderNumber: order.orderNumber } });
+    const uploadedAt = new Date();
+    const [updated] = await db.update(orders).set({ paymentProof: parsed.data.proofUrl, updatedAt: uploadedAt }).where(eq(orders.id, orderId)).returning();
+
+    const [existingPayment] = await db.select().from(payments).where(and(eq(payments.orderId, orderId), eq(payments.provider, "manual"))).orderBy(payments.createdAt).limit(1);
+    if (existingPayment) {
+      if (existingPayment.status !== "paid") {
+        await db.update(payments).set({
+          status: "pending_verification",
+          updatedAt: uploadedAt,
+          metadata: { ...(existingPayment.metadata || {}), proofUrl: parsed.data.proofUrl, proofUploadedAt: uploadedAt.toISOString() },
+        }).where(eq(payments.id, existingPayment.id));
+      }
+    } else {
+      await db.insert(payments).values({
+        orderId,
+        provider: "manual",
+        providerPaymentId: `manual-${orderId}`,
+        reference: order.orderNumber,
+        amount: String(order.total),
+        currency: "IDR",
+        status: "pending_verification",
+        paymentMethod: "Bank Transfer",
+        metadata: { proofUrl: parsed.data.proofUrl, proofUploadedAt: uploadedAt.toISOString() },
+      });
+    }
+
+    await db.insert(auditLogs).values({ userId: session.userId, action: "ORDER_PAYMENT_PROOF_UPLOADED", resource: "orders", resourceId: orderId, metadata: { orderNumber: order.orderNumber, proofUrl: parsed.data.proofUrl } });
 
     return NextResponse.json({ success: true, order: { id: updated.id, paymentProof: updated.paymentProof } });
   } catch (error) {

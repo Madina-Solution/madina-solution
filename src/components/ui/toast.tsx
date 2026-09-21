@@ -39,10 +39,10 @@ const TOAST_ICONS = {
 };
 
 const TOAST_STYLES = {
-  success: "border-green-200 bg-green-50 text-green-900",
-  error: "border-red-200 bg-red-50 text-red-900",
-  warning: "border-yellow-200 bg-yellow-50 text-yellow-900",
-  info: "border-blue-200 bg-blue-50 text-blue-900",
+  success: "border-green-200 bg-green-50 text-green-900 dark:border-green-900/60 dark:bg-green-950/80 dark:text-green-100",
+  error: "border-red-200 bg-red-50 text-red-900 dark:border-red-900/60 dark:bg-red-950/80 dark:text-red-100",
+  warning: "border-yellow-200 bg-yellow-50 text-yellow-900 dark:border-yellow-900/60 dark:bg-yellow-950/80 dark:text-yellow-100",
+  info: "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900/60 dark:bg-blue-950/80 dark:text-blue-100",
 };
 
 const ICON_STYLES = {
@@ -119,7 +119,7 @@ function ToastViewport() {
               <button
                 type="button"
                 onClick={() => dismiss(toast.id)}
-                className="shrink-0 opacity-60 hover:opacity-100"
+                className="shrink-0 opacity-60 hover:opacity-100 dark:opacity-70 dark:hover:opacity-100"
                 aria-label="Dismiss notification"
               >
                 <X className="h-4 w-4" />

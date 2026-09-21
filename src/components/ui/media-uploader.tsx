@@ -150,14 +150,14 @@ export function MediaUploader({
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between gap-3">
-        <label className="block text-sm font-medium text-dark">{label}</label>
-        {helpText && <span className="text-xs text-dark-400">{helpText}</span>}
+        <label className="block text-sm font-medium text-dark dark:text-slate-100">{label}</label>
+        {helpText && <span className="text-xs text-dark-400 dark:text-slate-500">{helpText}</span>}
       </div>
 
       {values.length > 0 && (
         <div className={cn("grid gap-3", multiple ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-1")}>
           {values.map((url, index) => (
-            <div key={`${url}-${index}`} className="group relative aspect-video overflow-hidden rounded-xl border border-dark-200 bg-dark-50">
+            <div key={`${url}-${index}`} className="group relative aspect-video overflow-hidden rounded-xl border border-dark-200 bg-dark-50 dark:border-slate-700 dark:bg-slate-900">
               {url.match(/\.(mp4|webm|mov)(?:[?#].*)?$/i) || url.includes("/video/upload/") ? <video src={url} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <SiteImage src={url} alt={`${label} ${index + 1}`} fill sizes="(max-width: 768px) 100vw, 640px" className="h-full w-full object-cover" />}
               <button type="button" onClick={() => { void removeAt(index); }} aria-label={`Hapus ${label} ${index + 1}`} className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white opacity-0 transition group-hover:opacity-100">
                 <X className="h-4 w-4" />
@@ -177,17 +177,17 @@ export function MediaUploader({
             event.preventDefault();
             void uploadFiles(event.dataTransfer.files);
           }}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-dark-200 bg-white px-4 py-8 text-center transition hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-dark-200 bg-white px-4 py-8 text-center transition hover:border-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-primary/10"
         >
-          {uploading ? <Loader2 className="h-7 w-7 animate-spin text-primary" /> : <ImagePlus className="h-7 w-7 text-dark-400" />}
-          <span className="text-sm font-semibold text-dark">{uploading ? "Mengunggah…" : allowVideo ? "Upload gambar / video" : "Upload gambar"}</span>
-          <span className="text-xs text-dark-400">Klik atau drag & drop • {allowVideo ? "JPG, PNG, WEBP, GIF, MP4, WEBM, MOV" : "JPG, PNG, WEBP, GIF"} • maksimal 25 MB</span>
+          {uploading ? <Loader2 className="h-7 w-7 animate-spin text-primary" /> : <ImagePlus className="h-7 w-7 text-dark-400 dark:text-slate-500" />}
+          <span className="text-sm font-semibold text-dark dark:text-slate-100">{uploading ? "Mengunggah…" : allowVideo ? "Upload gambar / video" : "Upload gambar"}</span>
+          <span className="text-xs text-dark-400 dark:text-slate-500">Klik atau drag & drop • {allowVideo ? "JPG, PNG, WEBP, GIF, MP4, WEBM, MOV" : "JPG, PNG, WEBP, GIF"} • maksimal 25 MB</span>
           <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><Upload className="h-3.5 w-3.5" /> Pilih file{allowVideo ? " media" : " gambar"}</span>
         </button>
       )}
 
       <input ref={inputRef} type="file" accept={effectiveAccept} multiple={multiple} className="hidden" onChange={(event) => { if (event.target.files) void uploadFiles(event.target.files); }} />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }

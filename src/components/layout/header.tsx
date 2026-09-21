@@ -1,5 +1,6 @@
 "use client";
 import { SiteImage } from "@/components/ui/site-image";
+import { BrandMark } from "@/components/layout/brand-mark";
 
 import * as React from "react";
 import Link from "next/link";
@@ -120,19 +121,7 @@ export function Header({ siteName = BRAND.name, siteLogo = "", topBarEnabled = t
             className="flex shrink-0 items-center gap-3"
             aria-label="Madina Solution Home"
           >
-            {siteLogo ? (
-              <div className="relative flex h-11 max-w-[180px] shrink-0 items-center">
-                <SiteImage src={siteLogo} alt={siteName} width={180} height={52} sizes="180px" className="h-auto max-h-11 w-auto max-w-[180px] object-contain" />
-              </div>
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-premium">
-                <span className="text-lg font-bold">{siteName.charAt(0).toUpperCase()}</span>
-              </div>
-            )}
-            <div className="min-w-0">
-              <h1 className="truncate font-display text-lg font-extrabold leading-none tracking-tight text-dark-900">{siteName}</h1>
-              <p className="hidden text-xs text-dark-500 sm:block">{siteTagline}</p>
-            </div>
+            <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} priority logoClassName="h-10 w-10" className="max-w-[220px]" />
           </Link>
 
           {/* Desktop Navigation */}

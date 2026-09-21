@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { getSession } from "@/lib/auth/session";
-import { orders, orderItems, orderStatusHistory, products, services, media, auditLogs, paymentMethods, shippingMethods } from "@/db/schema";
+import { orders, orderItems, orderStatusHistory, products, services, media, auditLogs, paymentMethods, shippingMethods, users, addresses, payments } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { checkoutSchema } from "@/lib/validations/checkout";
 import { generateOrderNumber } from "@/lib/order-number";
@@ -24,6 +24,31 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data;
     const session = await getSession();
+
+    // Authenticated checkout uses the current account profile and an owned saved address when selected.
+    const accountUser = session?.userId
+      ? (await db.select({ id: users.id, name: users.name, email: users.email, phone: users.phone }).from(users).where(eq(users.id, session.userId)).limit(1))[0]
+      : null;
+    let resolvedAddress = data.deliveryMethod === "delivery" ? data.address : null;
+    let resolvedAddressId: string | null = null;
+    if (session?.userId && data.addressId) {
+      const saved = (await db.select().from(addresses).where(and(eq(addresses.id, data.addressId), eq(addresses.userId, session.userId))).limit(1))[0];
+      if (!saved) {
+        return NextResponse.json({ success: false, error: { code: "INVALID_ADDRESS", message: "Alamat tersimpan tidak ditemukan" } }, { status: 400 });
+      }
+      resolvedAddressId = saved.id;
+      if (data.deliveryMethod === "delivery") {
+        resolvedAddress = {
+          recipientName: saved.recipientName,
+          phone: saved.phone,
+          address: saved.address,
+          city: saved.city,
+          province: saved.province,
+          district: saved.district || undefined,
+          postalCode: saved.postalCode || undefined,
+        };
+      }
+    }
 
     // 2. Load and validate all products, calculate trusted prices
     const validatedItems: {
@@ -157,18 +182,19 @@ export async function POST(request: NextRequest) {
         .values({
           orderNumber,
           userId: session?.userId || null,
-          guestName: data.customer.name,
-          guestEmail: data.customer.email,
-          guestPhone: data.customer.phone,
-          guestWhatsapp: data.customer.whatsapp || data.customer.phone,
-          shippingAddress: data.deliveryMethod === "delivery" ? {
-            recipientName: data.address.recipientName,
-            phone: data.address.phone,
-            address: data.address.address,
-            city: data.address.city,
-            province: data.address.province,
-            district: data.address.district,
-            postalCode: data.address.postalCode,
+          guestName: accountUser?.name || data.customer.name,
+          guestEmail: accountUser?.email || data.customer.email,
+          guestPhone: accountUser?.phone || data.customer.phone,
+          guestWhatsapp: data.customer.whatsapp || accountUser?.phone || data.customer.phone,
+          addressId: resolvedAddressId,
+          shippingAddress: resolvedAddress ? {
+            recipientName: resolvedAddress.recipientName,
+            phone: resolvedAddress.phone,
+            address: resolvedAddress.address,
+            city: resolvedAddress.city,
+            province: resolvedAddress.province,
+            district: resolvedAddress.district,
+            postalCode: resolvedAddress.postalCode,
           } : null,
           deliveryMethod: data.deliveryMethod,
           status: "pending",
@@ -183,6 +209,22 @@ export async function POST(request: NextRequest) {
           notes: data.notes,
         })
         .returning();
+
+      // Manual bank-transfer orders get a first-class payment row immediately.
+      // This is what makes proof verification and finance reconciliation possible.
+      if (paymentMethod.type === "bank_transfer") {
+        await tx.insert(payments).values({
+          orderId: newOrder.id,
+          provider: "manual",
+          providerPaymentId: `manual-${newOrder.id}`,
+          reference: newOrder.orderNumber,
+          amount: String(orderTotal),
+          currency: "IDR",
+          status: "pending",
+          paymentMethod: paymentMethod.name,
+          metadata: { paymentMethodId: paymentMethod.id, accountNumber: paymentMethod.accountNumber || null },
+        });
+      }
 
       // Create order items
       for (const item of validatedItems) {

@@ -49,13 +49,26 @@ export default function AdminPaymentMethodsPage() {
   const [form, setForm] = React.useState<PaymentForm>(EMPTY_FORM);
 
   const fetchData = React.useCallback(async () => {
+    setIsLoading(true);
     try {
       const r = await fetch("/api/admin/payment-methods");
       const d = await r.json();
       if (d.success) setItems(d.paymentMethods);
     } catch {} finally { setIsLoading(false); }
   }, []);
-  React.useEffect(() => { void fetchData(); }, [fetchData]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/payment-methods");
+        const d = await r.json();
+        if (cancelled) return;
+        if (d.success) setItems(d.paymentMethods);
+      } catch {} finally { if (!cancelled) setIsLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const resetForm = () => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { SiteImage } from "@/components/ui/site-image";
+import { BrandMark } from "@/components/layout/brand-mark";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import {
   Home, ShoppingBag, LogOut, BriefcaseBusiness, Settings,
   Star, Compass,
 } from "lucide-react";
+import { SiteImage } from "@/components/ui/site-image";
 import { cn } from "@/lib/utils";
 import {
   QUICK_NAV_SERVICES,
@@ -60,8 +61,7 @@ export function MobileNav({ isOpen, onClose, siteName = BRAND.name, siteLogo = "
           <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl" role="dialog" aria-modal="true" aria-label="Navigasi mobile">
             <div className="flex items-center justify-between border-b border-dark-100 bg-white p-4">
               <Link href="/" onClick={handleClose} className="flex items-center gap-3" aria-label="Madina Solution Home">
-                {siteLogo ? <span className="relative flex h-10 max-w-[150px] shrink-0 items-center"><SiteImage src={siteLogo} alt={siteName} width={150} height={44} sizes="150px" className="h-auto max-h-10 w-auto max-w-[150px] object-contain" /></span> : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-900 text-sm font-black text-white shadow-sm ring-1 ring-primary/20">{siteName.charAt(0).toUpperCase()}</span>}
-                <span className="font-display font-extrabold tracking-tight text-dark-900"><span className="text-lg leading-none">{siteName}</span><span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.14em] text-dark-500">{siteTagline}</span></span>
+                <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} compact logoClassName="h-10 w-10" className="max-w-[220px]" />
               </Link>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={handleClose} className="rounded-xl p-2 text-dark-500 hover:bg-dark-100 hover:text-dark-900" aria-label="Close menu"><X className="h-5 w-5" /></button>

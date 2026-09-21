@@ -35,13 +35,26 @@ export default function AdminShippingMethodsPage() {
   const [form, setForm] = React.useState(EMPTY_FORM);
 
   const fetchData = React.useCallback(async () => {
+    setIsLoading(true);
     try {
       const r = await fetch("/api/admin/shipping-methods");
       const d = await r.json();
       if (d.success) setItems(d.shippingMethods);
     } catch {} finally { setIsLoading(false); }
   }, []);
-  React.useEffect(() => { void fetchData(); }, [fetchData]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/shipping-methods");
+        const d = await r.json();
+        if (cancelled) return;
+        if (d.success) setItems(d.shippingMethods);
+      } catch {} finally { if (!cancelled) setIsLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const resetForm = () => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); };
 
@@ -79,7 +92,7 @@ export default function AdminShippingMethodsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-dark">Metode Pengiriman</h1>
-          <p className="mt-1 text-dark-500">{items.length} kurir — ongkir dihitung otomatis di checkout saat "Kirim ke Alamat" dipilih</p>
+          <p className="mt-1 text-dark-500">{items.length} kurir — ongkir dihitung otomatis di checkout saat &quot;Kirim ke Alamat&quot; dipilih</p>
         </div>
         <Button onClick={() => { resetForm(); setShowForm(true); }}><Plus className="mr-2 h-4 w-4" />Tambah Kurir</Button>
       </div>

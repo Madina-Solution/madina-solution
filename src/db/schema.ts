@@ -606,6 +606,42 @@ export const paymentEvents = pgTable("payment_events", {
   providerEventUnique: uniqueIndex("payment_events_provider_event_unique").on(table.provider, table.eventId),
 }));
 
+// Finance categories
+export const financeCategories = pgTable("finance_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 120 }).notNull().unique(),
+  type: varchar("type", { length: 12 }).default("both").notNull(), // income | expense | both
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Finance ledger. Payment confirmations write income rows here; admin can add expense/adjustment rows.
+export const financeTransactions = pgTable("finance_transactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: varchar("type", { length: 12 }).notNull(), // income | expense | adjustment
+  status: varchar("status", { length: 12 }).default("posted").notNull(), // posted | void
+  categoryId: uuid("category_id").references(() => financeCategories.id),
+  orderId: uuid("order_id").references(() => orders.id),
+  paymentId: uuid("payment_id").references(() => payments.id),
+  reference: varchar("reference", { length: 100 }),
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("IDR").notNull(),
+  paymentMethod: varchar("payment_method", { length: 50 }),
+  transactionDate: timestamp("transaction_date").defaultNow().notNull(),
+  notes: text("notes"),
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  dateIdx: index("finance_transactions_date_idx").on(table.transactionDate),
+  typeStatusIdx: index("finance_transactions_type_status_idx").on(table.type, table.status),
+  orderIdx: index("finance_transactions_order_idx").on(table.orderId),
+  paymentIdx: index("finance_transactions_payment_idx").on(table.paymentId),
+}));
+
 // Media Table
 export const media = pgTable("media", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -4,6 +4,8 @@ export type AdminRouteRule = { prefix: string; permission: Permission };
 
 export const ADMIN_ROUTE_RULES: AdminRouteRule[] = [
   { prefix: "/admin", permission: "admin.access" },
+  { prefix: "/admin/control-center", permission: "dashboard.view" },
+  { prefix: "/admin/finance", permission: "finance.read" },
   { prefix: "/admin/orders", permission: "orders.read" },
   { prefix: "/admin/products", permission: "products.read" },
   { prefix: "/admin/categories", permission: "categories.read" },

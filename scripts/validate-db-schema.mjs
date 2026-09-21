@@ -30,6 +30,14 @@ const required = [
   ["orders", "payment_method_id"],
   ["orders", "shipping_method_id"],
   ["orders", "payment_proof"],
+  ["payments", "provider"],
+  ["payments", "status"],
+  ["finance_categories", "name"],
+  ["finance_categories", "type"],
+  ["finance_transactions", "type"],
+  ["finance_transactions", "amount"],
+  ["finance_transactions", "transaction_date"],
+  ["finance_transactions", "payment_id"],
 ];
 
 // Derived from DATABASE_URL instead of `inet_server_host()`: on pooled/proxied
@@ -77,7 +85,7 @@ async function main() {
       process.exit(1);
     }
 
-    console.log("Database schema validation passed: required service/product/order configuration columns, B2B pricing table, and payment/shipping method tables exist.");
+    console.log("Database schema validation passed: required service/product/order configuration columns, B2B pricing table, and payment/shipping method tables, and finance ledger tables exist.");
   } finally {
     await client.end();
   }

@@ -16,7 +16,7 @@ const env = read('src/lib/env.ts');
 assert('Homepage lives inside the shared public layout', !fs.existsSync('src/app/page.tsx') && publicLayout.includes('getPublicSiteConfig'));
 assert('Public layout consumes the same site config', publicLayout.includes('getPublicSiteConfig') && publicLayout.includes('siteName={config.siteName}'));
 assert('Admin layout requires explicit admin.access', adminLayout.includes('hasAnyPermission(session.role, ["admin.access"])'));
-assert('Admin shell renders shared branding logo', adminShell.includes('siteLogo') && adminShell.includes('SiteImage'));
+assert('Admin shell renders shared branding logo', adminShell.includes('siteLogo') && (adminShell.includes('BrandMark') || adminShell.includes('SiteImage')));
 assert('Admin sidebar hides visual scrollbar while retaining overflow', adminShell.includes('overflow-y-auto') && adminShell.includes('scrollbar-hide'));
 assert('Proxy enforces route-level admin permissions', proxy.includes('getAdminRoutePermission') && proxy.includes('hasPermission'));
 assert('Mega menu uses single navigation source', mega.includes('QUICK_NAV_SERVICES') && mega.includes('QUICK_NAV_PRODUCTS') && mega.includes('QUICK_NAV_EXPLORE') && mega.includes('@/lib/navigation'));

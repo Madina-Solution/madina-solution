@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { VALID_TRANSITIONS } from "@/lib/order-utils";
 import { Loader2 } from "lucide-react";
 
@@ -29,6 +30,7 @@ export function OrderStatusActions({ orderId, currentStatus }: Props) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState<string | null>(null);
   const [note, setNote] = React.useState("");
+  const [confirmCancel, setConfirmCancel] = React.useState(false);
 
   const allowed = VALID_TRANSITIONS[currentStatus] || [];
 
@@ -77,17 +79,17 @@ export function OrderStatusActions({ orderId, currentStatus }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-dark-100 bg-white p-6">
-      <h2 className="font-semibold text-dark">Aksi</h2>
+    <div className="rounded-2xl border border-dark-100 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+      <h2 className="font-semibold text-dark dark:text-white">Aksi</h2>
 
       <div className="mt-4">
-        <label className="mb-1.5 block text-sm font-medium text-dark">Catatan (Opsional)</label>
+        <label className="mb-1.5 block text-sm font-medium text-dark dark:text-slate-200">Catatan (Opsional)</label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Tambahkan catatan..."
           rows={2}
-          className="w-full rounded-xl border border-dark-200 px-3 py-2 text-sm placeholder:text-dark-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="w-full rounded-xl border border-dark-200 px-3 py-2 text-sm placeholder:text-dark-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
       </div>
 
@@ -110,15 +112,27 @@ export function OrderStatusActions({ orderId, currentStatus }: Props) {
 
         {allowed.includes("cancelled") && (
           <button
-            onClick={() => handleTransition("cancelled")}
+            onClick={() => setConfirmCancel(true)}
             disabled={!!isLoading}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30"
           >
             {isLoading === "cancelled" && <Loader2 className="h-4 w-4 animate-spin" />}
             Batalkan Pesanan
           </button>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmCancel}
+        variant="danger"
+        title="Batalkan pesanan ini?"
+        description="Pesanan yang dibatalkan tidak dapat dikembalikan ke status semula. Pastikan pelanggan sudah diberitahu sebelum melanjutkan."
+        confirmLabel="Ya, Batalkan"
+        cancelLabel="Tidak"
+        isLoading={isLoading === "cancelled"}
+        onCancel={() => setConfirmCancel(false)}
+        onConfirm={() => { setConfirmCancel(false); void handleTransition("cancelled"); }}
+      />
     </div>
   );
 }

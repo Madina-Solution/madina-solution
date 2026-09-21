@@ -74,11 +74,14 @@ export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutCon
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
       customer: { name: "", email: "", phone: "", whatsapp: "" },
       address: { recipientName: "", phone: "", address: "", city: "", province: "", district: "", postalCode: "" },
+      addressId: "",
       deliveryMethod: "delivery" as const,
       items: [] as { productId?: string; serviceId?: string; quantity: number; selectedOptions: Record<string, string>; notes?: string }[],
       notes: "",
@@ -87,11 +90,63 @@ export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutCon
   });
 
   // Redirect to cart if empty
+  const [savedAddresses, setSavedAddresses] = React.useState<Array<{ id: string; label: string | null; recipientName: string; phone: string; province: string; city: string; district: string | null; postalCode: string | null; address: string; isDefault: boolean | null }>>([]);
+  const [selectedAddressId, setSelectedAddressId] = React.useState<string>("");
+  const autofillApplied = React.useRef(false);
+  const [profileLoaded, setProfileLoaded] = React.useState(false);
+
   React.useEffect(() => {
     if (cart.items.length === 0 && step !== "success") {
       router.push("/cart");
     }
   }, [cart.items.length, step, router]);
+
+  const applySavedAddress = React.useCallback((address: { id: string; recipientName: string; phone: string; address: string; city: string; province: string; district?: string | null; postalCode?: string | null }) => {
+    setSelectedAddressId(address.id);
+    setValue("addressId", address.id);
+    setValue("address.recipientName", address.recipientName || "", { shouldValidate: true });
+    setValue("address.phone", address.phone || "", { shouldValidate: true });
+    setValue("address.address", address.address || "", { shouldValidate: true });
+    setValue("address.city", address.city || "", { shouldValidate: true });
+    setValue("address.province", address.province || "", { shouldValidate: true });
+    setValue("address.district", address.district || "", { shouldValidate: false });
+    setValue("address.postalCode", address.postalCode || "", { shouldValidate: false });
+  }, [setValue]);
+
+  const clearSavedAddressSelection = React.useCallback(() => {
+    if (selectedAddressId) {
+      setSelectedAddressId("");
+      setValue("addressId", "");
+    }
+  }, [selectedAddressId, setValue]);
+  const customerSnapshot = watch("customer");
+
+  React.useEffect(() => {
+    if (!user || autofillApplied.current) return;
+    autofillApplied.current = true;
+    void (async () => {
+      try {
+        const [profileResponse, addressResponse] = await Promise.all([fetch("/api/account/profile"), fetch("/api/account/addresses")]);
+        const profile = await profileResponse.json();
+        const addressData = await addressResponse.json();
+        if (profile?.success && profile.user) {
+          setValue("customer.name", profile.user.name || "", { shouldValidate: true });
+          setValue("customer.email", profile.user.email || "", { shouldValidate: true });
+          setValue("customer.phone", profile.user.phone || "", { shouldValidate: true });
+          setValue("customer.whatsapp", profile.user.phone || "", { shouldValidate: false });
+        }
+        if (addressData?.success && Array.isArray(addressData.addresses)) {
+          setSavedAddresses(addressData.addresses);
+          const preferred = addressData.addresses.find((a: { isDefault?: boolean }) => a.isDefault) || addressData.addresses[0];
+          if (preferred) applySavedAddress(preferred);
+        }
+      } catch {
+        // Inline fields remain available when account data cannot be loaded.
+      } finally {
+        setProfileLoaded(true);
+      }
+    })();
+  }, [user, setValue, applySavedAddress]);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     const fd = formData as unknown as CheckoutData;
@@ -110,6 +165,7 @@ export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutCon
       const payload = {
         customer: fd.customer,
         address: fd.address,
+        addressId: deliveryMethod === "delivery" ? selectedAddressId || undefined : undefined,
         deliveryMethod,
         paymentMethodId,
         shippingMethodId: deliveryMethod === "delivery" ? shippingMethodId : undefined,
@@ -305,24 +361,28 @@ export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutCon
                     <User className="h-5 w-5 text-primary" />
                     Informasi Pelanggan
                   </h2>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label htmlFor="c-name" className="mb-1.5 block text-sm font-medium text-dark">Nama Lengkap *</label>
-                      <Input id="c-name" placeholder="Nama lengkap" {...register("customer.name")} error={errors.customer?.name?.message} />
+                  {user && profileLoaded ? (
+                    <div className="mt-4 rounded-2xl border border-primary/15 bg-primary/[0.035] p-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div><p className="text-[11px] font-bold uppercase tracking-[0.12em] text-dark-400">Nama</p><p className="mt-1 text-sm font-semibold text-dark">{customerSnapshot?.name || "Belum diisi"}</p></div>
+                        <div><p className="text-[11px] font-bold uppercase tracking-[0.12em] text-dark-400">Email</p><p className="mt-1 text-sm font-semibold text-dark">{customerSnapshot?.email || "Belum diisi"}</p></div>
+                        <div><p className="text-[11px] font-bold uppercase tracking-[0.12em] text-dark-400">Telepon</p><p className="mt-1 text-sm font-semibold text-dark">{customerSnapshot?.phone || "Belum diisi"}</p></div>
+                        <div><p className="text-[11px] font-bold uppercase tracking-[0.12em] text-dark-400">WhatsApp</p><p className="mt-1 text-sm font-semibold text-dark">{customerSnapshot?.whatsapp || customerSnapshot?.phone || "Sama dengan telepon"}</p></div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-primary/10 pt-3"><p className="text-xs text-dark-500">Checkout memakai data akun Anda. Perubahan profil berlaku ke transaksi berikutnya.</p><Link href="/account/profile" className="text-xs font-bold text-primary hover:underline">Kelola Profil</Link></div>
+                      <input type="hidden" {...register("customer.name")} />
+                      <input type="hidden" {...register("customer.email")} />
+                      <input type="hidden" {...register("customer.phone")} />
+                      <input type="hidden" {...register("customer.whatsapp")} />
                     </div>
-                    <div>
-                      <label htmlFor="c-email" className="mb-1.5 block text-sm font-medium text-dark">Email *</label>
-                      <Input id="c-email" type="email" placeholder="nama@email.com" {...register("customer.email")} error={errors.customer?.email?.message} />
+                  ) : (
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div><label htmlFor="c-name" className="mb-1.5 block text-sm font-medium text-dark">Nama Lengkap *</label><Input id="c-name" placeholder="Nama lengkap" {...register("customer.name")} error={errors.customer?.name?.message} /></div>
+                      <div><label htmlFor="c-email" className="mb-1.5 block text-sm font-medium text-dark">Email *</label><Input id="c-email" type="email" placeholder="nama@email.com" {...register("customer.email")} error={errors.customer?.email?.message} /></div>
+                      <div><label htmlFor="c-phone" className="mb-1.5 block text-sm font-medium text-dark">Telepon *</label><Input id="c-phone" placeholder="08xx-xxxx-xxxx" {...register("customer.phone")} error={errors.customer?.phone?.message} /></div>
+                      <div><label htmlFor="c-wa" className="mb-1.5 block text-sm font-medium text-dark">WhatsApp</label><Input id="c-wa" placeholder="Sama dengan telepon jika kosong" {...register("customer.whatsapp")} /></div>
                     </div>
-                    <div>
-                      <label htmlFor="c-phone" className="mb-1.5 block text-sm font-medium text-dark">Telepon *</label>
-                      <Input id="c-phone" placeholder="08xx-xxxx-xxxx" {...register("customer.phone")} error={errors.customer?.phone?.message} />
-                    </div>
-                    <div>
-                      <label htmlFor="c-wa" className="mb-1.5 block text-sm font-medium text-dark">WhatsApp</label>
-                      <Input id="c-wa" placeholder="Sama dengan telepon jika kosong" {...register("customer.whatsapp")} />
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -364,34 +424,52 @@ export function CheckoutContent({ paymentMethods, shippingMethods }: CheckoutCon
                       <MapPin className="h-5 w-5 text-primary" />
                       Alamat Pengiriman
                     </h2>
+                    {savedAddresses.length > 0 && (
+                      <div className="mt-4 rounded-xl border border-primary/15 bg-primary/5 p-4">
+                        <label className="mb-1.5 block text-sm font-semibold text-dark">Gunakan alamat tersimpan</label>
+                        <select
+                          value={selectedAddressId}
+                          onChange={(e) => {
+                            const chosen = savedAddresses.find((a) => a.id === e.target.value);
+                            if (chosen) applySavedAddress(chosen);
+                            else { setSelectedAddressId(""); setValue("addressId", ""); }
+                          }}
+                          className="h-11 w-full rounded-xl border border-dark-200 bg-white px-3 text-sm text-dark focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        >
+                          <option value="">Alamat baru / isi manual</option>
+                          {savedAddresses.map((a) => <option key={a.id} value={a.id}>{a.label || "Alamat"} — {a.recipientName}, {a.city}</option>)}
+                        </select>
+                        <p className="mt-2 text-xs text-dark-500">Profil dan alamat utama diisikan otomatis. Saat Anda mengubah kolom alamat, sistem menganggapnya sebagai alamat khusus order ini.</p>
+                      </div>
+                    )}
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                       <div>
                         <label htmlFor="a-recip" className="mb-1.5 block text-sm font-medium text-dark">Nama Penerima *</label>
-                        <Input id="a-recip" placeholder="Nama penerima" {...register("address.recipientName")} error={errors.address?.recipientName?.message} />
+                        <Input id="a-recip" placeholder="Nama penerima" {...register("address.recipientName", { onChange: clearSavedAddressSelection })} error={errors.address?.recipientName?.message} />
                       </div>
                       <div>
                         <label htmlFor="a-phone" className="mb-1.5 block text-sm font-medium text-dark">Telepon Penerima *</label>
-                        <Input id="a-phone" placeholder="08xx-xxxx-xxxx" {...register("address.phone")} error={errors.address?.phone?.message} />
+                        <Input id="a-phone" placeholder="08xx-xxxx-xxxx" {...register("address.phone", { onChange: clearSavedAddressSelection })} error={errors.address?.phone?.message} />
                       </div>
                       <div className="sm:col-span-2">
                         <label htmlFor="a-addr" className="mb-1.5 block text-sm font-medium text-dark">Alamat Lengkap *</label>
-                        <Input id="a-addr" placeholder="Jalan, RT/RW, nomor rumah" {...register("address.address")} error={errors.address?.address?.message} />
+                        <Input id="a-addr" placeholder="Jalan, RT/RW, nomor rumah" {...register("address.address", { onChange: clearSavedAddressSelection })} error={errors.address?.address?.message} />
                       </div>
                       <div>
                         <label htmlFor="a-dist" className="mb-1.5 block text-sm font-medium text-dark">Kecamatan</label>
-                        <Input id="a-dist" placeholder="Kecamatan" {...register("address.district")} />
+                        <Input id="a-dist" placeholder="Kecamatan" {...register("address.district", { onChange: clearSavedAddressSelection })} />
                       </div>
                       <div>
                         <label htmlFor="a-city" className="mb-1.5 block text-sm font-medium text-dark">Kota/Kabupaten *</label>
-                        <Input id="a-city" placeholder="Kota / Kabupaten" {...register("address.city")} error={errors.address?.city?.message} />
+                        <Input id="a-city" placeholder="Kota / Kabupaten" {...register("address.city", { onChange: clearSavedAddressSelection })} error={errors.address?.city?.message} />
                       </div>
                       <div>
                         <label htmlFor="a-prov" className="mb-1.5 block text-sm font-medium text-dark">Provinsi *</label>
-                        <Input id="a-prov" placeholder="Provinsi" {...register("address.province")} error={errors.address?.province?.message} />
+                        <Input id="a-prov" placeholder="Provinsi" {...register("address.province", { onChange: clearSavedAddressSelection })} error={errors.address?.province?.message} />
                       </div>
                       <div>
                         <label htmlFor="a-post" className="mb-1.5 block text-sm font-medium text-dark">Kode Pos</label>
-                        <Input id="a-post" placeholder="Kode pos" {...register("address.postalCode")} />
+                        <Input id="a-post" placeholder="Kode pos" {...register("address.postalCode", { onChange: clearSavedAddressSelection })} />
                       </div>
                     </div>
                   </CardContent>

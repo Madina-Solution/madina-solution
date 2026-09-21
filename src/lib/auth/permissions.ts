@@ -14,6 +14,7 @@ export type Permission =
   | "design.read" | "design.create" | "design.approve"
   | "production.read" | "production.update"
   | "payments.read" | "payments.confirm" | "payments.refund"
+  | "finance.read" | "finance.manage"
   | "coupons.read" | "coupons.create" | "coupons.update" | "coupons.delete"
   | "content.read" | "content.create" | "content.update" | "content.delete"
   | "media.read" | "media.upload" | "media.delete"
@@ -31,6 +32,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "design.read", "design.create", "design.approve",
     "production.read", "production.update",
     "payments.read", "payments.confirm", "payments.refund",
+    "finance.read", "finance.manage",
     "coupons.read", "coupons.create", "coupons.update", "coupons.delete",
     "content.read", "content.create", "content.update", "content.delete",
     "media.read", "media.upload", "media.delete",
@@ -39,6 +41,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   ],
   admin: [
     "admin.access",
+    "users.manage",
     "dashboard.view", "products.read", "products.create", "products.update", "products.delete",
     "categories.read", "categories.create", "categories.update", "categories.delete",
     "orders.read", "orders.update", "orders.assign", "orders.manage",
@@ -46,6 +49,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "design.read", "design.create", "design.approve",
     "production.read", "production.update",
     "payments.read", "payments.confirm",
+    "finance.read", "finance.manage",
     "coupons.read", "coupons.create", "coupons.update",
     "content.read", "content.create", "content.update", "content.delete",
     "media.read", "media.upload", "media.delete",
@@ -119,9 +123,10 @@ const ROLE_HIERARCHY: Record<string, number> = {
  */
 export function canAssignRole(actorRole: string, targetRole: string): boolean {
   if (actorRole === targetRole) return false;
+  if (targetRole === "super_admin") return actorRole === "super_admin";
   const actorRank = ROLE_HIERARCHY[actorRole] ?? 0;
   const targetRank = ROLE_HIERARCHY[targetRole] ?? 0;
-  return actorRank > targetRank && targetRole !== "super_admin";
+  return actorRank > targetRank;
 }
 
 export const ROLE_LABELS: Record<string, string> = {
@@ -130,8 +135,8 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 export const ROLE_CAPABILITY_GROUPS: Record<string, string[]> = {
-  super_admin: ["Platform & settings", "Users & roles", "Commerce", "Content & media", "Payments", "Audit"],
-  admin: ["Operasional penuh", "Users level bawah", "Commerce", "Content & media", "Settings", "Audit"],
+  super_admin: ["Platform & settings", "Users & roles", "Commerce", "Content & media", "Payments", "Finance", "Audit"],
+  admin: ["Operasional penuh", "Users level bawah", "Commerce", "Content & media", "Payments", "Finance", "Settings", "Audit"],
   manager: ["Commerce", "Customers", "Design & production", "Coupons", "Content & media"],
   staff: ["Orders", "Customers", "Catalog read", "Content read", "Media upload"],
   designer: ["Orders read", "Design revisions", "Design media"],
@@ -141,7 +146,7 @@ export const ROLE_CAPABILITY_GROUPS: Record<string, string[]> = {
 
 export const ROLE_DESCRIPTIONS: Record<string, string> = {
   super_admin: "Kontrol penuh platform, role, settings, media dan audit.",
-  admin: "Operasional penuh, katalog, order, konten, media dan pengaturan situs; dapat mengelola user di bawah level Admin, tetapi tidak dapat mengelola Super Admin atau menaikkan user ke level Admin.",
+  admin: "Operasional penuh, katalog, order, konten, media, pembayaran dan keuangan; dapat mengelola user di bawah level Admin, tetapi tidak dapat mengambil alih level Super Admin.",
   manager: "Mengelola katalog, order, pelanggan, desain, produksi, kupon dan konten operasional; tidak mengubah role atau pengaturan inti situs.",
   staff: "Operasional harian: melihat/memperbarui order dan pelanggan, melihat katalog/konten, serta upload aset kerja; tanpa akses role/settings.",
   designer: "Workspace desain, membuat revisi, dan mengelola aset desain; tanpa akses finansial, role, atau settings.",

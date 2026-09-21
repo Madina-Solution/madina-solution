@@ -28,6 +28,7 @@ export const checkoutItemSchema = z.object({
 export const checkoutSchema = z.object({
   customer: checkoutCustomerSchema,
   address: checkoutAddressSchema,
+  addressId: z.string().uuid().optional(),
   deliveryMethod: z.enum(["pickup", "delivery"]),
   paymentMethodId: z.string().uuid("Metode pembayaran wajib dipilih"),
   shippingMethodId: z.string().uuid().optional(),
