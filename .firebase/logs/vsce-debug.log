@@ -1964,3 +1964,129 @@ I0921 00:12:17.773734   14260 load.go:109] Finished reloading
 [error] [Firebase Plugin] error:  {}
 [debug] [2026-09-20T17:12:21.858Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
 [debug] [2026-09-20T17:12:21.859Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] [Firebase Plugin] Stopping SQL Connect toolkit
+[warn] ⚠  SQL Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2026-09-21T01:55:52.555Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2026-09-21T01:56:42.199Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2026-09-21T01:56:42.201Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-21T01:56:42.201Z] > authorizing via signed-in user (perc.madina@gmail.com)
+[debug] [2026-09-21T01:56:42.205Z] Checked if tokens are valid: true, expires at: 1789957988732
+[debug] [2026-09-21T01:56:42.206Z] Checked if tokens are valid: true, expires at: 1789957988732
+[debug] [2026-09-21T01:56:42.207Z] [Firebase Plugin] User found:  perc.madina@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2026-09-21T01:56:42.210Z] Checked if tokens are valid: true, expires at: 1789957988732
+[debug] [2026-09-21T01:56:42.212Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-09-21T01:56:43.031Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting SQL Connect toolkit (version 3.4.16) on port 50001
+[debug] [2026-09-21T01:56:45.726Z] I0921 08:56:45.708952    7025 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final f877] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1992B] 
+Connector "example": sources: example/mutations.gql [1243B] example/queries.gql [1801B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 08:56:45.708952    7025 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final f877] UpdateResources(): done\nMain schema: sources: schema/schema.gql [1992B] \nConnector \"example\": sources: example/mutations.gql [1243B] example/queries.gql [1801B] \n"}}
+[debug] [2026-09-21T01:56:45.727Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-09-21T01:56:45.727Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2026-09-21T01:56:45.728Z] Starting SQL Connect Emulator with command {"binary":"/Users/madina.solutions/.cache/firebase/emulators/dataconnect-emulator-3.4.16","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting SQL Connect Emulator with command {\"binary\":\"/Users/madina.solutions/.cache/firebase/emulators/dataconnect-emulator-3.4.16\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: SQL Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"SQL Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2026-09-21T01:56:46.895Z] I0921 08:56:46.286497    7027 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 08:56:46.286497    7027 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2026-09-21T01:56:47.320Z] I0921 08:56:47.305325    7027 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 495d] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1992B] 
+Connector "example": sources: example/mutations.gql [1243B] example/queries.gql [1801B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 08:56:47.305325    7027 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 495d] UpdateResources(): done\nMain schema: sources: schema/schema.gql [1992B] \nConnector \"example\": sources: example/mutations.gql [1243B] example/queries.gql [1801B] \n"}}
+[debug] [2026-09-21T01:56:47.419Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2026-09-21T01:56:47.419Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2026-09-21T01:56:47.674Z] I0921 08:56:47.669964    7027 codegen.go:101] [connector "example" javascriptSdk] Generating sources into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated"
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 08:56:47.669964    7027 codegen.go:101] [connector \"example\" javascriptSdk] Generating sources into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated\"\n"}}
+[debug] [2026-09-21T01:56:47.899Z] I0921 08:56:47.771057    7027 collector.go:107] schema extensions wrote into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect/.dataconnect/schema"
+Generated sources: main/query.gql [5099B] main/mutation.gql [13679B] prelude.gql [84995B] main/implicit.gql [1261B] main/input.gql [29309B] main/relation.gql [14318B] 
+I0921 08:56:47.787069    7027 collector.go:107] connector "example" javascriptSdk wrote into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated"
+Generated sources: esm/package.json [17B] react/package.json [460B] .guides/config.json [236B] README.md [41217B] react/index.cjs.js [3439B] react/README.md [48281B] .guides/setup.md [1682B] index.cjs.js [5919B] package.json [853B] react/index.d.ts [3961B] react/esm/package.json [17B] react/esm/index.esm.js [3269B] .guides/usage.md [3489B] index.d.ts [8408B] esm/index.esm.js [5375B] 
+I0921 08:56:47.886448    7027 installsdk.go:55] Package @dataconnect/generated is already installed. Skipping installation
+I0921 08:56:47.886485    7027 load.go:109] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 08:56:47.771057    7027 collector.go:107] schema extensions wrote into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect/.dataconnect/schema\"\nGenerated sources: main/query.gql [5099B] main/mutation.gql [13679B] prelude.gql [84995B] main/implicit.gql [1261B] main/input.gql [29309B] main/relation.gql [14318B] \nI0921 08:56:47.787069    7027 collector.go:107] connector \"example\" javascriptSdk wrote into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated\"\nGenerated sources: esm/package.json [17B] react/package.json [460B] .guides/config.json [236B] README.md [41217B] react/index.cjs.js [3439B] react/README.md [48281B] .guides/setup.md [1682B] index.cjs.js [5919B] package.json [853B] react/index.d.ts [3961B] react/esm/package.json [17B] react/esm/index.esm.js [3269B] .guides/usage.md [3489B] index.d.ts [8408B] esm/index.esm.js [5375B] \nI0921 08:56:47.886448    7027 installsdk.go:55] Package @dataconnect/generated is already installed. Skipping installation\nI0921 08:56:47.886485    7027 load.go:109] Finished reloading\n"}}
+[debug] [2026-09-21T01:56:47.990Z] I0921 08:56:47.922724    7027 dev.go:101] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 08:56:47.922724    7027 dev.go:101] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[info] [Firebase Plugin] Stopping SQL Connect toolkit
+[warn] ⚠  SQL Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2026-09-21T02:31:31.832Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2026-09-21T02:31:37.150Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2026-09-21T02:31:37.153Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-21T02:31:37.153Z] > authorizing via signed-in user (perc.madina@gmail.com)
+[debug] [2026-09-21T02:31:37.157Z] Checked if tokens are valid: true, expires at: 1789961407158
+[debug] [2026-09-21T02:31:37.158Z] Checked if tokens are valid: true, expires at: 1789961407158
+[debug] [2026-09-21T02:31:37.158Z] [Firebase Plugin] User found:  perc.madina@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2026-09-21T02:31:37.160Z] Checked if tokens are valid: true, expires at: 1789961407158
+[debug] [2026-09-21T02:31:37.161Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-09-21T02:31:37.186Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[debug] [2026-09-21T02:32:07.712Z] *** [apiv2] error from fetch(https://firebase.googleapis.com/v1beta1/projects?pageSize=1000, {"headers":{},"method":"GET","signal":{}}): AbortError: This operation was aborted
+[debug] [2026-09-21T02:32:07.714Z] Timeout reached making request to https://firebase.googleapis.com/v1beta1/projects?pageSize=1000
+[info] [Firebase Plugin] Starting SQL Connect toolkit (version 3.4.16) on port 50001
+[debug] [2026-09-21T02:32:10.759Z] I0921 09:32:10.740390   11103 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 946b] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1992B] 
+Connector "example": sources: example/mutations.gql [1243B] example/queries.gql [1801B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 09:32:10.740390   11103 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 946b] UpdateResources(): done\nMain schema: sources: schema/schema.gql [1992B] \nConnector \"example\": sources: example/mutations.gql [1243B] example/queries.gql [1801B] \n"}}
+[debug] [2026-09-21T02:32:10.760Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-09-21T02:32:10.760Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2026-09-21T02:32:10.761Z] Starting SQL Connect Emulator with command {"binary":"/Users/madina.solutions/.cache/firebase/emulators/dataconnect-emulator-3.4.16","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting SQL Connect Emulator with command {\"binary\":\"/Users/madina.solutions/.cache/firebase/emulators/dataconnect-emulator-3.4.16\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: SQL Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"SQL Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2026-09-21T02:32:13.367Z] I0921 09:32:12.966825   11104 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 09:32:12.966825   11104 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2026-09-21T02:32:13.676Z] I0921 09:32:13.546196   11104 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 36b7] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1992B] 
+Connector "example": sources: example/mutations.gql [1243B] example/queries.gql [1801B] 
+I0921 09:32:13.611659   11104 codegen.go:101] [connector "example" javascriptSdk] Generating sources into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated"
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 09:32:13.546196   11104 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 36b7] UpdateResources(): done\nMain schema: sources: schema/schema.gql [1992B] \nConnector \"example\": sources: example/mutations.gql [1243B] example/queries.gql [1801B] \nI0921 09:32:13.611659   11104 codegen.go:101] [connector \"example\" javascriptSdk] Generating sources into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated\"\n"}}
+[debug] [2026-09-21T02:32:14.322Z] I0921 09:32:14.214990   11104 collector.go:107] schema extensions wrote into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect/.dataconnect/schema"
+Generated sources: main/input.gql [29309B] main/relation.gql [14318B] main/query.gql [5099B] main/mutation.gql [13679B] prelude.gql [84995B] main/implicit.gql [1261B] 
+I0921 09:32:14.248325   11104 collector.go:107] connector "example" javascriptSdk wrote into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated"
+Generated sources: package.json [853B] react/package.json [460B] react/esm/index.esm.js [3269B] index.cjs.js [5919B] README.md [41217B] react/index.d.ts [3961B] react/README.md [48281B] .guides/config.json [236B] esm/index.esm.js [5375B] esm/package.json [17B] react/esm/package.json [17B] .guides/setup.md [1682B] index.d.ts [8408B] react/index.cjs.js [3439B] .guides/usage.md [3489B] 
+I0921 09:32:14.291063   11104 installsdk.go:86] Running command: /Users/madina.solutions/.nvm/versions/node/v22.23.2/bin/npm install file:src/dataconnect-generated
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 09:32:14.214990   11104 collector.go:107] schema extensions wrote into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect/.dataconnect/schema\"\nGenerated sources: main/input.gql [29309B] main/relation.gql [14318B] main/query.gql [5099B] main/mutation.gql [13679B] prelude.gql [84995B] main/implicit.gql [1261B] \nI0921 09:32:14.248325   11104 collector.go:107] connector \"example\" javascriptSdk wrote into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated\"\nGenerated sources: package.json [853B] react/package.json [460B] react/esm/index.esm.js [3269B] index.cjs.js [5919B] README.md [41217B] react/index.d.ts [3961B] react/README.md [48281B] .guides/config.json [236B] esm/index.esm.js [5375B] esm/package.json [17B] react/esm/package.json [17B] .guides/setup.md [1682B] index.d.ts [8408B] react/index.cjs.js [3439B] .guides/usage.md [3489B] \nI0921 09:32:14.291063   11104 installsdk.go:86] Running command: /Users/madina.solutions/.nvm/versions/node/v22.23.2/bin/npm install file:src/dataconnect-generated\n"}}
+[debug] [2026-09-21T02:32:56.517Z] I0921 09:32:56.398576   11104 load.go:109] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 09:32:56.398576   11104 load.go:109] Finished reloading\n"}}
+[debug] [2026-09-21T02:32:56.540Z] I0921 09:32:56.537520   11104 dev.go:101] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 09:32:56.537520   11104 dev.go:101] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[info] [Firebase Plugin] Stopping SQL Connect toolkit
+[warn] ⚠  SQL Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2026-09-21T03:53:09.458Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2026-09-21T03:53:57.383Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2026-09-21T03:53:57.388Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-21T03:53:57.391Z] > authorizing via signed-in user (perc.madina@gmail.com)
+[debug] [2026-09-21T03:53:57.401Z] Checked if tokens are valid: false, expires at: 1789961407158
+[debug] [2026-09-21T03:53:57.403Z] Checked if tokens are valid: false, expires at: 1789961407158
+[debug] [2026-09-21T03:53:57.405Z] > refreshing access token with scopes: []
+[debug] [2026-09-21T03:53:57.417Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-09-21T03:53:57.419Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-09-21T03:53:57.669Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting SQL Connect toolkit (version 3.4.16) on port 50001
+[debug] [2026-09-21T03:54:02.582Z] I0921 10:54:02.529463   33027 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final f2cb] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1992B] 
+Connector "example": sources: example/mutations.gql [1243B] example/queries.gql [1801B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 10:54:02.529463   33027 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final f2cb] UpdateResources(): done\nMain schema: sources: schema/schema.gql [1992B] \nConnector \"example\": sources: example/mutations.gql [1243B] example/queries.gql [1801B] \n"}}
+[debug] [2026-09-21T03:54:02.583Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-09-21T03:54:02.583Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2026-09-21T03:54:02.584Z] Starting SQL Connect Emulator with command {"binary":"/Users/madina.solutions/.cache/firebase/emulators/dataconnect-emulator-3.4.16","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting SQL Connect Emulator with command {\"binary\":\"/Users/madina.solutions/.cache/firebase/emulators/dataconnect-emulator-3.4.16\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: SQL Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"SQL Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2026-09-21T03:54:03.291Z] I0921 10:54:02.914983   33049 load.go:31] Reloading schema and connectors...
+I0921 10:54:03.130083   33049 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 7525] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1992B] 
+Connector "example": sources: example/mutations.gql [1243B] example/queries.gql [1801B] 
+I0921 10:54:03.213967   33049 codegen.go:101] [connector "example" javascriptSdk] Generating sources into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated"
+I0921 10:54:03.266393   33049 collector.go:107] schema extensions wrote into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect/.dataconnect/schema"
+Generated sources: prelude.gql [84995B] main/input.gql [29309B] main/relation.gql [14318B] main/query.gql [5099B] main/mutation.gql [13679B] main/implicit.gql [1261B] 
+I0921 10:54:03.272626   33049 collector.go:107] connector "example" javascriptSdk wrote into "/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated"
+Generated sources: esm/index.esm.js [5375B] package.json [853B] react/index.cjs.js [3439B] .guides/config.json [236B] index.d.ts [8408B] esm/package.json [17B] react/index.d.ts [3961B] react/esm/package.json [17B] react/README.md [48281B] .guides/setup.md [1682B] index.cjs.js [5919B] README.md [41217B] react/package.json [460B] react/esm/index.esm.js [3269B] .guides/usage.md [3489B] 
+I0921 10:54:03.288783   33049 installsdk.go:86] Running command: /Users/madina.solutions/.nvm/versions/node/v22.23.2/bin/npm install file:src/dataconnect-generated
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 10:54:02.914983   33049 load.go:31] Reloading schema and connectors...\nI0921 10:54:03.130083   33049 control.go:100] [projects/emulator/locations/emulator/services/madina-solution-production-final 7525] UpdateResources(): done\nMain schema: sources: schema/schema.gql [1992B] \nConnector \"example\": sources: example/mutations.gql [1243B] example/queries.gql [1801B] \nI0921 10:54:03.213967   33049 codegen.go:101] [connector \"example\" javascriptSdk] Generating sources into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated\"\nI0921 10:54:03.266393   33049 collector.go:107] schema extensions wrote into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/dataconnect/.dataconnect/schema\"\nGenerated sources: prelude.gql [84995B] main/input.gql [29309B] main/relation.gql [14318B] main/query.gql [5099B] main/mutation.gql [13679B] main/implicit.gql [1261B] \nI0921 10:54:03.272626   33049 collector.go:107] connector \"example\" javascriptSdk wrote into \"/Volumes/DATA UTAMA/DEVELOPER/madina-solution-production-final/src/dataconnect-generated\"\nGenerated sources: esm/index.esm.js [5375B] package.json [853B] react/index.cjs.js [3439B] .guides/config.json [236B] index.d.ts [8408B] esm/package.json [17B] react/index.d.ts [3961B] react/esm/package.json [17B] react/README.md [48281B] .guides/setup.md [1682B] index.cjs.js [5919B] README.md [41217B] react/package.json [460B] react/esm/index.esm.js [3269B] .guides/usage.md [3489B] \nI0921 10:54:03.288783   33049 installsdk.go:86] Running command: /Users/madina.solutions/.nvm/versions/node/v22.23.2/bin/npm install file:src/dataconnect-generated\n"}}
+[debug] [2026-09-21T03:54:03.641Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-09-21T03:54:03.641Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-09-21T03:54:03.876Z] [Firebase Plugin] User found:  perc.madina@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2026-09-21T03:54:03.878Z] Checked if tokens are valid: true, expires at: 1789966442643
+[debug] [2026-09-21T03:54:03.883Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-09-21T03:54:05.737Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2026-09-21T03:54:05.738Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2026-09-21T03:54:28.599Z] I0921 10:54:28.591537   33049 load.go:109] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 10:54:28.591537   33049 load.go:109] Finished reloading\n"}}
+[debug] [2026-09-21T03:54:28.638Z] I0921 10:54:28.635690   33049 dev.go:101] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0921 10:54:28.635690   33049 dev.go:101] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
