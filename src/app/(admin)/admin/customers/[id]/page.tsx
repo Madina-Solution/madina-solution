@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Banknote, CheckCircle2, CreditCard, ExternalLink, Loader2, MessageSquare, Package, ShieldCheck, WalletCards, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
