@@ -33,7 +33,9 @@ export async function GET() {
     map._integrations = {
       payment: process.env.PAYMENT_PROVIDER || "mock",
       storage: process.env.CLOUDINARY_CLOUD_NAME ? "cloudinary" : "local",
-      email: process.env.EMAIL_PROVIDER === "resend" && process.env.RESEND_API_KEY && process.env.EMAIL_FROM ? "configured" : "not_configured",
+      email: (process.env.EMAIL_PROVIDER === "resend" && process.env.RESEND_API_KEY && process.env.EMAIL_FROM)
+        || ((process.env.EMAIL_PROVIDER === "gmail" || process.env.EMAIL_PROVIDER === "google") && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD)
+        ? "configured" : "not_configured",
       firebase: process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID && process.env.NEXT_PUBLIC_FIREBASE_APP_ID ? "configured" : "not_configured",
       database: "connected",
     };

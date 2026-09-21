@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { NotificationBell } from "@/components/account/notification-bell";
 import {
   LayoutDashboard,
   WalletCards,

@@ -22,9 +22,11 @@ const ENV_VARS: EnvConfig[] = [
   { key: "PAYMENT_PROVIDER", required: true, production: true, description: "Payment provider (manual, midtrans, or xendit)" },
   { key: "MIDTRANS_SERVER_KEY", required: false, production: false, description: "Midtrans server key" },
   { key: "XENDIT_SECRET_KEY", required: false, production: false, description: "Xendit secret key" },
-  { key: "EMAIL_PROVIDER", required: true, production: true, description: "Transactional email provider (resend in production)" },
+  { key: "EMAIL_PROVIDER", required: true, production: true, description: "Transactional email provider (resend or gmail in production)" },
   { key: "RESEND_API_KEY", required: false, production: false, description: "Resend API key" },
   { key: "EMAIL_FROM", required: false, production: false, description: "Transactional email sender" },
+  { key: "GMAIL_USER", required: false, production: false, description: "Gmail account address used to send mail (EMAIL_PROVIDER=gmail)" },
+  { key: "GMAIL_APP_PASSWORD", required: false, production: false, description: "Gmail App Password (EMAIL_PROVIDER=gmail)" },
   { key: "NEXT_PUBLIC_FIREBASE_API_KEY", required: false, production: false, description: "Firebase web API key (social login)" },
   { key: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", required: false, production: false, description: "Firebase auth domain (social login)" },
   { key: "NEXT_PUBLIC_FIREBASE_PROJECT_ID", required: false, production: false, description: "Firebase project ID (social login)" },
@@ -58,8 +60,9 @@ export function validateEnvironment(): { valid: boolean; missing: string[]; warn
     if (paymentProvider === "midtrans" && !process.env.MIDTRANS_SERVER_KEY) missing.push("MIDTRANS_SERVER_KEY — required for Midtrans production payments");
     if (paymentProvider === "xendit" && !process.env.XENDIT_SECRET_KEY) missing.push("XENDIT_SECRET_KEY — required for Xendit production payments");
     const emailProvider = (process.env.EMAIL_PROVIDER || "").toLowerCase();
-    if (emailProvider !== "resend") missing.push("EMAIL_PROVIDER — must be resend in production");
+    if (emailProvider !== "resend" && emailProvider !== "gmail" && emailProvider !== "google") missing.push("EMAIL_PROVIDER — must be resend or gmail in production");
     if (emailProvider === "resend" && (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM)) missing.push("RESEND_API_KEY / EMAIL_FROM — required for production email");
+    if ((emailProvider === "gmail" || emailProvider === "google") && (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD)) missing.push("GMAIL_USER / GMAIL_APP_PASSWORD — required for production email via Gmail");
     const effectiveSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://madinasolution.vercel.app");
     if (!/^https:\/\//i.test(effectiveSiteUrl)) missing.push("NEXT_PUBLIC_SITE_URL — must use https:// in production");
   }

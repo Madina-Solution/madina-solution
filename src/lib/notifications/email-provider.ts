@@ -1,6 +1,7 @@
 /**
  * Provider-agnostic transactional email abstraction.
- * Production uses Resend over HTTPS so no SMTP library/runtime dependency is required.
+ * Supports Resend (HTTPS API, no SMTP dependency) and Gmail (SMTP via nodemailer,
+ * using a Google Account App Password).
  */
 export type EmailPayload = {
   to: string;
@@ -61,13 +62,47 @@ export class ResendEmailProvider implements EmailProvider {
   }
 }
 
+export class GmailEmailProvider implements EmailProvider {
+  readonly name = "gmail";
+
+  async send(payload: EmailPayload): Promise<EmailResult> {
+    const user = process.env.GMAIL_USER;
+    const pass = process.env.GMAIL_APP_PASSWORD;
+    const from = payload.from || process.env.EMAIL_FROM || user;
+    if (!user || !pass) {
+      throw new Error("GMAIL_USER and GMAIL_APP_PASSWORD are required");
+    }
+
+    // Lazy import so nodemailer is only pulled in when the Gmail provider is actually selected.
+    const nodemailer = await import("nodemailer");
+    const transporter = nodemailer.default.createTransport({
+      service: "gmail",
+      auth: { user, pass },
+    });
+
+    try {
+      const info = await transporter.sendMail({
+        from,
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html,
+        text: payload.text,
+      });
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : "Gagal mengirim email melalui Gmail");
+    }
+  }
+}
+
 export function getEmailProvider(): EmailProvider {
   const provider = (process.env.EMAIL_PROVIDER || "console").toLowerCase();
 
   if (provider === "resend") return new ResendEmailProvider();
+  if (provider === "gmail" || provider === "google") return new GmailEmailProvider();
   if (provider === "console" && process.env.NODE_ENV !== "production") return new ConsoleEmailProvider();
 
   throw new Error(
-    `Unsupported or unconfigured EMAIL_PROVIDER='${provider}'. Configure EMAIL_PROVIDER=resend with RESEND_API_KEY and EMAIL_FROM.`
+    `Unsupported or unconfigured EMAIL_PROVIDER='${provider}'. Configure EMAIL_PROVIDER=resend (RESEND_API_KEY + EMAIL_FROM) or EMAIL_PROVIDER=gmail (GMAIL_USER + GMAIL_APP_PASSWORD).`
   );
 }

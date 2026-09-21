@@ -28,7 +28,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     id: "/",
     icons: [
       { src: icon192, sizes: "192x192", type: type(icon192), purpose: "any" },
-      { src: icon512, sizes: "512x512", type: type(icon512), purpose: "any maskable" },
+      { src: icon512, sizes: "512x512", type: type(icon512), purpose: "any" },
+      { src: icon512, sizes: "512x512", type: type(icon512), purpose: "maskable" },
     ],
   };
 }
