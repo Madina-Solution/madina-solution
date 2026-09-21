@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const [income, expense, outstanding, pendingVerification, categories, transactionRows] = await Promise.all([
       db.select({ total: sql<string>`coalesce(sum(${financeTransactions.amount}), 0)` }).from(financeTransactions).where(and(baseWhere, eq(financeTransactions.type, "income"))),
       db.select({ total: sql<string>`coalesce(sum(${financeTransactions.amount}), 0)` }).from(financeTransactions).where(and(baseWhere, eq(financeTransactions.type, "expense"))),
-      db.select({ total: sql<string>`coalesce(sum(greatest(${orders.total} - coalesce((select sum(${payments.amount}) from ${payments} where ${payments.orderId} = ${orders.id} and ${payments.status} = 'paid'), 0), 0)), 0)` }).from(orders).where(sql`${orders.status} <> 'cancelled'`),
+      db.select({ total: sql<string>`coalesce(sum(greatest(${orders.total} - coalesce((select sum(${payments.amount}) from ${payments} where ${payments.orderId} = ${orders.id} and ${payments.status} = 'paid'), 0), 0)), 0)` }).from(orders).where(sql`${orders.status} NOT IN ('cancelled', 'draft')`),
       db.select({ count: sql<number>`count(*)`, amount: sql<string>`coalesce(sum(${payments.amount}), 0)` }).from(payments).where(eq(payments.status, "pending_verification")),
       db.select().from(financeCategories).where(eq(financeCategories.isActive, true)).orderBy(asc(financeCategories.sortOrder), asc(financeCategories.name)),
       db.select({

@@ -206,10 +206,10 @@ export function AdminShell({ children, siteName, siteLogo = "", siteTagline = "C
             </button>
           ) : (
             <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-              <Link href="/admin" className="min-w-0" aria-label={siteName}>
+              <Link href="/admin" className="min-w-0 flex-1" aria-label={siteName}>
                 <BrandMark siteLogo={siteLogo} siteName={siteName} tagline={siteTagline} priority />
               </Link>
-              <button type="button" onClick={() => setCollapsed(true)} className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl text-dark-400 hover:bg-dark-100 hover:text-dark-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200 lg:flex" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
+              <button type="button" onClick={() => setCollapsed(true)} className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-dark-400 transition hover:bg-dark-100 hover:text-dark-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200 lg:flex" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
                 <PanelLeftClose className="h-[18px] w-[18px]" />
               </button>
             </div>

@@ -3,7 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, Banknote, CreditCard, FileText, Loader2, ReceiptText, WalletCards } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { ROLE_LABELS } from "@/lib/auth/permissions";
 import { formatCurrency, cn } from "@/lib/utils";
 
 type FinanceData = {
@@ -40,7 +42,7 @@ export default function AccountFinancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-primary"><WalletCards className="h-4 w-4" /> Ringkasan Keuangan</div>
+        <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-primary"><WalletCards className="h-4 w-4" /> Ringkasan Keuangan <span className="rounded-full bg-primary/10 px-2 py-1 text-[9px] tracking-normal text-primary">{ROLE_LABELS[user.role] || user.role}</span></div>
         <h2 className="mt-2 text-2xl font-black tracking-tight text-dark dark:text-white">Pembayaran & transaksi pribadi</h2>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-dark-500 dark:text-slate-400">Semua transaksi yang terkait dengan akun <strong className="text-dark dark:text-white">{user.name}</strong> ditampilkan di sini. Data mengikuti pesanan dan pembayaran yang tercatat di sistem.</p>
       </div>
@@ -50,14 +52,28 @@ export default function AccountFinancePage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {[
-              ["Total Tagihan", data.summary.billedTotal, FileText, "text-blue-600", "bg-blue-50 dark:bg-blue-950/30"],
-              ["Sudah Dibayar", data.summary.paidTotal, ArrowDownLeft, "text-green-600", "bg-green-50 dark:bg-green-950/30"],
-              ["Sisa Tagihan", data.summary.outstanding, ArrowUpRight, data.summary.outstanding > 0 ? "text-amber-600" : "text-primary", "bg-amber-50 dark:bg-amber-950/30"],
-              ["Verifikasi Berjalan", data.summary.pendingVerification, Banknote, "text-violet-600", "bg-violet-50 dark:bg-violet-950/30"],
-            ].map(([label, value, Icon, iconText, iconBg]) => {
-              const IconComponent = Icon as React.ComponentType<{ className?: string }>;
-              return <div key={String(label)} className="rounded-2xl border border-dark-100 bg-white p-4 dark:border-slate-800 dark:bg-slate-950"><div className="flex items-center gap-3"><div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", iconBg)}><IconComponent className={cn("h-5 w-5", iconText)} /></div><div><p className="text-xs font-semibold text-dark-500 dark:text-slate-400">{label}</p><p className="mt-1 text-lg font-black text-dark dark:text-white">{formatCurrency(Number(value))}</p></div></div></div>;
+            {(
+              [
+                { label: "Total Tagihan", value: data.summary.billedTotal, Icon: FileText, iconText: "text-blue-600", iconBg: "bg-blue-50 dark:bg-blue-950/30" },
+                { label: "Sudah Dibayar", value: data.summary.paidTotal, Icon: ArrowDownLeft, iconText: "text-green-600", iconBg: "bg-green-50 dark:bg-green-950/30" },
+                { label: "Sisa Tagihan", value: data.summary.outstanding, Icon: ArrowUpRight, iconText: data.summary.outstanding > 0 ? "text-amber-600" : "text-primary", iconBg: "bg-amber-50 dark:bg-amber-950/30" },
+                { label: "Verifikasi Berjalan", value: data.summary.pendingVerification, Icon: Banknote, iconText: "text-violet-600", iconBg: "bg-violet-50 dark:bg-violet-950/30" },
+              ] satisfies Array<{ label: string; value: number; Icon: LucideIcon; iconText: string; iconBg: string }>
+            ).map((card) => {
+              const Icon = card.Icon;
+              return (
+                <div key={card.label} className="rounded-2xl border border-dark-100 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", card.iconBg)}>
+                      <Icon className={cn("h-5 w-5", card.iconText)} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-dark-500 dark:text-slate-400">{card.label}</p>
+                      <p className="mt-1 text-lg font-black text-dark dark:text-white">{formatCurrency(card.value)}</p>
+                    </div>
+                  </div>
+                </div>
+              );
             })}
           </div>
 

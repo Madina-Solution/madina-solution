@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { messages, users, orders, payments } from "@/db/schema";
-import { and, asc, desc, eq, or } from "drizzle-orm";
+import { and, asc, desc, eq, ne, or } from "drizzle-orm";
 import { getSession } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
 
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const customerId = request.nextUrl.searchParams.get("customerId");
 
     if (customerId) {
+      const canViewFinance = hasPermission(session.role, "finance.read");
       const thread = await db
         .select({
           id: messages.id,
@@ -41,12 +42,23 @@ export async function GET(request: NextRequest) {
       }
 
       const [customer] = await db.select({ id: users.id, name: users.name, email: users.email, phone: users.phone, avatar: users.avatar, role: users.role, createdAt: users.createdAt }).from(users).where(eq(users.id, customerId)).limit(1);
+      if (!customer || customer.role !== "customer") {
+        return NextResponse.json({ success: false, error: { code: "CUSTOMER_INVALID", message: "Akun tujuan bukan pelanggan" } }, { status: 404 });
+      }
       const customerOrders = await db.select({ id: orders.id, orderNumber: orders.orderNumber, total: orders.total, paymentStatus: orders.paymentStatus, status: orders.status, createdAt: orders.createdAt }).from(orders).where(eq(orders.userId, customerId)).orderBy(desc(orders.createdAt)).limit(8);
-      const allCustomerOrders = await db.select({ id: orders.id, total: orders.total }).from(orders).where(eq(orders.userId, customerId));
-      const paidByOrder = await db.select({ orderId: payments.orderId, amount: payments.amount }).from(payments).innerJoin(orders, eq(payments.orderId, orders.id)).where(and(eq(orders.userId, customerId), eq(payments.status, "paid")));
-      const paidTotal = paidByOrder.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-      const outstanding = allCustomerOrders.reduce((sum, row) => sum + Math.max(0, Number(row.total || 0) - paidByOrder.filter((p) => p.orderId === row.id).reduce((s, p) => s + Number(p.amount || 0), 0)), 0);
-      return NextResponse.json({ success: true, customer: customer || null, customerOrders, financialSummary: { paidTotal, outstanding }, messages: thread.map((m) => ({ ...m, isMine: m.senderId !== customerId })) });
+      let financialSummary: { paidTotal: number; outstanding: number } | null = null;
+      if (canViewFinance) {
+        const [allCustomerOrders, paidByOrder] = await Promise.all([
+          db.select({ id: orders.id, total: orders.total }).from(orders).where(and(eq(orders.userId, customerId), ne(orders.status, "cancelled"), ne(orders.status, "draft"))),
+          db.select({ orderId: payments.orderId, amount: payments.amount }).from(payments).innerJoin(orders, eq(payments.orderId, orders.id)).where(and(eq(orders.userId, customerId), ne(orders.status, "cancelled"), ne(orders.status, "draft"), eq(payments.status, "paid"))),
+        ]);
+        const paidByOrderMap = new Map<string, number>();
+        for (const payment of paidByOrder) paidByOrderMap.set(payment.orderId, (paidByOrderMap.get(payment.orderId) || 0) + Number(payment.amount || 0));
+        const billedTotal = allCustomerOrders.reduce((sum, row) => sum + Number(row.total || 0), 0);
+        const paidTotal = Array.from(paidByOrderMap.values()).reduce((sum, amount) => sum + amount, 0);
+        financialSummary = { paidTotal, outstanding: Math.max(0, billedTotal - paidTotal) };
+      }
+      return NextResponse.json({ success: true, customer, customerOrders, financialSummary, canViewFinance, messages: thread.map((m) => ({ ...m, isMine: m.senderId !== customerId })) });
     }
 
     // Conversation list: every message joined to the sender's role, then grouped in
@@ -109,6 +121,10 @@ export async function DELETE(request: NextRequest) {
     if (!customerId) {
       return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "customerId wajib diisi" } }, { status: 400 });
     }
+    const [customer] = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, customerId)).limit(1);
+    if (!customer || customer.role !== "customer") {
+      return NextResponse.json({ success: false, error: { code: "CUSTOMER_INVALID", message: "Akun tujuan bukan pelanggan" } }, { status: 404 });
+    }
     await db.delete(messages).where(or(eq(messages.senderId, customerId), eq(messages.receiverId, customerId)));
     return NextResponse.json({ success: true });
   } catch {
@@ -128,6 +144,11 @@ export async function POST(request: NextRequest) {
     if (!customerId || !content || content.length > 2000) {
       return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Data tidak valid" } }, { status: 400 });
     }
+    const [customer] = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, customerId)).limit(1);
+    if (!customer || customer.role !== "customer") {
+      return NextResponse.json({ success: false, error: { code: "CUSTOMER_INVALID", message: "Akun tujuan bukan pelanggan" } }, { status: 404 });
+    }
+
     const orderId = typeof body.orderId === "string" ? body.orderId : null;
     if (orderId) {
       const [linkedOrder] = await db.select({ id: orders.id }).from(orders).where(and(eq(orders.id, orderId), eq(orders.userId, customerId))).limit(1);

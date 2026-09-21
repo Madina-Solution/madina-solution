@@ -391,3 +391,27 @@
 
 .dark .rich-product-content{color:#e2e8f0}.dark .rich-product-content th,.dark .rich-product-content td{border-color:#334155}.dark .rich-product-content th{background:#111827;color:#f8fafc}.dark .rich-product-content blockquote{background:#2a1c14;color:#fed7aa;border-left-color:#fb923c}
 .dark .rich-article-content{color:#cbd5e1}.dark .rich-article-content>h1,.dark .rich-article-content>h2,.dark .rich-article-content>h3{color:#f8fafc}.dark .rich-article-content th,.dark .rich-article-content td{border-color:#334155}.dark .rich-article-content th{background:#111827;color:#f8fafc}.dark .rich-article-content blockquote{background:#2a1c14;color:#fed7aa}.dark .rich-article-content hr{border-color:#334155}
+
+/* WYSIWYG editor: unified dark canvas/text contract for admin dark mode and public html.dark mode. */
+.admin-ui.admin-dark .rich-editor-content,
+html.dark .rich-editor-content{color-scheme:dark;background:#020617;color:#e5e7eb;caret-color:#fb923c}
+.admin-ui.admin-dark .rich-editor-content p,
+.admin-ui.admin-dark .rich-editor-content li,
+.admin-ui.admin-dark .rich-editor-content div,
+.admin-ui.admin-dark .rich-editor-content span,
+html.dark .rich-editor-content p,
+html.dark .rich-editor-content li,
+html.dark .rich-editor-content div,
+html.dark .rich-editor-content span{color:#e2e8f0}
+.admin-ui.admin-dark .rich-editor-content h1, .admin-ui.admin-dark .rich-editor-content h2, .admin-ui.admin-dark .rich-editor-content h3, .admin-ui.admin-dark .rich-editor-content h4,
+html.dark .rich-editor-content h1, html.dark .rich-editor-content h2, html.dark .rich-editor-content h3, html.dark .rich-editor-content h4{color:#f8fafc}
+.admin-ui.admin-dark .rich-editor-content a, html.dark .rich-editor-content a{color:#fdba74}
+.admin-ui.admin-dark .rich-editor-content blockquote, html.dark .rich-editor-content blockquote{background:#1f1712;color:#fed7aa;border-left-color:#fb923c}
+.admin-ui.admin-dark .rich-editor-content code, html.dark .rich-editor-content code{background:#1e293b;color:#e2e8f0}
+.admin-ui.admin-dark .rich-editor-content th, html.dark .rich-editor-content th{background:#111827;color:#f8fafc}
+.admin-ui.admin-dark .rich-editor-content th, .admin-ui.admin-dark .rich-editor-content td, html.dark .rich-editor-content th, html.dark .rich-editor-content td{border-color:#334155}
+.admin-ui.admin-dark .rich-editor-content hr, html.dark .rich-editor-content hr{border-top-color:#334155}
+.admin-ui.admin-dark .rich-editor-content .rich-inline-cta, html.dark .rich-editor-content .rich-inline-cta{background:#0b1220;border:1px solid #1e293b}
+.admin-ui.admin-dark .rich-editor-content .rich-callout-tip{background:#0d2118;border-color:#166534;color:#bbf7d0}
+.admin-ui.admin-dark .rich-editor-content .rich-callout-warning{background:#26190f;border-color:#9a3412;color:#fed7aa}
+.admin-ui.admin-dark .rich-editor-content .rich-callout-summary{background:#111f3b;border-color:#1d4ed8;color:#bfdbfe}

@@ -199,8 +199,11 @@ export class PaymentService {
     await db.transaction(async (tx) => {
       const paidAt = new Date();
       await tx.update(payments).set({ status: "paid", paidAt, updatedAt: paidAt }).where(eq(payments.id, paymentId));
-      const [order] = await tx.select({ orderNumber: orders.orderNumber }).from(orders).where(eq(orders.id, payment.orderId)).limit(1);
-      await tx.update(orders).set({ paymentStatus: "paid", updatedAt: paidAt }).where(eq(orders.id, payment.orderId));
+      const [order] = await tx.select({ orderNumber: orders.orderNumber, total: orders.total }).from(orders).where(eq(orders.id, payment.orderId)).limit(1);
+      const paidRows = await tx.select({ amount: payments.amount }).from(payments).where(and(eq(payments.orderId, payment.orderId), eq(payments.status, "paid")));
+      const paidTotal = paidRows.reduce((total, row) => total + Number(row.amount || 0), 0);
+      const paymentStatus = order && paidTotal >= Number(order.total || 0) ? "paid" : "partial";
+      await tx.update(orders).set({ paymentStatus, updatedAt: paidAt }).where(eq(orders.id, payment.orderId));
       if (order) {
         const [existingLedger] = await tx.select({ id: financeTransactions.id }).from(financeTransactions).where(and(eq(financeTransactions.paymentId, paymentId), eq(financeTransactions.type, "income"), eq(financeTransactions.status, "posted"))).limit(1);
         if (!existingLedger) {
@@ -220,6 +223,20 @@ export class PaymentService {
         resourceId: paymentId,
         metadata: { orderId: payment.orderId, reason },
       });
+
+      const [orderOwner] = await tx.select({ userId: orders.userId, orderNumber: orders.orderNumber }).from(orders).where(eq(orders.id, payment.orderId)).limit(1);
+      if (orderOwner?.userId) {
+        await tx.insert(notifications).values({
+          userId: orderOwner.userId,
+          orderId: payment.orderId,
+          type: "payment_manual_confirmed",
+          title: paymentStatus === "paid" ? "Pembayaran telah dikonfirmasi" : "Pembayaran sebagian telah dikonfirmasi",
+          message: `Pembayaran untuk pesanan ${orderOwner.orderNumber} telah dikonfirmasi oleh tim${paymentStatus === "paid" ? " dan tagihan dinyatakan lunas" : ". Sisa tagihan masih dapat dilihat pada halaman keuangan akun Anda"}.`,
+          channel: "in_app",
+          status: "pending",
+          sentAt: new Date(),
+        });
+      }
     });
   }
 }

@@ -24,7 +24,8 @@
     "validate:commerce": "node scripts/validate-commerce.mjs",
     "validate:i18n": "node scripts/validate-i18n.mjs",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
-    "validate:security-scale": "node scripts/validate-security-scale.mjs"
+    "validate:security-scale": "node scripts/validate-security-scale.mjs",
+    "validate:customer-context": "node scripts/validate-customer-context.mjs"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",

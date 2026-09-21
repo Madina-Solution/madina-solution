@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Users, Search } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Users, Search, MessageSquare, ExternalLink } from "lucide-react";
 import { SiteImage } from "@/components/ui/site-image";
 import { MediaPlaceholder } from "@/components/ui/media-placeholder";
 import { Button } from "@/components/ui/button";
@@ -76,12 +77,13 @@ export default function AdminCustomersPage() {
             <th className="px-5 py-3 text-right font-medium text-dark-500 dark:text-slate-400">Total Belanja</th>
             <th className="px-5 py-3 font-medium text-dark-500 dark:text-slate-400">Status</th>
             <th className="px-5 py-3 font-medium text-dark-500 dark:text-slate-400">Bergabung</th>
+            <th className="px-5 py-3 text-right font-medium text-dark-500 dark:text-slate-400">Aksi</th>
           </tr></thead><tbody>{filtered.map((c) => (
             <tr key={c.id} className="border-b border-dark-50 last:border-0 hover:bg-dark-50/50 dark:border-slate-900 dark:hover:bg-slate-900/50">
               <td className="px-5 py-3.5">
                 <div className="flex items-center gap-3">
                   <div className="relative h-9 w-9 overflow-hidden rounded-full bg-dark-50 dark:bg-slate-900">{c.avatar ? <SiteImage src={c.avatar} alt={c.name} width={36} height={36} className="h-9 w-9 rounded-full object-cover" /> : <MediaPlaceholder label="Avatar" className="h-full w-full" />}</div>
-                  <div><p className="font-medium text-dark dark:text-white">{c.name}</p><p className="text-xs text-dark-400 dark:text-slate-500">{c.email}</p></div>
+                  <div className="min-w-0"><Link href={`/admin/customers/${c.id}`} className="block truncate font-medium text-dark hover:text-primary dark:text-white">{c.name}</Link><div className="mt-0.5 flex items-center gap-2"><p className="truncate text-xs text-dark-400 dark:text-slate-500">{c.email}</p><span className="rounded-full bg-primary/8 px-1.5 py-0.5 text-[9px] font-extrabold text-primary dark:bg-primary/10">Pelanggan</span></div></div>
                 </div>
               </td>
               <td className="px-5 py-3.5 text-dark-600 dark:text-slate-300">{c.phone || "—"}</td>
@@ -89,6 +91,12 @@ export default function AdminCustomersPage() {
               <td className="px-5 py-3.5 text-right font-medium text-dark dark:text-white">{formatCurrency(c.totalSpend)}</td>
               <td className="px-5 py-3.5"><button type="button" aria-label={`${c.isActive ? "Nonaktifkan" : "Aktifkan"} pelanggan ${c.name}`} onClick={() => handleToggleActive(c)}><Badge variant={c.isActive ? "success" : "error"}>{c.isActive ? "Aktif" : "Nonaktif"}</Badge></button></td>
               <td className="px-5 py-3.5 text-xs text-dark-500 dark:text-slate-400">{formatDate(c.createdAt)}</td>
+              <td className="px-5 py-3.5">
+                <div className="flex justify-end gap-1">
+                  <Link href={`/admin/messages?customerId=${c.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-dark-200 px-2.5 text-[11px] font-bold text-dark-600 hover:border-primary/20 hover:text-primary dark:border-slate-700 dark:text-slate-300" aria-label={`Pesan ${c.name}`}><MessageSquare className="h-3.5 w-3.5" /> Pesan</Link>
+                  <Link href={`/admin/customers/${c.id}`} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-dark-200 text-dark-500 hover:border-primary/20 hover:text-primary dark:border-slate-700 dark:text-slate-300" aria-label={`Buka profil ${c.name}`} title="Buka profil"><ExternalLink className="h-3.5 w-3.5" /></Link>
+                </div>
+              </td>
             </tr>
           ))}</tbody></table></div>
         ) : <div className="flex flex-col items-center justify-center py-16"><Users className="h-10 w-10 text-dark-300" /><p className="mt-4 font-semibold text-dark dark:text-white">{search ? "Tidak ditemukan" : "Belum ada pelanggan"}</p></div>}

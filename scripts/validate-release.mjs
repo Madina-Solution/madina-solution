@@ -12,6 +12,7 @@ const checks = [
   ["validate:i18n", "Internationalization contract"],
   ["validate:structured-data", "Structured data contract"],
   ["validate:security-scale", "Security, observability and scale contract"],
+  ["validate:customer-context", "Customer profile, messaging and finance context contract"],
   ["validate:db-schema", "Database schema contract"],
   ["typecheck", "TypeScript"],
   ["lint", "ESLint"],
