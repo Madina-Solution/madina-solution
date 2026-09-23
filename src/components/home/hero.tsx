@@ -55,7 +55,7 @@ export async function Hero() {
                 alt={content.heroImageAlt}
                 fill
                 priority
-                quality={78}
+                quality={75}
                 sizes="(max-width: 640px) 92vw, (max-width: 1024px) 85vw, 50vw"
                 className="h-full w-full rounded-[1.25rem] object-cover"
               />}

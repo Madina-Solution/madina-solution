@@ -22,25 +22,19 @@ export function BrandMark({
   compact = false,
   priority = false,
 }: BrandMarkProps) {
-  const logoSize = compact ? "h-9 w-9" : "h-10 w-10";
+  const logoSize = compact ? "h-9 w-11" : "h-10 w-14";
 
   return (
     <span className={cn("flex min-w-0 items-center gap-3", className)}>
       <span className={cn("relative block shrink-0 overflow-hidden", logoSize, logoClassName)}>
-        {siteLogo ? (
-          <SiteImage
-            src={siteLogo}
-            alt={siteName}
-            fill
-            priority={priority}
-            sizes={compact ? "36px" : "40px"}
-            className="object-contain"
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center rounded-xl bg-primary text-sm font-black text-white">
-            {siteName.charAt(0).toUpperCase()}
-          </span>
-        )}
+        <SiteImage
+          src={siteLogo || "/brand/madina-logo.png"}
+          alt={siteName}
+          fill
+          priority={priority}
+          sizes={compact ? "44px" : "56px"}
+          className="object-contain"
+        />
       </span>
       {showText && (
         <span className="min-w-0">

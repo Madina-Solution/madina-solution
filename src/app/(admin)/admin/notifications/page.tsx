@@ -1,69 +1,117 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { Bell, CheckCheck, Loader2, RefreshCcw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Bell, Check, CheckCheck, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { useAuth } from "@/lib/auth/auth-provider";
+import { formatDate } from "@/lib/utils";
 
 type Notification = {
   id: string;
+  type: string;
   title: string;
   message: string;
-  type: string;
-  orderId: string | null;
   readAt: string | null;
   createdAt: string;
 };
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
-
 export default function AdminNotificationsPage() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [items, setItems] = React.useState<Notification[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [unreadCount, setUnreadCount] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  const load = React.useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+  const fetchData = React.useCallback(async (silent = false) => {
     try {
       const response = await fetch("/api/notifications", { cache: "no-store" });
       const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.error?.message || "Gagal memuat notifikasi");
+      if (!response.ok || !data.success) return;
       setItems(data.notifications || []);
-    } catch (error) {
-      if (!silent) toast({ type: "error", title: "Notifikasi gagal dimuat", description: error instanceof Error ? error.message : undefined });
+      setUnreadCount(Number(data.unreadCount || 0));
+    } catch {
+      if (!silent) toast({ type: "error", title: "Gagal memuat notifikasi" });
     } finally {
-      if (!silent) setLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, [toast]);
 
   React.useEffect(() => {
-    const initial = window.setTimeout(() => void load(), 0);
-    const interval = window.setInterval(() => void load(true), 5000);
-    return () => { window.clearTimeout(initial); window.clearInterval(interval); };
-  }, [load]);
+    const initial = window.setTimeout(() => void fetchData(), 0);
+    const interval = window.setInterval(() => {
+      if (!document.hidden) void fetchData(true);
+    }, 5000);
+    const onVisibilityChange = () => {
+      if (!document.hidden) void fetchData(true);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [fetchData]);
 
   const markRead = async (id: string) => {
-    const response = await fetch(`/api/notifications/${id}/read`, { method: "POST" });
-    if (response.ok) setItems((current) => current.map((item) => item.id === id ? { ...item, readAt: new Date().toISOString() } : item));
+    const response = await fetch(`/api/notifications/${id}/read`, { method: "PATCH" });
+    if (response.ok) void fetchData(true);
   };
 
-  const unread = items.filter((item) => !item.readAt).length;
+  const markAllRead = async () => {
+    const response = await fetch("/api/notifications/read-all", { method: "POST" });
+    if (!response.ok) {
+      toast({ type: "error", title: "Gagal memperbarui notifikasi" });
+      return;
+    }
+    toast({ type: "success", title: "Semua notifikasi dibaca" });
+    void fetchData(true);
+  };
+
+  if (!user) return null;
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Workspace Notifications</p><h1 className="mt-1 text-2xl font-black tracking-tight text-dark dark:text-white">Notifikasi</h1><p className="mt-1 text-sm text-dark-500 dark:text-slate-400">Pemberitahuan akun, pesan pelanggan, pembayaran, dan perubahan pesanan.</p></div>
-        <div className="flex items-center gap-2"><span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-black text-primary">{unread} belum dibaca</span><button type="button" onClick={() => void load()} className="flex h-9 w-9 items-center justify-center rounded-xl border border-dark-100 bg-white text-dark-500 hover:border-primary/20 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300" aria-label="Refresh notifikasi"><RefreshCcw className="h-4 w-4" /></button></div>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">System Inbox</p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-dark dark:text-white">Notifikasi</h1>
+          <p className="mt-1 text-sm text-dark-500 dark:text-slate-400">Pemberitahuan akun, pesanan, pembayaran, dan aktivitas operasional.</p>
+        </div>
+        {unreadCount > 0 && <Button variant="outline" size="sm" onClick={() => void markAllRead}><CheckCheck className="h-4 w-4" /> Tandai Semua Dibaca</Button>}
       </header>
 
-      <section className="overflow-hidden rounded-2xl border border-dark-100 bg-white dark:border-slate-800 dark:bg-slate-950">
-        {loading ? <div className="flex min-h-[240px] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div> : items.length === 0 ? <div className="px-5 py-16 text-center"><Bell className="mx-auto h-9 w-9 text-dark-300 dark:text-slate-700" /><p className="mt-3 font-bold text-dark dark:text-white">Belum ada notifikasi</p><p className="mt-1 text-sm text-dark-500 dark:text-slate-400">Aktivitas penting akan muncul di sini.</p></div> : <div className="divide-y divide-dark-50 dark:divide-slate-900">{items.map((item) => <article key={item.id} className={cn("px-5 py-4 transition", item.readAt ? "opacity-75" : "bg-primary/[0.025]")}>
-          <div className="flex items-start gap-3"><div className={cn("mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", item.readAt ? "bg-dark-50 text-dark-400 dark:bg-slate-900 dark:text-slate-500" : "bg-primary/10 text-primary")}><Bell className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between"><div><h2 className="font-bold text-dark dark:text-white">{item.title}</h2><p className="mt-1 text-sm leading-6 text-dark-600 dark:text-slate-300">{item.message}</p></div><time className="shrink-0 text-[11px] text-dark-400">{formatDate(item.createdAt)}</time></div><div className="mt-3 flex items-center gap-3">{item.orderId && <Link href={`/admin/orders/${item.orderId}`} className="text-xs font-black text-primary hover:underline">Buka pesanan</Link>}{!item.readAt && <button type="button" onClick={() => void markRead(item.id)} className="inline-flex items-center gap-1.5 text-xs font-bold text-dark-500 hover:text-primary dark:text-slate-400"><CheckCheck className="h-3.5 w-3.5" /> Tandai dibaca</button>}</div></div></div>
-        </article>)}</div>}
-      </section>
+      {isLoading ? (
+        <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-dark-100 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      ) : items.length === 0 ? (
+        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dark-100 bg-white px-6 text-center dark:border-slate-800 dark:bg-slate-950">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Bell className="h-7 w-7" /></div>
+          <h2 className="mt-4 font-black text-dark dark:text-white">Belum Ada Notifikasi</h2>
+          <p className="mt-1 max-w-md text-sm leading-6 text-dark-500 dark:text-slate-400">Notifikasi baru akan muncul otomatis saat ada aktivitas pada akun atau operasional Anda.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((notification) => (
+            <article key={notification.id} className={`rounded-2xl border bg-white p-4 dark:bg-slate-950 ${notification.readAt ? "border-dark-100 dark:border-slate-800" : "border-primary/20 bg-primary/[0.03] dark:border-primary/30 dark:bg-primary/[0.05]"}`}>
+              <div className="flex items-start gap-3">
+                <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${notification.readAt ? "bg-dark-100 text-dark-500 dark:bg-slate-900 dark:text-slate-400" : "bg-primary/10 text-primary"}`}><Bell className="h-5 w-5" /></div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="font-bold text-dark dark:text-white">{notification.title}</h2>
+                      <p className="mt-1 text-sm leading-6 text-dark-600 dark:text-slate-300">{notification.message}</p>
+                      <p className="mt-2 text-xs text-dark-400 dark:text-slate-500">{formatDate(notification.createdAt)}</p>
+                    </div>
+                    {!notification.readAt && <Button variant="ghost" size="icon" onClick={() => void markRead(notification.id)} title="Tandai dibaca" aria-label="Tandai dibaca"><Check className="h-4 w-4" /></Button>}
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

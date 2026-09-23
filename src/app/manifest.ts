@@ -10,11 +10,11 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     // Keep the bundled icon when the database is unavailable.
   }
 
-  const isCustomIcon = icon !== "/icons/madina-512.png";
-  const cacheBust = isCustomIcon ? "" : "?v=20260922";
-  const icon192 = isCustomIcon ? icon : `/icons/madina-192.png${cacheBust}`;
-  const icon512 = isCustomIcon ? icon : `/icons/madina-512.png${cacheBust}`;
-  const type = (value: string) => value.toLowerCase().endsWith(".svg") ? "image/svg+xml" : "image/png";
+  const isCanonicalIcon = icon === "/icons/madina-512.png";
+  const isCustomRasterIcon = /\.png(?:\?.*)?$/i.test(icon) && !isCanonicalIcon;
+  const cacheBust = "?v=20260923";
+  const icon192 = isCustomRasterIcon ? icon : `/icons/madina-192.png${cacheBust}`;
+  const icon512 = isCustomRasterIcon ? icon : `/icons/madina-512.png${cacheBust}`;
   return {
     name: "Madina Solution",
     short_name: "Madina",
@@ -27,9 +27,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     dir: "ltr",
     id: "/",
     icons: [
-      { src: icon192, sizes: "192x192", type: type(icon192), purpose: "any" },
-      { src: icon512, sizes: "512x512", type: type(icon512), purpose: "any" },
-      { src: icon512, sizes: "512x512", type: type(icon512), purpose: "maskable" },
+      { src: icon192, sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: icon512, sizes: "512x512", type: "image/png", purpose: "any maskable" },
     ],
   };
 }

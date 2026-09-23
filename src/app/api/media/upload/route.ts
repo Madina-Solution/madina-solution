@@ -10,7 +10,7 @@ import type { MediaPurpose, MediaVisibility } from "@/lib/media/types";
 
 export const dynamic = "force-dynamic";
 
-const VALID_PURPOSES: MediaPurpose[] = ["order_asset", "design_revision", "customer_upload", "production_asset", "portfolio", "avatar", "product_image", "service_image", "category_image", "article_image", "content_image", "testimonial_avatar", "site_hero", "site_logo", "site_app_icon"];
+const VALID_PURPOSES: MediaPurpose[] = ["order_asset", "design_revision", "customer_upload", "production_asset", "portfolio", "avatar", "product_image", "service_image", "category_image", "article_image", "content_image", "testimonial_avatar", "site_hero", "site_logo"];
 const CONTENT_PURPOSES = new Set<MediaPurpose>(["product_image", "service_image", "category_image", "article_image", "content_image", "portfolio", "testimonial_avatar", "site_hero", "site_logo"]);
 
 export async function POST(request: NextRequest) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (purpose === "site_logo" || purpose === "site_hero" || purpose === "site_app_icon") {
+    if (purpose === "site_logo" || purpose === "site_hero") {
       if (!hasPermission(session.role, "settings.update")) {
         return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Role ini tidak memiliki akses untuk mengubah branding situs" } }, { status: 403 });
       }

@@ -20,8 +20,7 @@ export type MediaUploaderPurpose =
   | "content_image"
   | "testimonial_avatar"
   | "site_hero"
-  | "site_logo"
-  | "site_app_icon";
+  | "site_logo";
 
 type Props = {
   value?: string | string[] | null;

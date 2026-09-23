@@ -25,7 +25,8 @@
     "validate:i18n": "node scripts/validate-i18n.mjs",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
     "validate:security-scale": "node scripts/validate-security-scale.mjs",
-    "validate:customer-context": "node scripts/validate-customer-context.mjs"
+    "validate:customer-context": "node scripts/validate-customer-context.mjs",
+    "validate:runtime": "node scripts/validate-runtime-contract.mjs"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
@@ -48,13 +49,12 @@
     "clsx": "^2.1.1",
     "dotenv": "17.3.1",
     "drizzle-orm": "0.45.2",
-    "firebase": "^12.18.0",
+    "firebase": "12.18.0",
     "framer-motion": "^13.1.0",
     "jose": "^6.2.9",
     "lucide-react": "^1.31.0",
     "next": "16.2.6",
     "next-intl": "^4.14.5",
-    "nodemailer": "^10.0.10",
     "pg": "8.20.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
@@ -66,7 +66,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
-    "@types/nodemailer": "^8.0.2",
     "@types/pg": "8.18.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",

@@ -12,8 +12,7 @@ export type MediaPurpose =
   | "content_image"
   | "testimonial_avatar"
   | "site_hero"
-  | "site_logo"
-  | "site_app_icon";
+  | "site_logo";
 
 export type MediaVisibility = "private" | "public";
 

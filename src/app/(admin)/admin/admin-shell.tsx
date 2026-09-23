@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { NotificationBell } from "@/components/account/notification-bell";
 import {
   LayoutDashboard,
   WalletCards,
@@ -47,6 +46,7 @@ import { BrandMark } from "@/components/layout/brand-mark";
 import { SiteImage } from "@/components/ui/site-image";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getAdminRoutePermission } from "@/lib/auth/admin-routes";
+import { NotificationBell } from "@/components/account/notification-bell";
 
 const DASHBOARD_ITEM = { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true };
 const CONTROL_CENTER_ITEM = { href: "/admin/control-center", label: "Control Center", icon: CircleGauge, exact: false };
