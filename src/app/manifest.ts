@@ -10,9 +10,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     // Keep the bundled icon when the database is unavailable.
   }
 
-  const isCanonicalIcon = icon === "/icons/madina-512.png";
-  const isCustomRasterIcon = /\.png(?:\?.*)?$/i.test(icon) && !isCanonicalIcon;
-  const cacheBust = "?v=20260923";
+  const isCustomRasterIcon = /\.png(?:\?.*)?$/i.test(icon);
+  const cacheBust = isCustomRasterIcon ? "" : "?v=20260922";
   const icon192 = isCustomRasterIcon ? icon : `/icons/madina-192.png${cacheBust}`;
   const icon512 = isCustomRasterIcon ? icon : `/icons/madina-512.png${cacheBust}`;
   return {
@@ -28,7 +27,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     id: "/",
     icons: [
       { src: icon192, sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: icon512, sizes: "512x512", type: "image/png", purpose: "any maskable" },
+      { src: icon512, sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: icon512, sizes: "512x512", type: "image/png", purpose: "any" },
     ],
   };
 }

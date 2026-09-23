@@ -227,18 +227,11 @@ async function seedRich() {
 
   const homepageSettings = [
     ["site_name", "Madina Solution"],
-    ["site_logo", "/brand/madina-logo.png"],
-    ["site_icon", "/icons/madina-512.png"],
     ["site_tagline", "Creative Business Platform"],
     ["site_email", "Perc.madina@gmail.com"],
     ["site_phone", "+62 813-9300-5035"],
     ["site_whatsapp", "6281393005035"],
     ["site_address", "Dusun Ngleri, Desa Ngadimulyo, Kecamatan Kedu, Kabupaten Temanggung, Jawa Tengah, Indonesia"],
-    ["social_instagram", ""],
-    ["social_facebook", ""],
-    ["social_tiktok", ""],
-    ["social_youtube", ""],
-    ["social_linkedin", ""],
     ["site_url", "https://madinasolution.vercel.app"],
     ["maps_embed_url", "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d247.3671256912222!2d110.1555280331352!3d-7.2551769777527015!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e70795cfc6cf129%3A0xa0254c4ef1fe6d5f!2sJoglo%20Market!5e0!3m2!1sid!2sid!4v1788080189081!5m2!1sid!2sid"],
     ["topbar_enabled", true],

@@ -55,8 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = normalizeDescription(config.seoDescription || BRAND.description);
   const siteUrl = config.siteUrl || getSiteUrl();
   const image = config.seoOgImage || "/opengraph-image";
-  const isCanonicalAppIcon = config.siteIcon === "/icons/madina-512.png";
-  const isRasterAppIcon = /\.png(?:\?.*)?$/i.test(config.siteIcon || "") && !isCanonicalAppIcon;
+  const isRasterAppIcon = /\.png(?:\?.*)?$/i.test(config.siteIcon || "");
   return {
     metadataBase: new URL(siteUrl),
     title: { default: title, template: `%s | ${config.siteName}` },
@@ -88,12 +87,12 @@ export async function generateMetadata(): Promise<Metadata> {
     // App icon is intentionally separate from the header logo so landscape logos do not become blurry favicons.
     icons: {
       icon: isRasterAppIcon ? [{ url: config.siteIcon, type: "image/png" }] : [
-        { url: "/icons/madina-192.png?v=20260923", type: "image/png", sizes: "192x192" },
-        { url: "/icons/madina-512.png?v=20260923", type: "image/png", sizes: "512x512" },
+        { url: "/icons/madina-192.png?v=20260922", type: "image/png", sizes: "192x192" },
+        { url: "/icons/madina-512.png?v=20260922", type: "image/png", sizes: "512x512" },
       ],
-      apple: isRasterAppIcon ? [{ url: config.siteIcon, type: "image/png", sizes: "180x180" }] : [{ url: "/icons/madina-180.png?v=20260923", type: "image/png", sizes: "180x180" }],
+      apple: isRasterAppIcon ? [{ url: config.siteIcon, type: "image/png", sizes: "180x180" }] : [{ url: "/icons/madina-180.png?v=20260922", type: "image/png", sizes: "180x180" }],
     },
-    manifest: "/manifest.webmanifest?v=20260923",
+    manifest: "/manifest.webmanifest?v=20260922",
     robots: { index: true, follow: true, nocache: false },
     // The root route intentionally has no hard-coded canonical; each indexable route declares its own canonical.
   };

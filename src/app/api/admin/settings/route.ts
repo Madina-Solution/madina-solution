@@ -11,7 +11,6 @@ export const dynamic = "force-dynamic";
 const ALLOWED_SETTING_KEYS = new Set([
   "site_name", "site_tagline", "site_logo", "site_icon", "site_email", "site_phone", "site_address", "site_whatsapp", "site_url",
   "seo_title", "seo_description", "seo_keywords", "seo_og_image", "seo_twitter_handle",
-  "social_instagram", "social_facebook", "social_tiktok", "social_youtube", "social_linkedin",
   "topbar_enabled", "topbar_text",
   "hero_badge", "hero_title", "hero_description", "hero_image", "hero_image_alt", "cta_title", "cta_description",
   "maps_embed_url",
